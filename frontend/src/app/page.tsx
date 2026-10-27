@@ -1,69 +1,184 @@
-import Image from "next/image";
+"use client";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import CocktailCard from "@/components/CocktailCard";
+import { getCategories, listCocktails, type Filters } from "@/lib/api";
+import { useFavorites } from "@/lib/favorites";
+import { pl } from "@/lib/pl";
 
+// API sortuje tylko z prefiksem + lub - (samo "name" jest po cichu ignorowane)
+const SORTS = [
+  { value: "+name", label: "Nazwa A–Z" },
+  { value: "-name", label: "Nazwa Z–A" },
+  { value: "+category", label: "Kategoria" },
+];
+
+const field = "w-full rounded-lg border border-foreground/25 bg-background px-3 py-2";
+const button = "rounded-lg border px-4 py-2 hover:bg-foreground/10 disabled:opacity-40";
+
+// Filtry żyją w URL-u (?q=...&category=...), więc odświeżenie, link i "wstecz" je zachowują.
+function Cocktails() {
+  const router = useRouter();
+  const sp = useSearchParams();
+  const favs = useFavorites();
+
+  // URL to dane od użytkownika - każdą wartość sprawdzamy
+  const name = sp.get("q") ?? "";
+  const category = sp.get("category") ?? "";
+  const a = sp.get("alcohol");
+  const alcoholic: Filters["alcoholic"] = a === "true" || a === "false" ? a : "";
+  const sort = SORTS.find((s) => s.value === sp.get("sort"))?.value ?? "+name";
+  const page = Math.max(1, parseInt(sp.get("page") ?? "", 10) || 1);
+  const onlyFav = sp.get("fav") === "1";
+
+  // Zmienia parametry URL-a; pusta wartość = usuń. Każda zmiana filtra wraca na stronę 1.
+  // Czyta window.location (nie sp), żeby opóźnione wywołanie nie użyło nieaktualnych parametrów.
+  const update = (patch: Record<string, string>) => {
+    const next = new URLSearchParams(window.location.search);
+    for (const [k, v] of Object.entries(patch)) {
+      if (v) next.set(k, v);
+      else next.delete(k);
+    }
+    if (!("page" in patch)) next.delete("page");
+    router.replace(next.toString() ? `?${next}` : "/", { scroll: false });
+  };
+
+  // pole tekstowe ma własny stan (płynne pisanie), do URL-a trafia po 300 ms przerwy
+  const [text, setText] = useState(name);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  // Bez id[] API zwraca WSZYSTKIE koktajle, więc przy pustej liście nie wolno pytać.
+  const noFavs = onlyFav && favs.length === 0;
+
+  // ponytail: id[] trafia do URL-a zapytania, więc setki ulubionych = długi URL; wtedy filtrowanie po stronie klienta
+  const filters: Filters = { name, category, alcoholic, sort, page, ids: onlyFav ? favs : undefined };
+  const { data, isPending, isError, isPlaceholderData, refetch } = useQuery({
+    queryKey: ["cocktails", filters], // zmiana filtrów = nowy klucz = nowe zapytanie
+    queryFn: () => listCocktails(filters),
+    enabled: !noFavs,
+    placeholderData: keepPreviousData, // poprzednie wyniki widoczne, gdy ładują się nowe
+  });
+  const categories = useQuery({ queryKey: ["categories"], queryFn: getCategories, staleTime: Infinity });
+
+  return (
+    <main className="mx-auto w-full max-w-5xl p-4">
+      <h1 className="mb-6 text-3xl font-bold">Koktajle</h1>
+
+      <form
+        role="search"
+        onSubmit={(e) => e.preventDefault()}
+        className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+      >
+        <label className="block text-sm">
+          Szukaj
+          <input
+            type="search"
+            value={text}
+            onChange={(e) => {
+              const v = e.target.value;
+              setText(v);
+              clearTimeout(timer.current);
+              timer.current = setTimeout(() => update({ q: v.trim() }), 300);
+            }}
+            placeholder="np. margarita"
+            className={field}
+          />
+        </label>
+        <label className="block text-sm">
+          Kategoria
+          <select value={category} onChange={(e) => update({ category: e.target.value })} className={field}>
+            <option value="">Wszystkie</option>
+            {categories.data?.map((c) => (
+              <option key={c} value={c}>
+                {pl(c)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block text-sm">
+          Alkohol
+          <select value={alcoholic} onChange={(e) => update({ alcohol: e.target.value })} className={field}>
+            <option value="">Wszystkie</option>
+            <option value="true">Z alkoholem</option>
+            <option value="false">Bezalkoholowe</option>
+          </select>
+        </label>
+        <label className="block text-sm">
+          Sortuj
+          <select value={sort} onChange={(e) => update({ sort: e.target.value })} className={field}>
+            {SORTS.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2 text-sm sm:col-span-2 lg:col-span-4">
+          <input type="checkbox" checked={onlyFav} onChange={(e) => update({ fav: e.target.checked ? "1" : "" })} />
+          Tylko ulubione ({favs.length})
+        </label>
+      </form>
+
+      {noFavs ? (
+        <p className="py-12 text-center text-foreground/70">Nie masz jeszcze ulubionych koktajli. Kliknij ♡ na karcie.</p>
+      ) : isError ? (
+        <div role="alert" className="rounded-xl border border-red-500/40 p-6 text-center">
+          <p className="mb-3">Nie udało się pobrać koktajli.</p>
+          <button onClick={() => refetch()} className={button}>
+            Spróbuj ponownie
+          </button>
+        </div>
+      ) : isPending ? (
+        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4" aria-busy="true" aria-label="Ładowanie">
+          {Array.from({ length: 12 }, (_, i) => (
+            <li key={i} className="aspect-4/5 animate-pulse rounded-xl bg-foreground/10" />
+          ))}
+        </ul>
+      ) : data.data.length === 0 ? (
+        <p className="py-12 text-center text-foreground/70">Brak koktajli spełniających kryteria.</p>
+      ) : (
+        <>
+          <p className="mb-3 text-sm text-foreground/70" aria-live="polite">
+            Znaleziono: {data.meta.total}
+          </p>
+          <ul
+            className={`grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 ${isPlaceholderData ? "opacity-60" : ""}`}
+          >
+            {data.data.map((c) => (
+              <li key={c.id}>
+                <CocktailCard cocktail={c} />
+              </li>
+            ))}
+          </ul>
+
+          <nav className="mt-8 flex items-center justify-center gap-4" aria-label="Paginacja">
+            <button onClick={() => update({ page: String(page - 1) })} disabled={page <= 1} className={button}>
+              Poprzednia
+            </button>
+            <span>
+              Strona {page} z {data.meta.lastPage}
+            </span>
+            <button
+              onClick={() => update({ page: String(page + 1) })}
+              disabled={page >= data.meta.lastPage || isPlaceholderData}
+              className={button}
+            >
+              Następna
+            </button>
+          </nav>
+        </>
+      )}
+    </main>
+  );
+}
+
+// useSearchParams wymaga Suspense, bo strona jest budowana statycznie
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <Suspense>
+      <Cocktails />
+    </Suspense>
   );
 }

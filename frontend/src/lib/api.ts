@@ -21,9 +21,16 @@ export type Ingredient = {
 };
 export type Page<T> = { data: T[]; meta: { total: number; lastPage: number } };
 
+// status pozwala odróżnić "nie ma takiego koktajlu" (4xx) od awarii serwera (5xx)
+export class HttpError extends Error {
+  constructor(public status: number) {
+    super(`API ${status}`);
+  }
+}
+
 async function get<T>(path: string, params?: URLSearchParams): Promise<T> {
   const res = await fetch(`${BASE}${path}${params ? `?${params}` : ""}`);
-  if (!res.ok) throw new Error(`API ${res.status}`);
+  if (!res.ok) throw new HttpError(res.status);
   return res.json();
 }
 
