@@ -7,7 +7,7 @@ Task specs: https://github.com/Solvro/rekrutacja (cocktails theme). Cocktails AP
 ## Scope
 - `frontend/` — Next.js (App Router), TypeScript, Tailwind CSS, TanStack Query. UI text and code comments in **Polish**, identifiers in English.
 - `backend/` — Django (+ Django REST Framework), PostgreSQL. CRUD for cocktails and ingredients, pagination, validation; Swagger, tests, auth are nice-to-have.
-- UI/UX design task — done **last**, only after frontend and backend are finished.
+- UI/UX design task — started now at the user's request. **Every deliverable is HTML in `uiux/`**, including `uiux/README.html` (no README.md there): designs, color palettes, typography and every component. The goal is **creativity**: ask for the user's ideas first, don't just copy brand defaults. The task still requires the **official Solvro logo, unmodified**; open Solvro's brand files only when the user says so.
 - Not doing: Mobile, DevOps, AI/ML, PM, Promotion.
 - **Design decisions D1–D26 and the order of work are in `STEPS.md` (sections 11–12).** Follow them; don't re-decide without asking the user. Deadline: 31 October 2026. Use simple language when explaining.
 
