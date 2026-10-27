@@ -1,0 +1,47 @@
+/* Tokeny projektu "Koktajle" — jedyne źródło prawdy dla kolorów.
+   Każda strona w uiux/ importuje ten plik. Tryb wybiera atrybut data-theme na dowolnym elemencie. */
+
+/* Jasny tryb: biała strona, CIEMNE szkło */
+:root,
+[data-theme="light"] {
+  --bg: #FFFFFF;
+  --text: #0A0A0B;
+  --text-2: #6B6B73;          /* 5.3:1 na białym — nie jaśniej, #8A8A92 ma tylko 3.4 */
+  --line: rgba(10, 10, 11, .12);
+
+  --accent: #D6246E;          /* wypełnienie przycisków; tekst na nim: --on-accent */
+  --on-accent: #FFFFFF;
+  --accent-text: #D6246E;     /* róż jako tekst na tle strony */
+  --gold: #8A6D12;            /* ciemne złoto: ikony na tle strony (jasne złoto ma na bieli 2.1) */
+  --silver: #C9CDD3;
+
+  --glass: rgba(20, 20, 24, .85);
+  --glass-solid: #37373B;     /* zamiennik, gdy przeglądarka nie umie blur; = najgorszy przypadek szkła */
+  --glass-text: #FFFFFF;
+  --glass-text-2: #C9CDD3;
+  --glass-gold: #D4AF37;
+  --glass-line: rgba(255, 255, 255, .14);
+  --glass-blur: 24px;
+}
+
+/* Ciemny tryb: czarna strona, JASNE szkło (odwrócone) */
+[data-theme="dark"] {
+  --bg: #0A0A0B;
+  --text: #FFFFFF;
+  --text-2: #A1A1AA;
+  --line: rgba(255, 255, 255, .14);
+
+  --accent: #D6246E;
+  --on-accent: #FFFFFF;
+  --accent-text: #FF4D8D;     /* jaśniejszy róż, bo na czerni 6.3:1 */
+  --gold: #D4AF37;
+  --silver: #C9CDD3;
+
+  --glass: rgba(245, 245, 247, .85);
+  --glass-solid: #D2D2D4;
+  --glass-text: #0A0A0B;
+  --glass-text-2: #52525B;
+  --glass-gold: #8A6D12;      /* tylko ikony (3:1), nigdy tekst */
+  --glass-line: rgba(10, 10, 11, .10);
+  --glass-blur: 24px;
+}
