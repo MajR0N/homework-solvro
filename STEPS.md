@@ -191,3 +191,16 @@ A question-by-question interview (one question at a time, each with a recommenda
 
 **If time runs short, cut from the bottom:** UI/UX, then uploads, then profile pages and forms, then reviews. The backend core plus JWT is a complete submission on its own.
 The check-ins are Claude's proposal for a safety net; the user can ignore them.
+
+## 13. UI/UX — decisions so far (variant 3: landing page)
+
+All deliverables are HTML in `uiux/` (including `uiux/README.html`, still to be written).
+
+| # | Decision |
+|---|---|
+| U1 | **Variant 3: one-page landing page**, desktop and phone views. |
+| U2 | **Concept:** Uber-style minimalism (mostly black/white/gray, big clean type, lots of space). Information on **cards of glass**; the **top bar is glass too**. |
+| U3 | **Glass is inverted against the page:** dark glass in light mode, light glass in dark mode, so it always stands out. Panes with text use 85% opacity (worst case tested: 5.2 at 62% was too low). |
+| U4 | **Palette** in `uiux/tokens.css`, shown in `uiux/palette.html` with a live contrast check (16/16 pairs pass WCAG AA). Pink is the only action color (a fill and a separate text shade), gold is only for small icons, never text on glass. |
+| U5 | **Background color from the drink photos, subtle ("ambient glow"):** the base stays pure black/white; the photo's main color becomes a soft capped glow behind the panes. Top bar, buttons, pink accent and text stay constant. Rule: **all text sits on glass.** Details (strength, picking the color, limits) to be discussed later. Reading colors from photos in the real app needs CORS on Solvro's image host (not checked). |
+| — | Open: typography (the task allows Space Grotesk), components, page layout, accessibility pass, `uiux/README.html`. |
