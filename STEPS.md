@@ -87,19 +87,12 @@ List filters: `name` (substring), `category`, `alcoholic`, `sort`, `page`, `perP
 | Translate API content? | **A:** dictionary for categories + glasses only. Not done: oz→ml conversion (B), translating instructions (C), all-English UI (D). |
 | SWR vs TanStack Query (because Vercel)? | **Stay with TanStack Query** — hosting doesn't matter, Solvro uses it, already working. |
 | GitHub Pages? | Static-only: needs `output: "export"`, `basePath`, unoptimized images and a different detail URL. **Not chosen.** |
-| Hosting | **Open:** Vercel (recommended, zero config) or Netlify. Others (Cloudflare, Render, Railway, own VPS) are more work. |
-| Component library (item 6) | **Open:** proposed shadcn/ui for Button, Input, Checkbox, Badge, Skeleton; keep native `<select>`; do it before deploying. Not approved yet. |
+| Frontend hosting | **Vercel** (decided in grilling, D20). Netlify and others rejected. |
+| Component library (item 6) | **shadcn/ui everywhere** (decided in grilling, D16). Not built yet. |
 
-## 6. Backend (Django) — proposed plan, not started
+## 6. Backend (Django) — not started
 
-1. Setup: venv, Django + DRF, PostgreSQL connection.
-2. Models: `Ingredient`, `Cocktail`, and a link table holding the amount per ingredient.
-3. CRUD endpoints (serializers, viewsets) + pagination.
-4. Validation and filtering/sorting (name, category, alcoholic, ingredient).
-5. Swagger/OpenAPI docs + automated tests; DB schema diagram.
-6. Optional: users, roles, JWT.
-
-`backend/README.md` currently holds the task text as a placeholder.
+The design is decided in the grilling session; see section 11. `backend/README.md` currently holds the task text as a placeholder.
 
 ## 7. UI/UX — last
 
@@ -123,7 +116,78 @@ Nothing has been pushed (remote: `origin`, `github.com/MajR0N/homework-solvro`).
 
 ## 10. What's next
 
-1. Decide hosting (Vercel / Netlify) and deploy the frontend — needs your accounts.
-2. Decide on shadcn/ui (item 6).
-3. Approve or change the Django plan, then build it step by step.
-4. UI/UX at the end.
+See section 11 (decisions) and section 12 (order of work).
+
+## 11. Grilling results — decisions D1–D26
+
+A question-by-question interview (one question at a time, each with a recommendation) held on 27 October 2026. "Rec." = what Claude recommended; the user's choice is what counts.
+
+### Architecture
+| # | Question | Decision | Notes |
+|---|---|---|---|
+| D1 | How are frontend and backend connected? | **Switchable frontend**: Solvro API or own Django API, all in one repo | Rec. was "independent"; user chose switchable and will explain it in a Markdown file. |
+| D2 | Whose API contract? | **Idiomatic Django** (DRF pagination, `django-filter`, `ordering`) + an **adapter in the frontend** `api.ts` | Detail response still returns `ingredients[]` with `measure`. |
+| D8 | How is the source chosen? | **Runtime switch in the UI**, remembered in `localStorage`, **Solvro is the default** | `source` goes into every `queryKey`. Write features only appear on the own-backend source. |
+| D18 | How does the browser reach Django? | **Two paths (BFF):** public reads go **directly** to Django; anything that needs a token goes through the Next.js server | User's reasons: cleaner, easier to debug. Needs CORS allowlist on Django (frontend origins only, no cookies). Django must still refuse unauthenticated writes itself. |
+| D19 | "My" data (my review, my cocktails) | **Private endpoints** through the secure path (`/me`, "my review", `cocktails?mine=true`); Django decides "mine" from the token | Clean rule: public data direct, token data via Next.js. |
+| D20 | Frontend hosting | **Vercel** | Server calls to Django get a timeout and a friendly message (backend may be waking up). |
+| D13 | Where do Django + Postgres run? | **Google Cloud Run + Neon (Postgres)** | Free tiers confirmed by the user from AI-overview screenshots; **verify on the official pages**. Cloud Run's attached service account avoids a stored key file. |
+| D7 | Is the backend deployed? | **Yes**, part of the main plan | Needs production settings, secrets in env vars, gunicorn, static files. |
+
+### Data model
+| # | Question | Decision |
+|---|---|---|
+| D3 | Amount of an ingredient | **Free text** `measure` on the link table. The **frontend converts units** (oz→ml); unparseable amounts stay unchanged. |
+| D4 | Seed data | **Import all Solvro data keeping Solvro ids as primary keys**; idempotent command; reset the id sequence afterwards. Favorites then work on both sources. |
+| D9 | Category and glass | **Category is its own table (FK); glass is a plain text field.** Plus indexes: FKs (automatic), B-tree on `Cocktail.name`, `glass`, `Ingredient.name`, unique `(cocktail, ingredient)`, index on `CocktailIngredient.ingredient`. |
+| D10 | Fast name search | **Trigram GIN index** (`pg_trgm`) on `Upper(name)`, because Django's `icontains` is `UPPER(name) LIKE …`. Show `EXPLAIN ANALYZE` in the README; at 220 rows it is a demonstration, not a measurable speedup (Postgres may still choose a sequential scan). |
+| D14 | Reviews | **One per user per cocktail** (`UniqueConstraint`), rating 1–5 (`CheckConstraint`), optional text. Author can edit/delete own review; admin can delete any. Average rating via `annotate`. |
+| D21 | Ingredient permissions | Any logged-in user can create; **author or admin** edits/deletes; imported ones are admin-only; **deleting an ingredient that is in use is refused** (`PROTECT`). |
+| D22 | Author label | Every cocktail/review shows its creator (**username only, never email**) linking to a **profile page**; imported ones show "Import z Solvro API". |
+| D23 | User deleted | **Really delete the user**; content keeps copies written at creation: `author_user_id` (a number) and `author_name`. Profile URL uses the **number**, never the name (a freed name could be taken by someone else). For a deleted number Django answers "name + account unavailable" from the saved copies. Gain: email and password hash are truly erased. Limit: old username stays public on content. |
+
+### Security
+| # | Question | Decision |
+|---|---|---|
+| D5 | Auth scope | **Full:** JWT (`djangorestframework-simplejwt`), User/Admin roles, author-based permissions, reviews. User's reason: JWT is popular and worth learning. |
+| D24 | Token lifetimes | **Access ≈ 10 min, refresh ≈ 7 days with rotation + blacklist**; logout blacklists the refresh token; the secure path refreshes only once when several requests expire together. Numbers live in settings. |
+| — | Why not `localStorage` | Any XSS can steal tokens there. Tokens live in **`HttpOnly` cookies set by the Next.js server (BFF)**; `HttpOnly` stops theft but not an attacker acting while the page is open, so XSS is still avoided (React escaping, no `dangerouslySetInnerHTML`, CSP). Cookies need `SameSite` + `Origin` checks against CSRF. |
+| D11 | Ingredient image | **File upload to Google Cloud Storage** (free tier; needs a billing account; set a budget alert). |
+| D12 | Upload path | **Direct signed-URL upload** (browser → bucket). Signed URL restricts content type and size; Django **confirms** the object (exists, real size, opens as an image, else deletes); unconfirmed uploads expire via a bucket lifecycle rule; bucket CORS allows `PUT` from the frontend origin; random UUID filenames. |
+
+### Frontend
+| # | Question | Decision |
+|---|---|---|
+| D6 | Frontend UI for new features | **Full UI:** login, register, add/edit cocktail (with ingredient rows), reviews, upload, profile pages. Reason: the task allows any extra features. |
+| D16 | Component library | **shadcn/ui everywhere**, first as a small restyle commit of the existing pages. Check Tailwind v4 / Next 16 compatibility on the first install. |
+| D17 | Forms | **`react-hook-form` + `zod`**; Django remains the source of truth, field errors are mapped back onto the form. |
+| — | Server state | Stay with TanStack Query (not SWR). |
+
+### Testing and process
+| # | Question | Decision |
+|---|---|---|
+| D15 | Backend tests | **`pytest` + `pytest-django`** on real PostgreSQL. First: permission matrix, review constraints, filter/pagination validation, import idempotency, upload confirm rejecting a non-image. |
+| D25/D26 | Deadline | **31 October 2026.** Claude warned (once) that the full plan is very large for ~5 days and proposed a cut line; **the user decided to attempt everything.** |
+
+### Still open (defaults will be used unless changed)
+- Which UI/UX variant (sticker / launch graphic / landing page) — last, as agreed.
+- Local development: PostgreSQL is installed locally, so no `docker-compose.yml` unless needed.
+- Rate limiting on login/register (DRF throttling) — default: yes, small.
+- Hours per day available — not given.
+
+## 12. Order of work (every step leaves something working)
+
+1. Deploy the frontend to Vercel as it is (Solvro API only).
+2. Backend core: Django + DRF + Postgres, models, import command, indexes, read endpoints.
+3. CRUD, pagination, validation, filtering/sorting, Swagger, `pytest` tests, README with schema picture.
+4. **Check-in at the end of day 2:** review what is done; user decides whether to continue or cut.
+5. JWT, roles, permissions, author copies, reviews.
+6. **Check-in at the end of day 3.**
+7. Deploy the backend (Cloud Run + Neon).
+8. Frontend: shadcn restyle, source switch + adapter, secure Next.js path, unit conversion.
+9. Frontend: login/register/forms, profile pages.
+10. Signed uploads to Google Cloud Storage (riskiest, so late).
+11. UI/UX task.
+
+**If time runs short, cut from the bottom:** UI/UX, then uploads, then profile pages and forms, then reviews. The backend core plus JWT is a complete submission on its own.
+The check-ins are Claude's proposal for a safety net; the user can ignore them.

@@ -9,6 +9,7 @@ Task specs: https://github.com/Solvro/rekrutacja (cocktails theme). Cocktails AP
 - `backend/` — Django (+ Django REST Framework), PostgreSQL. CRUD for cocktails and ingredients, pagination, validation; Swagger, tests, auth are nice-to-have.
 - UI/UX design task — done **last**, only after frontend and backend are finished.
 - Not doing: Mobile, DevOps, AI/ML, PM, Promotion.
+- **Design decisions D1–D26 and the order of work are in `STEPS.md` (sections 11–12).** Follow them; don't re-decide without asking the user. Deadline: 31 October 2026. Use simple language when explaining.
 
 ## How to work (these override terse-output defaults)
 1. **The user decides.** Before writing code for a new step, present the idea or options with a recommendation, then wait for the user's idea or approval. Do not implement beyond the approved step.
