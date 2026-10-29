@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Cocktail, CocktailIngredient, Ingredient
+from .models import Category, Cocktail, CocktailIngredient, Ingredient
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -33,3 +33,9 @@ class CocktailDetailSerializer(CocktailListSerializer):
 
     class Meta(CocktailListSerializer.Meta):
         fields = CocktailListSerializer.Meta.fields + ["instructions", "ingredients"]
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["id", "name"]

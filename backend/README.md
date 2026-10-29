@@ -103,4 +103,17 @@ Przy 220 koktajlach to tylko demonstracja: tabela mieści się w kilku stronach 
 | `GET /api/v1/cocktails/` | lista po 20 (`?page=2`, `?page_size=50`, maks. 100) |
 | `GET /api/v1/cocktails/{id}/` | jeden koktajl z instrukcją i listą `ingredients[]` (każdy z polem `measure`) |
 
+| `GET /api/v1/categories/` | wszystkie kategorie (bez paginacji) |
+
+Parametry listy koktajli (łączą się ze sobą i z paginacją; zła wartość daje 400):
+
+| Parametr | Przykład | Znaczenie |
+|---|---|---|
+| `search` | `?search=marg` | fragment nazwy, bez rozróżniania wielkości liter |
+| `category` | `?category=Shot` | dokładna nazwa kategorii |
+| `glass` | `?glass=Jar` | dokładna nazwa szklanki |
+| `alcoholic` | `?alcoholic=true` | tylko `true` lub `false` |
+| `id` | `?id=11000,11007` | tylko te koktajle (ulubione); samo `?id=` = brak wyników |
+| `ordering` | `?ordering=-name` | `name`, `-name`, `id`, `-id`; przy remisie decyduje `id` |
+
 Zapis (POST/PUT/DELETE) odpowiada 405, bo dodamy go w kolejnym kroku.
