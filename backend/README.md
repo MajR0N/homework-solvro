@@ -48,3 +48,27 @@ Każdy składnik posiada minimum:
 - wsparcie dla złożonego filtrowania i sortowania (np. szukanie bezalkoholowych koktajli zawierających miętę, sortowanie po nazwie, filtrowanie koktajli stworzonych przez danego użytkownika).
 
 **W razie problemów zapraszamy do kontaktu i powodzenia!**
+
+---
+
+## Uruchomienie lokalne
+
+```bash
+python -m venv .venv
+.venv/Scripts/activate            # Windows (Git Bash: source .venv/Scripts/activate)
+pip install -r requirements.txt
+cp .env.example .env              # uzupełnij SECRET_KEY i DB_PASSWORD
+# w psql: CREATE DATABASE cocktails;
+python manage.py migrate
+python manage.py runserver        # http://127.0.0.1:8000
+```
+
+## Pakiety
+
+| Pakiet | Do czego |
+|---|---|
+| `django` | framework: modele, migracje, panel admina, URL-e |
+| `djangorestframework` | zamienia modele w REST API (serializery, widoki, paginacja) |
+| `django-filter` | filtrowanie list przez parametry URL-a (`?category=...`) |
+| `psycopg` | sterownik PostgreSQL dla Django |
+| `python-dotenv` | wczytuje sekrety z pliku `.env` (poza gitem) |
