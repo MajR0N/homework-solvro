@@ -546,7 +546,7 @@ Co powstaje: 5 kont `demo_*`, kilkanaście opinii dla pięciu koktajli (Mojito, 
 ## Testy
 
 ```bash
-python -m pytest              # 328 testy, kilka sekund, bez internetu
+python -m pytest              # 328 testów, kilka sekund, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
