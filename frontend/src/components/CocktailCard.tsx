@@ -26,7 +26,7 @@ export default function CocktailCard({ cocktail }: { cocktail: Cocktail }) {
         <div className="p-3">
           <h2 className="font-semibold leading-tight">{cocktail.name}</h2>
           <p className="mt-1 text-sm text-foreground/70">
-            {pl(cocktail.category)} ·{cocktail.alcoholic ? "Z alkoholem" : "Bezalkoholowy"}
+            {`${pl(cocktail.category)} · ${cocktail.alcoholic ? "Z alkoholem" : "Bezalkoholowy"}`}
           </p>
         </div>
       </Link>
