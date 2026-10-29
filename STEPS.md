@@ -342,4 +342,6 @@ Step by step instructions and the exact list of variables are in `backend/README
 
 **Frontend, part A (data from the backend):** badges (verified, popularity label, rating) on cards and in the detail page, sorts popular / trending / top rated, filters "only verified" and "ingredient", the reviews list (deleted authors shown as "usunięty użytkownik"), all only for the "Własny backend" source (Solvro has none of this). `tsc`, lint and build pass. The real adapter was run against a local backend with temporary reviews and views (15 checks, including the weighted top-rated order and the null author); nothing in the live database was touched. Not verified: how it looks and works in a browser.
 
+**Demo data:** `seed_demo` (with `--remove`, a confirmation that shows the database host, accounts without passwords, clearly marked names) creates reviews and views so every label shows; unreviewed cocktails now always sort last in `-top_rated` (found while looking at the demo output: they were landing in the middle). 328 backend tests.
+
 **Not done:** part B (restyle with Solvro's identity; needs the owner's permission to read the brand assets), login and write forms, and demo data on the live site (it has no reviews or views, so ratings and labels stay empty until someone adds them).

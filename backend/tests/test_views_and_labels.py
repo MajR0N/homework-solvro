@@ -237,6 +237,14 @@ def test_top_rated_prefers_many_good_reviews_over_a_single_five_stars(api, make_
     assert virgin > api.get(f"{COCKTAILS}{data.mojito.id}/").json()["rating_avg"]
 
 
+def test_top_rated_puts_cocktails_without_reviews_last_even_after_a_bad_one(api, make_user, as_user, data):
+    as_user(make_user("grumpy")).post(f"{COCKTAILS}{data.virgin.id}/reviews/", {"rating": 1}, format="json")  # jedna jedynka
+    descending = names(api.get(COCKTAILS, {"ordering": "-top_rated"}))
+    assert descending[0] == "Virgin Mojito"  # każda opinia, nawet zła, jest ponad brakiem opinii
+    assert descending[1:] == ["Lemon Shot", "Mojito"]
+    assert names(api.get(COCKTAILS, {"ordering": "top_rated"}))[-1] == "Virgin Mojito"
+
+
 def test_top_rated_with_no_reviews_at_all_does_not_crash(api, data):
     assert api.get(COCKTAILS, {"ordering": "-top_rated"}).status_code == 200
 

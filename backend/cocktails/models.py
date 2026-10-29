@@ -66,8 +66,14 @@ class CocktailQuerySet(models.QuerySet):
             .annotate(
                 trend=F("views_7d") - F("views_prev_7d"),
                 # Średnia ważona: mało opinii = bliżej średniej wszystkich ocen, żeby jedna piątka nie wygrywała z setką czwórek
-                top_rated_score=ExpressionWrapper(
-                    (site_avg * prior + Coalesce(F("rating_avg"), 0.0) * F("rating_count")) / (prior + F("rating_count")),
+                # Bez żadnej opinii: -1, czyli poniżej każdej prawdziwej oceny (1 do 5), więc "najlepiej oceniane" kończą się
+                # nieocenionymi, a nie mieszają się z nimi (inaczej dostawałyby średnią wszystkich ocen i lądowały w środku).
+                top_rated_score=Case(
+                    When(rating_count=0, then=Value(-1.0)),
+                    default=ExpressionWrapper(
+                        (site_avg * prior + Coalesce(F("rating_avg"), 0.0) * F("rating_count")) / (prior + F("rating_count")),
+                        output_field=FloatField(),
+                    ),
                     output_field=FloatField(),
                 ),
                 status=Case(

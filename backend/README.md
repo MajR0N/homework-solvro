@@ -11,7 +11,7 @@ REST API koktajli i składników. Django + Django REST Framework + PostgreSQL. D
 - panel CMS (`/admin/`) z uprawnieniami zależnymi od roli
 - dokumentacja Swagger/OpenAPI, diagram bazy danych, 200+ testów automatycznych
 
-**Spis treści:** [Szybki start](#szybki-start) · [Pakiety](#pakiety) · [Schemat bazy danych](#schemat-bazy-danych) · [API](#api) · [Konta, role i uprawnienia](#konta-role-i-uprawnienia) · [CMS](#cms-panel-admin) · [Opinie](#opinie-i-oceny) · [Wyświetlenia i etykiety](#wyświetlenia-i-etykiety-popularności) · [Bezpieczeństwo](#bezpieczeństwo) · [Wdrożenie na Vercelu](#wdrożenie-na-vercelu) · [Testy](#testy) · [Znane ograniczenia](#znane-ograniczenia)
+**Spis treści:** [Szybki start](#szybki-start) · [Pakiety](#pakiety) · [Schemat bazy danych](#schemat-bazy-danych) · [API](#api) · [Konta, role i uprawnienia](#konta-role-i-uprawnienia) · [CMS](#cms-panel-admin) · [Opinie](#opinie-i-oceny) · [Wyświetlenia i etykiety](#wyświetlenia-i-etykiety-popularności) · [Bezpieczeństwo](#bezpieczeństwo) · [Wdrożenie na Vercelu](#wdrożenie-na-vercelu) · [Dane demonstracyjne](#dane-demonstracyjne) · [Testy](#testy) · [Znane ograniczenia](#znane-ograniczenia)
 
 ## Szybki start
 
@@ -367,7 +367,7 @@ W bazie nie ma adresów IP: zapisujemy skrót HMAC z sekretu, dnia, koktajlu i s
 
 Pokazywana jest jedna etykieta, w kolejności: `trending`, `most_popular`, `popular`. W odpowiedzi są też liczby: `views_14d`, `views_30d`, `rating_avg`, `rating_count`.
 
-**Sortowanie:** `-trending` (przyrost: ostatnie 7 dni minus 7 dni wcześniej), `-popular` (wyświetlenia z 30 dni), `-top_rated` (średnia ważona: koktajl z mniej niż 5 opiniami jest ściągany w stronę średniej wszystkich ocen, więc jedna piątka nie wygrywa z dwudziestoma ocenami po 4,8).
+**Sortowanie:** `-trending` (przyrost: ostatnie 7 dni minus 7 dni wcześniej), `-popular` (wyświetlenia z 30 dni), `-top_rated` (średnia ważona: koktajl z mniej niż 5 opiniami jest ściągany w stronę średniej wszystkich ocen, więc jedna piątka nie wygrywa z dwudziestoma ocenami po 4,8; koktajle bez żadnej opinii są zawsze na końcu).
 
 ## Bezpieczeństwo
 
@@ -526,10 +526,27 @@ python manage.py createsuperuser
 
 Do wiedzenia: pierwsze żądanie po przerwie jest wolniejsze (zimny start); liczniki limitów są w bazie, więc każdy limitowany request robi kilka dodatkowych zapytań; ten adres jest publiczny, więc obowiązuje wszystko z sekcji „Bezpieczeństwo”. Próbę generalną budowania (kopia bez `.env`, tylko zmienne Vercela) wykonuje test `tests/test_vercel_deployment.py`, ale samego Vercela nie da się stąd sprawdzić.
 
+## Dane demonstracyjne
+
+Nowa baza nie ma żadnych opinii ani wyświetleń, więc oceny i etykiety popularności są puste. Polecenie `seed_demo` tworzy **wyraźnie oznaczone dane demonstracyjne**, żeby je było widać:
+
+```bash
+python manage.py seed_demo             # pokaże, w której bazie zapisze, i zapyta o potwierdzenie
+python manage.py seed_demo --remove    # usuwa dokładnie to, co utworzyło
+```
+
+Co powstaje: 5 kont `demo_*`, kilkanaście opinii dla pięciu koktajli (Mojito, Strawberry Margarita, Margarita, Blue Margarita, Absinthe #2), w tym jedna od konta, które „zostało usunięte” (pokazuje się jako *usunięty użytkownik*), oraz wyświetlenia tak dobrane, żeby pojawiły się etykiety: Mojito i Strawberry Margarita **Na topie**, Margarita **Najpopularniejszy**, Blue Margarita **Popularny**.
+
+- **To są dane sztuczne**, nie prawdziwe opinie. Dlatego mają znaczniki (`demo_` w nazwie konta, `demo-` w skrócie odwiedzającego) i można je usunąć jednym poleceniem.
+- Konta demonstracyjne **nie mają hasła**, więc nie da się na nie zalogować.
+- Polecenie pyta o potwierdzenie i pokazuje nazwę hosta bazy, żeby nie zapisać danych w złej bazie. `--yes` pomija pytanie.
+- Można je uruchamiać wielokrotnie bez dublowania. Etykiety `trending` zależą od dat (ostatnie 14 dni), więc po kilku dniach znikną; ponowne uruchomienie dodaje świeże wyświetlenia.
+- Na bazie produkcyjnej uruchamia się je tak samo jak inne jednorazowe polecenia (patrz „Wdrożenie na Vercelu”, krok 4): z adresem bazy w `DATABASE_URL`.
+
 ## Testy
 
 ```bash
-python -m pytest              # 315 testów, kilka sekund, bez internetu
+python -m pytest              # 328 testy, kilka sekund, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
