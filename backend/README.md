@@ -1,67 +1,51 @@
-# Backend
+# Backend — API koktajli
 
-**Ze względu na to, że w naszych projektach pracujemy na trzech głównych technologiach, akceptujemy zadania w [NestJS](https://docs.nestjs.com/) (TypeScript), [Django](https://www.djangoproject.com/) (Python) lub [adonis](https://adonisjs.com/) (TypeScript). Nie przejmuj się, jeśli ich dobrze nie znasz – nauczysz się ich z nami w pierwszych tygodniach, chociaż zachęcamy do podjęcia rękawic i spróbowania swoich sił w jednym z nich już podczas rekrutacji😉**
+REST API koktajli i składników. Django + Django REST Framework + PostgreSQL. Dane startowe pochodzą z publicznego API Solvro (220 koktajli, 552 składniki), a do tego są konta użytkowników z rolami, opinie, panel administracyjny (CMS) i etykiety popularności.
 
-### Opis zadania
+**Co jest w środku:**
 
-Twoim zadaniem jest przygotowanie REST API do zarządzania koktajlami i jego składnikami. Każdy koktajl posiada składniki z których się go robi. Z pomocą aplikacji mamy być w stanie utworzyć, edytować, wyświetlić i usunąć koktajle i składniki. W skrócie powinniśmy zaimplementować pełnego CRUDa koktajli i składników.
+- pełny CRUD koktajli i składników, paginacja, walidacja, filtrowanie i sortowanie (także „bezalkoholowe koktajle z miętą”)
+- konta i logowanie JWT, cztery role (user, admin, staff, owner), autorzy treści, edycja tylko przez autora lub admina
+- opinie z oceną 1-5, zgłaszanie opinii, znaczek „zweryfikowany”
+- liczenie wyświetleń odporne na nabijanie oraz etykiety `trending`, `popular`, `most_popular`
+- panel CMS (`/admin/`) z uprawnieniami zależnymi od roli
+- dokumentacja Swagger/OpenAPI, diagram bazy danych, 200+ testów automatycznych
 
-### Koktajl
+**Spis treści:** [Szybki start](#szybki-start) · [Pakiety](#pakiety) · [Schemat bazy danych](#schemat-bazy-danych) · [API](#api) · [Konta, role i uprawnienia](#konta-role-i-uprawnienia) · [CMS](#cms-panel-admin) · [Opinie](#opinie-i-oceny) · [Wyświetlenia i etykiety](#wyświetlenia-i-etykiety-popularności) · [Testy](#testy) · [Znane ograniczenia](#znane-ograniczenia)
 
-Każdy koktajl zawiera minimum:
+## Szybki start
 
-- id
-- nazwę
-- kategorię
-- instrukcję przygotowania
-- składniki wraz z dokładnymi ilościami/proporcjami potrzebnymi do utworzenia
-
-### Składnik
-
-Każdy składnik posiada minimum:
-
-- id
-- nazwę
-- opis
-- czy jest drinkiem alkoholowym
-- zdjęcie (np. URL do zdjęcia lub upload pliku)
-
-### Wymagania i ograniczenia
-
-- Stworzenie relacyjnej bazy danych (np. PostgreSQL) z odpowiednim wymodelowaniem relacji.
-- Implementacja **paginacji** przy listowaniu koktajli i składników.
-- Zadbaj o walidację danych wejściowych (zarówno przy tworzeniu jak i wywoływaniu endpointów z filtrami).
-
-### Nice to have
-
-- **Autoryzacja i użytkownicy (Opcjonalne)**:
-  - Rejestracja i logowanie (np. przy użyciu JWT/session lub mechanizmów wbudowanych we framework).
-  - Różne role użytkowników: np. _User_ oraz _Admin_.
-  - Uprawnienia: każdy może przeglądać koktajle, ale tylko zalogowany użytkownik może dodać nowy przepis lub zostawić ocenę z recenzją.
-  - Edycja/usuwanie koktajlu jest dozwolona tylko dla osoby, która go dodała, lub dla Administratora.
-  - Powiązanie koktajlu z jego autorem (użytkownikiem, który go dodał).
-
-- screen schematu/projektu bazy danych
-- staranne zastosowanie zasad REST
-- testy automatyczne (jednostkowe, integracyjne lub e2e)
-- wygenerowana dokumentacja API (np. Swagger / OpenAPI)
-- wsparcie dla złożonego filtrowania i sortowania (np. szukanie bezalkoholowych koktajli zawierających miętę, sortowanie po nazwie, filtrowanie koktajli stworzonych przez danego użytkownika).
-
-**W razie problemów zapraszamy do kontaktu i powodzenia!**
-
----
-
-## Uruchomienie lokalne
+Potrzebne: Python 3.12+ i PostgreSQL.
 
 ```bash
+cd backend
 python -m venv .venv
-.venv/Scripts/activate            # Windows (Git Bash: source .venv/Scripts/activate)
+# PowerShell:  Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned; .\.venv\Scripts\Activate.ps1
+# Git Bash:    source .venv/Scripts/activate
 pip install -r requirements.txt
-cp .env.example .env              # uzupełnij SECRET_KEY i DB_PASSWORD
-# w psql: CREATE DATABASE cocktails;
+cp .env.example .env                # uzupełnij SECRET_KEY i DB_PASSWORD
+# w psql:  CREATE DATABASE cocktails;
 python manage.py migrate
-python manage.py runserver        # http://127.0.0.1:8000
+python manage.py import_solvro      # kopiuje koktajle i składniki z API Solvro (kilka sekund)
+python manage.py createsuperuser    # pierwsze konto zostaje ownerem i wchodzi do /admin/
+python manage.py runserver          # http://127.0.0.1:8000
 ```
+
+Swagger: <http://127.0.0.1:8000/api/docs/> · CMS: <http://127.0.0.1:8000/admin/>
+
+Zmienne w pliku `.env` (wszystkie sekrety zostają poza gitem):
+
+| Zmienna | Znaczenie |
+|---|---|
+| `SECRET_KEY` | **wymagana**, długi losowy ciąg; bez niej Django nie wystartuje |
+| `DB_PASSWORD` | **wymagana**, hasło użytkownika PostgreSQL |
+| `DEBUG` | `true` tylko lokalnie; domyślnie wyłączone |
+| `DB_NAME`, `DB_USER`, `DB_HOST`, `DB_PORT` | domyślnie `cocktails`, `postgres`, `localhost`, `5432` |
+| `ALLOWED_HOSTS` | adresy po przecinku, domyślnie `localhost,127.0.0.1` |
+| `NUM_PROXIES` | ile serwerów pośredniczących stoi przed Django (domyślnie 0); ważne dla limitów i liczenia wyświetleń po IP |
+| `TRENDING_MIN_VIEWS`, `POPULAR_MIN_VIEWS`, `MOST_POPULAR_MIN_VIEWS` | progi etykiet popularności (domyślnie 10 / 20 / 100) |
+
+Import można uruchamiać wielokrotnie: zachowuje id z API Solvro, niczego nie dubluje, a przy błędzie sieci nie zostawia połowicznych danych.
 
 ## Pakiety
 
@@ -176,9 +160,9 @@ Ograniczenia pilnowane przez samą bazę (nie tylko przez API):
 | `review` | unikalne `(author, cocktail)` | jedna opinia na użytkownika i koktajl |
 | `reviewreport` | unikalne `(reporter, review)` | jedno zgłoszenie danej opinii przez jedną osobę |
 | `cocktailview` | unikalne `(cocktail, day, visitor)` | jedno policzone wyświetlenie na odwiedzającego, koktajl i dzień |
-| `cocktail` | indeks trigramowy `cocktail_name_trgm` | szybkie wyszukiwanie po fragmencie nazwy (sekcja „Indeksy”) |
+| `cocktail` | indeks trigramowy `cocktail_name_trgm` | szybkie wyszukiwanie po fragmencie nazwy (patrz niżej) |
 
-## Indeksy
+### Indeksy
 
 | Indeks | Po co |
 |---|---|
@@ -201,40 +185,63 @@ Execution Time: 0.581 ms
 
 Przy 220 koktajlach to tylko demonstracja: tabela mieści się w kilku stronach pamięci, więc nawet przeszukanie całej tabeli byłoby równie szybkie. Zysk byłby widoczny dopiero przy dziesiątkach tysięcy wierszy.
 
-## Endpointy (tylko odczyt)
+## API
 
-| Metoda i adres | Zwraca |
+Wszystkie adresy mają prefiks `/api/v1/`. Interaktywna dokumentacja (Swagger, z przyciskiem „Try it out”) jest pod `/api/docs/`, a surowy schemat OpenAPI pod `/api/schema/`. Generuje ją `drf-spectacular` z modeli, serializerów i filtrów; opisy parametrów pochodzą z `help_text` w `filters.py`. Strona Swaggera ładuje swój kod z CDN, więc wymaga internetu. Sprawdzenie schematu: `python manage.py spectacular --validate --fail-on-warn`.
+
+| Zasób | Adresy |
 |---|---|
-| `GET /api/v1/cocktails/` | lista po 20 (`?page=2`, `?page_size=50`, maks. 100) |
-| `GET /api/v1/cocktails/{id}/` | jeden koktajl z instrukcją i listą `ingredients[]` (każdy z polem `measure`) |
+| koktajle | `GET`, `POST /cocktails/` · `GET`, `PUT`, `PATCH`, `DELETE /cocktails/{id}/` |
+| składniki | `GET`, `POST /ingredients/` · `GET`, `PUT`, `PATCH`, `DELETE /ingredients/{id}/` |
+| kategorie | `GET /categories/` |
+| opinie | `GET`, `POST /cocktails/{id}/reviews/` · `GET`, `PUT`, `PATCH`, `DELETE /reviews/{id}/` · `POST /reviews/{id}/report/` |
+| wyświetlenia | `POST /cocktails/{id}/views/` |
+| konta | `POST /auth/register/`, `/auth/login/`, `/auth/refresh/`, `/auth/logout/` · `GET /auth/me/` |
 
-| `GET /api/v1/categories/` | wszystkie kategorie (bez paginacji) |
+Kody odpowiedzi: 201 po utworzeniu, 204 po usunięciu, 400 dla złych danych lub parametrów (z komunikatem, które pole jest złe), 401 bez logowania, 403 bez uprawnień, 404 dla nieistniejącego zasobu, 409 przy konflikcie, 429 po przekroczeniu limitu.
 
-Parametry listy koktajli (łączą się ze sobą i z paginacją; zła wartość daje 400):
+### Koktajle
+
+Przykładowa odpowiedź `GET /api/v1/cocktails/11000/` (skrócona):
+
+```json
+{
+  "id": 11000, "name": "Mojito", "category": "Cocktail", "glass": "Highball glass", "alcoholic": true,
+  "image_url": "https://cocktails.solvro.pl/images/cocktails/mojito.png", "verified": true,
+  "rating_avg": null, "rating_count": 0, "views_14d": 0, "views_30d": 0, "status": null,
+  "author": null, "author_name": "", "instructions": "Muddle mint leaves with sugar and lime j...",
+  "ingredients": [
+    {"id": 312, "name": "Lime", "alcoholic": false, "type": "Fruit", "percentage": null, "measure": "Juice of 1 ", "...": "..."},
+    {"id": 337, "name": "Mint", "alcoholic": false, "type": "Flower", "percentage": null, "measure": "2-4 ", "...": "..."}
+  ]
+}
+```
+
+Lista (`GET /cocktails/`) zwraca po 20 na stronę w formacie `{count, next, previous, results}` (`?page=2`, `?page_size=50`, maksymalnie 100). Parametry listy łączą się ze sobą i z paginacją, a zła wartość daje 400:
 
 | Parametr | Przykład | Znaczenie |
 |---|---|---|
 | `search` | `?search=marg` | fragment nazwy, bez rozróżniania wielkości liter |
 | `category` | `?category=Shot` | dokładna nazwa kategorii |
 | `glass` | `?glass=Jar` | dokładna nazwa szklanki |
+| `alcoholic` | `?alcoholic=true` | tylko `true` lub `false` |
 | `verified` | `?verified=true` | tylko zweryfikowane (lub `false`) |
 | `author` | `?author=anna` | koktajle dodane przez to konto (bez rozróżniania wielkości liter) |
-| `alcoholic` | `?alcoholic=true` | tylko `true` lub `false` |
 | `ingredient` | `?ingredient=mint,lime` | fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie |
 | `id` | `?id=11000,11007` | tylko te koktajle (ulubione); samo `?id=` = brak wyników |
 | `status` | `?status=trending` | etykieta popularności: `trending`, `popular`, `most_popular` |
 | `ordering` | `?ordering=-popular` | `name`, `id`, `verified`, `trending`, `popular`, `top_rated` (minus = malejąco); przy remisie decyduje `id` |
 
-Przykład z zadania („bezalkoholowe koktajle z miętą”): `GET /api/v1/cocktails/?alcoholic=false&ingredient=mint`.
+Przykład „bezalkoholowe koktajle z miętą”: `GET /api/v1/cocktails/?alcoholic=false&ingredient=mint`.
 
-### Zapis koktajli
+Zapis (wymaga zalogowania, nagłówek `Authorization: Bearer <access>`):
 
 | Metoda i adres | Działanie | Odpowiedź |
 |---|---|---|
-| `POST /api/v1/cocktails/` | utwórz | 201 + pełny koktajl |
-| `PUT /api/v1/cocktails/{id}/` | zastąp (wymagane `name`, `category`) | 200 |
-| `PATCH /api/v1/cocktails/{id}/` | zmień wybrane pola | 200 |
-| `DELETE /api/v1/cocktails/{id}/` | usuń (razem z jego składnikami) | 204 |
+| `POST /cocktails/` | utwórz | 201 + pełny koktajl |
+| `PUT /cocktails/{id}/` | zastąp (wymagane `name`, `category`) | 200 |
+| `PATCH /cocktails/{id}/` | zmień wybrane pola | 200 |
+| `DELETE /cocktails/{id}/` | usuń (razem z jego składnikami) | 204 |
 
 ```json
 {
@@ -248,68 +255,38 @@ Przykład z zadania („bezalkoholowe koktajle z miętą”): `GET /api/v1/cockt
 - `ingredients`: lista `{ingredient: id, measure}`; nieznane id lub ten sam składnik dwa razy = 400. Wysłana lista **zastępuje** starą, pominięta zostawia ją bez zmian.
 - Nazwa jest przycinana z białych znaków, niepusta, do 200 znaków; `image_url` musi być poprawnym adresem.
 - Koktajl i jego składniki zapisują się w jednej transakcji.
-- Zapis wymaga zalogowania (nagłówek `Authorization: Bearer <access>`); zasady w sekcji „Uprawnienia”.
+- Autora ustawia serwer z konta w tokenie, a `verified` można zmienić tylko w CMS (żadne z nich nie jest przyjmowane z żądania).
 
 ### Składniki
 
 | Metoda i adres | Działanie | Odpowiedź |
 |---|---|---|
-| `GET /api/v1/ingredients/` | lista po 20 (`?page=`, `?page_size=` do 100) | 200 |
-| `GET /api/v1/ingredients/{id}/` | jeden składnik | 200 |
-| `POST /api/v1/ingredients/` | utwórz (wymagane `name`) | 201 |
-| `PUT` / `PATCH /api/v1/ingredients/{id}/` | zastąp / zmień wybrane pola | 200 |
-| `DELETE /api/v1/ingredients/{id}/` | usuń | 204; **409**, gdy składnik jest użyty w jakimś koktajlu |
+| `GET /ingredients/` | lista po 20 (`?page=`, `?page_size=` do 100) | 200 |
+| `GET /ingredients/{id}/` | jeden składnik | 200 |
+| `POST /ingredients/` | utwórz (wymagane `name`) | 201 |
+| `PUT` / `PATCH /ingredients/{id}/` | zastąp / zmień wybrane pola | 200 |
+| `DELETE /ingredients/{id}/` | usuń | 204; **409**, gdy składnik jest użyty w jakimś koktajlu |
 
 Filtry listy: `?search=` (fragment nazwy), `?type=` (dokładny typ), `?alcoholic=true|false`, `?ordering=name|-name|id|-id`. Zła wartość daje 400.
 Walidacja: `name` wymagane, do 200 znaków; `percentage` od 0 do 100; `image_url` musi być adresem.
 
-### Znane ograniczenie: równoległa edycja
-
-Wysłana lista `ingredients` zastępuje całą starą. Gdy dwie osoby edytują ten sam koktajl jednocześnie, wygrywa ostatni zapis (bez blokady optymistycznej). Ryzyko jest małe, bo po dodaniu autorów edytować będzie mógł tylko autor lub administrator. Rozwiązaniem „książkowym” byłoby pole `updated_at` i nagłówek `If-Match` (odpowiedź 412 przy nieaktualnej wersji).
-
-## Dokumentacja API (Swagger / OpenAPI)
-
-Po uruchomieniu serwera: <http://127.0.0.1:8000/api/docs/> (interaktywna, z przyciskiem „Try it out”) oraz surowy schemat OpenAPI pod `/api/schema/`. Generuje ją `drf-spectacular` z modeli, serializerów i filtrów; opisy parametrów pochodzą z `help_text` w `filters.py`. Strona Swaggera ładuje swój kod z CDN, więc wymaga internetu.
-
-Sprawdzenie schematu: `python manage.py spectacular --validate --fail-on-warn`.
-
-## Testy
-
-```bash
-python -m pytest              # 206 testów, ok. 2 s, bez internetu
-python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
-```
-
-Testy używają osobnej, tymczasowej bazy `test_cocktails` (tworzy ją i usuwa pytest-django), więc dane w bazie `cocktails` nie są ruszane. Zakres: filtry i paginacja, tworzenie/edycja/usuwanie koktajli i składników wraz z walidacją, reguła 409 przy usuwaniu używanego składnika, oraz import.
-
-Import jest sprawdzany dwojako, z różnych powodów:
-
-| Test | Co sprawdza | Kiedy |
-|---|---|---|
-| na atrapie API | **naszą logikę**: te same id co w Solvro, ponowny import nic nie zmienia, licznik id, składnik bez `measure`, brak połowicznych danych przy błędzie | zawsze |
-| na prawdziwym API | **świat zewnętrzny**: dane Solvro nadal mają kształt, jakiego oczekuje import | tylko na życzenie (`-m network`) |
-
-## Konta i logowanie
+## Konta, role i uprawnienia
 
 Własny model użytkownika (`accounts.User`) z polem `role`: **user < admin < staff < owner**. Flagi Django (`is_staff` = wejście do panelu `/admin/`, `is_superuser` = tylko owner) są zawsze wyliczane z roli przy zapisie, więc nie mogą się z nią rozjechać. Konto z `createsuperuser` jest ownerem. Rejestracja zawsze tworzy zwykłego użytkownika; roli nie da się podać w żądaniu.
 
 | Metoda i adres | Działanie |
 |---|---|
-| `POST /api/v1/auth/register/` | `username` + `password` (hasło sprawdzane regułami Django; nazwy bez rozróżniania wielkości liter są unikalne) |
-| `POST /api/v1/auth/login/` | zwraca `access` (ważny 10 minut) i `refresh` (7 dni) |
-| `POST /api/v1/auth/refresh/` | nowy `access` i **nowy** `refresh`; stary przestaje działać |
-| `POST /api/v1/auth/logout/` | unieważnia `refresh` |
-| `GET /api/v1/auth/me/` | `id`, `username`, `role` (wymaga nagłówka `Authorization: Bearer <access>`) |
+| `POST /auth/register/` | `username` + `password` (hasło sprawdzane regułami Django; nazwy bez rozróżniania wielkości liter są unikalne) |
+| `POST /auth/login/` | zwraca `access` (ważny 10 minut) i `refresh` (7 dni) |
+| `POST /auth/refresh/` | nowy `access` i **nowy** `refresh`; stary przestaje działać |
+| `POST /auth/logout/` | unieważnia `refresh` |
+| `GET /auth/me/` | `id`, `username`, `role` (wymaga nagłówka `Authorization: Bearer <access>`) |
 
-Rejestracja i logowanie mają wspólny limit 10 prób na minutę z jednego IP. Limit liczy adres z `REMOTE_ADDR`; za serwerem pośredniczącym (np. Cloud Run) trzeba ustawić zmienną `NUM_PROXIES`, inaczej limit będzie liczony po adresie pośrednika.
+Rejestracja i logowanie mają wspólny limit 10 prób na minutę z jednego IP. Limit liczy adres z `REMOTE_ADDR`; za serwerem pośredniczącym (np. Cloud Run) trzeba ustawić zmienną `NUM_PROXIES`, inaczej limit będzie liczony po adresie pośrednika. Nie ma pola e-mail (mniej danych osobowych).
 
-Brak pola e-mail (mniej danych osobowych). Weryfikacji e-mail też nie ma, więc skrypt może powoli zakładać wiele kont; to znane ograniczenie.
+**Kto co może z koktajlami i składnikami:**
 
-**Zmiana modelu użytkownika wymaga świeżej bazy:** po pobraniu tej zmiany na istniejącej bazie `migrate` zgłosi niespójną historię migracji. Lokalnie: `DROP DATABASE cocktails; CREATE DATABASE cocktails;`, potem `migrate` i `import_solvro`.
-
-## Uprawnienia i autorzy
-
-| Kto | Koktajle i składniki |
+| Kto | Uprawnienia |
 |---|---|
 | każdy, także niezalogowany | czyta |
 | zalogowany (`user`) | dodaje; zmienia i usuwa **tylko swoje** |
@@ -319,6 +296,8 @@ Brak pola e-mail (mniej danych osobowych). Weryfikacji e-mail też nie ma, więc
 - Autora ustawia serwer z konta w tokenie (`author` = id, `author_name` = kopia nazwy). Klient nie może go podać ani zmienić później; test pilnuje, żeby nie dało się „przejąć” cudzego wpisu przez PATCH.
 - Po usunięciu konta treść zostaje: `author` staje się `null`, a `author_name` zachowuje starą nazwę. Taki wpis może już zmienić tylko admin wzwyż.
 - Niezalogowany zapis daje 401, brak uprawnień 403.
+
+**Zmiana modelu użytkownika wymaga świeżej bazy:** po pobraniu tej zmiany na istniejącej bazie `migrate` zgłosi niespójną historię migracji. Lokalnie: `DROP DATABASE cocktails; CREATE DATABASE cocktails;`, potem `migrate` i `import_solvro`.
 
 ## CMS (panel `/admin/`)
 
@@ -331,22 +310,21 @@ Panel administracyjny Django, ograniczony rolami. Wchodzą do niego tylko `admin
 | nadawanie ról | **tylko rolę niższą od własnej**: admin tworzy zwykłych użytkowników, staff także adminów, owner także staff. Ownera nie da się nadać w panelu (tylko `createsuperuser`). |
 | flagi `is_staff` / `is_superuser` | nie ma ich w formularzu; wynikają z roli przy zapisie |
 | wpis dodany w panelu | dostaje autora z zalogowanego konta, tak jak przez API |
+| opinie i zgłoszenia | admin je przegląda i usuwa, ale nie edytuje cudzych słów |
 
 Rangi: user < admin < staff < owner. Nikt nie może edytować własnego konta w panelu ani innego ownera, żeby nie dało się wszystkich zablokować.
 
-## Znaczek „zweryfikowany”
-
-Koktajl ma pole `verified`. To znaczek i filtr, nie bramka: **nic nie jest ukrywane**. Ustawia go ręcznie admin wzwyż w CMS (akcje „Mark selected cocktails as verified” i „Remove the verified mark”). Przez API nie da się go zmienić (nawet właścicielowi), więc autor nie może sam sobie go nadać. Dane z importu Solvro startują jako zweryfikowane, a ponowny import nie cofa decyzji admina.
+**Znaczek „zweryfikowany”.** Koktajl ma pole `verified`. To znaczek i filtr, nie bramka: **nic nie jest ukrywane**. Ustawia go ręcznie admin wzwyż w CMS (akcje „Mark selected cocktails as verified” i „Remove the verified mark”). Przez API nie da się go zmienić (nawet właścicielowi), więc autor nie może sam sobie go nadać. Dane z importu Solvro startują jako zweryfikowane, a ponowny import nie cofa decyzji admina.
 
 ## Opinie i oceny
 
 | Metoda i adres | Działanie | Odpowiedź |
 |---|---|---|
-| `GET /api/v1/cocktails/{id}/reviews/` | opinie o koktajlu, najnowsze pierwsze, po 20 | 200 (404, gdy nie ma koktajlu) |
-| `POST /api/v1/cocktails/{id}/reviews/` | dodaj swoją: `rating` 1-5 (liczba całkowita), `text` do 2000 znaków (opcjonalny) | 201; **409**, gdy już oceniłeś; **403**, gdy to Twój koktajl |
-| `GET` / `PATCH` / `PUT /api/v1/reviews/{id}/` | czytaj / zmień (tylko autor) | 200 |
-| `DELETE /api/v1/reviews/{id}/` | usuń: autor albo admin, staff, owner | 204 |
-| `POST /api/v1/reviews/{id}/report/` | zgłoś opinię adminowi (zalogowany, `reason` opcjonalny, do 300 znaków) | 201; 200 przy powtórzeniu |
+| `GET /cocktails/{id}/reviews/` | opinie o koktajlu, najnowsze pierwsze, po 20 | 200 (404, gdy nie ma koktajlu) |
+| `POST /cocktails/{id}/reviews/` | dodaj swoją: `rating` 1-5 (liczba całkowita), `text` do 2000 znaków (opcjonalny) | 201; **409**, gdy już oceniłeś; **403**, gdy to Twój koktajl |
+| `GET` / `PATCH` / `PUT /reviews/{id}/` | czytaj / zmień (tylko autor) | 200 |
+| `DELETE /reviews/{id}/` | usuń: autor albo admin, staff, owner | 204 |
+| `POST /reviews/{id}/report/` | zgłoś opinię adminowi (zalogowany, `reason` opcjonalny, do 300 znaków) | 201; 200 przy powtórzeniu |
 
 - Każdy koktajl w liście i szczegółach ma `rating_avg` (średnia, 2 miejsca, `null` bez opinii) i `rating_count`.
 - Opinię może dodać tylko zalogowany, jedną na koktajl (pilnuje tego też baza), nie o własnym koktajlu (autor mógłby sobie zawyżać ocenę).
@@ -356,7 +334,7 @@ Koktajl ma pole `verified`. To znaczek i filtr, nie bramka: **nic nie jest ukryw
 
 ## Wyświetlenia i etykiety popularności
 
-`POST /api/v1/cocktails/{id}/views/` liczy wyświetlenie (frontend woła to raz po otwarciu strony szczegółów). Zawsze odpowiada **204** (404 dla nieistniejącego koktajlu), także gdy wyświetlenie się nie liczy, żeby skrypt nie mógł sprawdzać, które wywołania podziałały. Odczyt (`GET`) niczego nie zmienia.
+`POST /cocktails/{id}/views/` liczy wyświetlenie (frontend woła to raz po otwarciu strony szczegółów). Zawsze odpowiada **204** (404 dla nieistniejącego koktajlu), także gdy wyświetlenie się nie liczy, żeby skrypt nie mógł sprawdzać, które wywołania podziałały. Odczyt (`GET`) niczego nie zmienia.
 
 **Ochrona przed nabijaniem (poziom 1):**
 
@@ -370,8 +348,6 @@ Koktajl ma pole `verified`. To znaczek i filtr, nie bramka: **nic nie jest ukryw
 
 W bazie nie ma adresów IP: zapisujemy skrót HMAC z sekretu, dnia, koktajlu i sieci IP. Nie da się go cofnąć do adresu ani połączyć tej samej osoby między dniami i koktajlami.
 
-**Czego to nie zatrzyma:** wielu różnych adresów IP (botnet, rotujące VPN-y): każdy z nich dodaje jedno wyświetlenie dziennie. Realna obrona to CAPTCHA albo proof-of-work (np. Cloudflare Turnstile), poza zakresem. Wspólny adres (szkoła, biuro) liczy się jako jeden odwiedzający, więc raczej zaniżamy niż zawyżamy.
-
 **Etykieta `status`** jest liczona przy każdym zapytaniu z liczby unikalnych odwiedzających (bez zapisanego stanu). Progi to wartości demo, w `settings.LABEL_THRESHOLDS` (zmienne środowiskowe `TRENDING_MIN_VIEWS`, `POPULAR_MIN_VIEWS`, `MOST_POPULAR_MIN_VIEWS`):
 
 | `status` | Reguła |
@@ -384,4 +360,31 @@ Pokazywana jest jedna etykieta, w kolejności: `trending`, `most_popular`, `popu
 
 **Sortowanie:** `-trending` (przyrost: ostatnie 7 dni minus 7 dni wcześniej), `-popular` (wyświetlenia z 30 dni), `-top_rated` (średnia ważona: koktajl z mniej niż 5 opiniami jest ściągany w stronę średniej wszystkich ocen, więc jedna piątka nie wygrywa z dwudziestoma ocenami po 4,8).
 
-Przybliżenie: etykieta nie ma „pamięci” (nie wie, że koktajl był trendujący 14 dni od startu). Dokładny zegar wymagałby zapisanego stanu i codziennego zadania. Tabela wyświetleń rośnie; wpisy starsze niż 30 dni nie są potrzebne do etykiet i można je kasować (osobne zadanie, gdy tabela urośnie).
+## Testy
+
+```bash
+python -m pytest              # 206 testów, kilka sekund, bez internetu
+python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
+```
+
+Testy używają osobnej, tymczasowej bazy `test_cocktails` (tworzy ją i usuwa pytest-django), więc dane w bazie `cocktails` nie są ruszane. Zakres: filtry i paginacja, tworzenie, edycja i usuwanie z walidacją, reguła 409 przy usuwaniu używanego składnika, konta i tokeny, macierz uprawnień (niezalogowany, użytkownik, autor, każda rola admina), reguły CMS, opinie i zgłoszenia, liczenie wyświetleń z ochroną przed nabijaniem, etykiety i sortowania oraz import.
+
+Import jest sprawdzany dwojako, z różnych powodów:
+
+| Test | Co sprawdza | Kiedy |
+|---|---|---|
+| na atrapie API | **naszą logikę**: te same id co w Solvro, ponowny import nic nie zmienia, licznik id, składnik bez `measure`, brak połowicznych danych przy błędzie | zawsze |
+| na prawdziwym API | **świat zewnętrzny**: dane Solvro nadal mają kształt, jakiego oczekuje import | tylko na życzenie (`-m network`) |
+
+Testy były też sprawdzane „od drugiej strony”: kod był celowo psuty w kilkudziesięciu miejscach (np. wyłączenie reguły uprawnień albo ochrony przed nabijaniem), żeby upewnić się, że któryś test się wtedy wywala. Dzięki temu wiadomo, że testy naprawdę coś pilnują.
+
+## Znane ograniczenia
+
+- **Równoległa edycja:** wysłana lista `ingredients` zastępuje całą starą. Gdy dwie osoby edytują ten sam koktajl jednocześnie, wygrywa ostatni zapis (bez blokady optymistycznej). Ryzyko jest małe, bo edytować może tylko autor lub admin. „Książkowym” rozwiązaniem byłoby pole `updated_at` i nagłówek `If-Match` (odpowiedź 412 przy nieaktualnej wersji).
+- **Brak weryfikacji e-mail** (w ogóle nie ma e-maila), więc skrypt może powoli zakładać wiele kont. Rejestracja jest ograniczona limitem 10 prób na minutę z jednego IP.
+- **Wyświetlenia z wielu adresów IP** (botnet, rotujące VPN-y): każdy adres dodaje jedno wyświetlenie dziennie. Realna obrona to CAPTCHA albo proof-of-work (np. Cloudflare Turnstile), poza zakresem. Wspólny adres (szkoła, biuro) liczy się jako jeden odwiedzający, więc raczej zaniżamy niż zawyżamy.
+- **Etykiety bez „pamięci”:** `trending` jest liczone z bieżących liczb, więc koktajl nie wie, że był trendujący od 14 dni. Dokładny zegar wymagałby zapisanego stanu i codziennego zadania. Progi 10 / 20 / 100 to wartości demo.
+- **Wydajność etykiet:** liczby są liczone przy każdym zapytaniu o listę (kilka podzapytań na koktajl). Dla 220 koktajli to bez znaczenia; przy dużo większej bazie trzeba by je zapisywać (cache lub tabela zbiorcza). Tabela wyświetleń rośnie; wpisy starsze niż 30 dni nie są potrzebne do etykiet i można je kasować.
+- **Swagger** ładuje swój kod z CDN, więc strona `/api/docs/` wymaga internetu.
+- **Backend nie jest wdrożony:** działa lokalnie. Do publikacji brakuje produkcyjnych ustawień (pliki statyczne, serwer aplikacji, sekrety w zmiennych środowiskowych, `NUM_PROXIES`).
+- Dane z API Solvro są importowane bez zmian, także ich błędy (np. część flag alkoholu jest nieprawdziwa).

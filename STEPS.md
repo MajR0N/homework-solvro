@@ -283,3 +283,11 @@ One `status` is shown, in order: trending, most popular, popular. Known approxim
 Built: reviews, reports and rating numbers (176 tests); the verified badge. Not built yet: views counting, the three labels and their sorts, the schema picture, the final pass.
 
 Built: views counting with anti-abuse (level 1), the `status` label, sorts `trending`/`popular`/`top_rated` and `?status=` (206 tests). Not built yet: the schema picture and the final pass.
+
+## 17. Backend — finished (29 October 2026)
+
+Backend core, CRUD, filters, Swagger, accounts and roles, authors and permissions, the CMS, the verified badge, reviews with reports, views counting with anti-abuse rules, the three popularity labels and sorts, the schema diagram (Mermaid, generated from the models) and a final README pass are done. **206 tests pass**; the Swagger schema validates with no warnings. Checked on a real local server for accounts, permissions, reviews, views and the CMS login; **not** checked in a browser (the CMS look, the Swagger page and how GitHub renders the Mermaid diagram are unverified). The backend is **not deployed** and the frontend does not use it yet.
+
+All three README files are now in Polish and the task text was removed from `backend/README.md`.
+
+Still to do: the UI/UX homework, the frontend restyle (F1-F8), the source switch and the adapter that connects the frontend to this backend, and the login screens.

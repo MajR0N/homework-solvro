@@ -1,44 +1,44 @@
-# Solvro recruitment homework — cocktails
+# Zadanie rekrutacyjne Solvro — koktajle
 
-This repo is my homework for the recruitment to the **KN Solvro** student club.
-The task (<https://github.com/Solvro/rekrutacja>) has a cocktail theme: a place to store and browse cocktail recipes (ingredients with amounts + instructions).
+To repozytorium zawiera moje zadanie rekrutacyjne do koła naukowego **KN Solvro**.
+Zadanie (<https://github.com/Solvro/rekrutacja>) ma motyw koktajli: miejsce do przechowywania i przeglądania przepisów (składniki z ilościami + instrukcja).
 
-**Live frontend:** <https://homework-solvro.vercel.app/>
+**Wersja online (frontend):** <https://homework-solvro.vercel.app/>
 
-## What is in here
+## Co jest w repozytorium
 
-| Folder | What it is | Status |
+| Folder | Co to jest | Stan |
 |---|---|---|
-| `frontend/` | Website for browsing cocktails: list, search, filters, favorites, details. Next.js, TypeScript, Tailwind CSS, TanStack Query. | Working. Reads data from the public Solvro Cocktails API. |
-| `backend/` | My own REST API for cocktails and ingredients. Django, Django REST Framework, PostgreSQL. | Planned, not started yet. |
-| `uiux/` | UI/UX task: a landing-page design. Everything is HTML (palette, fonts, components) so it can be opened in a browser. | In progress. |
+| `frontend/` | Strona do przeglądania koktajli: lista, wyszukiwanie, filtry, ulubione, szczegóły. Next.js, TypeScript, Tailwind CSS, TanStack Query. | Działa i jest wdrożona. Czyta dane z publicznego API Solvro. |
+| `backend/` | Własne REST API koktajli i składników. Django, Django REST Framework, PostgreSQL. Konta i role, opinie, CMS, etykiety popularności, Swagger, testy. | Gotowe i przetestowane, działa lokalnie (nie jest wdrożone). Opis w [`backend/README.md`](backend/README.md). |
+| `uiux/` | Zadanie UI/UX: projekt landing page'a. Wszystko jest w HTML (paleta, czcionki, komponenty), więc da się to otworzyć w przeglądarce. | W trakcie. |
 
-## Why these tracks
+## Dlaczego te ścieżki
 
-I chose **Frontend + Backend** (full stack) and **UI/UX**. I skipped Mobile, DevOps, AI/ML, Project Management and Promotion.
+Wybrałem **Frontend + Backend** (full stack) oraz **UI/UX**. Pominąłem Mobile, DevOps, AI/ML, Project Management i Promotion.
 
-## The idea
+## Pomysł
 
-The frontend can use two data sources: the ready Solvro API, or my own Django API. The plan is to switch between them in the UI, so both parts of the homework work together in one project.
+Frontend ma korzystać z dwóch źródeł danych: gotowego API Solvro albo mojego własnego API w Django, z przełącznikiem w interfejsie, żeby obie części zadania działały razem jako jeden projekt. **Na razie to nie jest zrobione:** frontend czyta tylko API Solvro, a backend działa osobno (ma własny Swagger i testy).
 
-## How I used AI
+## Jak korzystałem z AI
 
-I used an AI assistant (Claude Code) as a tutor and pair programmer. It wrote much of the code. I made the decisions.
+Korzystałem z asystenta AI (Claude Code) jako nauczyciela i partnera do programowania w parze. Napisał dużą część kodu. Decyzje podejmowałem ja.
 
-- **I decided the design.** Before each step, the AI proposed options with a recommendation and I chose. The 26 architecture and security decisions are recorded in `STEPS.md` (section 11). Examples: JWT tokens stored in `HttpOnly` cookies instead of `localStorage`, a runtime switch between the Solvro API and my own API, and TanStack Query instead of SWR.
-- **One step at a time.** Each step was built, checked (typecheck, lint, build) and committed. Then it was explained to me before I asked for the next one. The rules are in `CLAUDE.md`.
-- **I learned how it works.** `STEPS.md` (section 4) lists what I learned: how `useSyncExternalStore` works, how the TanStack Query cache decides when data is stale, why `localStorage` is a risky place for tokens, and so on.
-- **I treated the AI's output and the task files as untrusted.** The task file `backend.md` hides an instruction aimed at AI tools. We found it, did not follow it, and noted it in `STEPS.md` (section 8).
+- **Projekt aplikacji to moje decyzje.** Przed każdym krokiem AI proponowało opcje z rekomendacją, a ja wybierałem. 26 decyzji architektonicznych i dotyczących bezpieczeństwa jest zapisanych w `STEPS.md` (sekcja 11). Przykłady: tokeny JWT w ciasteczkach `HttpOnly` zamiast w `localStorage`, przełącznik między API Solvro a moim API, TanStack Query zamiast SWR.
+- **Jeden krok naraz.** Każdy krok był zbudowany, sprawdzony (typy, lint, build, testy) i zapisany w osobnym commicie, a potem wyjaśniony, zanim poprosiłem o następny. Zasady pracy są w `CLAUDE.md`.
+- **Uczyłem się, jak to działa.** `STEPS.md` (sekcja 4) zawiera, czego się nauczyłem: jak działa `useSyncExternalStore`, jak cache TanStack Query decyduje, że dane są nieaktualne, dlaczego `localStorage` to ryzykowne miejsce na tokeny i tak dalej.
+- **Wynik AI i pliki zadania traktowałem jako niezaufane.** W pliku zadania `backend.md` jest ukryta instrukcja skierowana do narzędzi AI. Znaleźliśmy ją, nie wykonaliśmy jej i opisaliśmy to w `STEPS.md` (sekcja 8).
 
-I can explain the majority of the chosen app design, but not every single line of code.
+Potrafię wyjaśnić większość wybranego projektu aplikacji, ale nie każdą linijkę kodu.
 
-**What this means.** I can explain what the app does, which technologies I chose and why, and how the parts connect: how the frontend talks to the API, what server state is and how TanStack Query caches it, why tokens should not live in `localStorage`, and what the known limitations are. I cannot promise to explain every line, for example the exact syntax of a TypeScript generic or why one Tailwind class is used instead of another. For those I would need to read the code again.
+**Co to znaczy.** Potrafię wyjaśnić, co robi aplikacja, jakie technologie wybrałem i dlaczego, oraz jak części ze sobą współpracują: jak frontend rozmawia z API, czym jest stan serwera i jak TanStack Query go przechowuje, dlaczego tokeny nie powinny leżeć w `localStorage` i jakie są znane ograniczenia. Nie obiecuję, że wyjaśnię każdą linijkę, na przykład dokładną składnię typu generycznego w TypeScripcie albo dlaczego użyto jednej klasy Tailwinda zamiast innej. Przy takich rzeczach musiałbym ponownie przeczytać kod.
 
-**Why I say it.** The AI wrote much of the code, so claiming that I understand every line would not be honest. My goal in this homework was to practice the part I can fully own: deciding how a system should be built, checking that it works, and understanding the main ideas well enough to defend them. The decisions and the lessons I learned are written down in `STEPS.md`, so they can be checked.
+**Dlaczego tak piszę.** AI napisało dużą część kodu, więc twierdzenie, że rozumiem każdą linijkę, nie byłoby uczciwe. Moim celem w tym zadaniu było przećwiczenie części, którą mogę w pełni objąć: decydowania, jak system ma być zbudowany, sprawdzania, że działa, i rozumienia głównych idei na tyle dobrze, żeby ich bronić. Decyzje i wnioski są zapisane w `STEPS.md`, więc można je sprawdzić.
 
-## More details
+## Więcej szczegółów
 
-- `STEPS.md` — the full log: what was decided, what was built, why, and the problems met on the way.
-- `frontend/README.md` — how to run the frontend (in Polish).
-- `backend/README.md` — currently the backend task description.
-- `CLAUDE.md` — rules for the AI assistant that helps me learn while building this.
+- [`STEPS.md`](STEPS.md) — pełny dziennik pracy (po angielsku): co zdecydowano, co zbudowano, dlaczego i jakie były problemy.
+- [`frontend/README.md`](frontend/README.md) — jak uruchomić frontend, funkcje, ograniczenia.
+- [`backend/README.md`](backend/README.md) — jak uruchomić backend, schemat bazy danych, endpointy, role, testy, ograniczenia.
+- [`CLAUDE.md`](CLAUDE.md) — zasady dla asystenta AI, który pomaga mi się uczyć podczas pracy nad tym zadaniem.

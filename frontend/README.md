@@ -3,6 +3,8 @@
 Przeglądarka koktajli oparta o [Cocktails API Solvro](https://cocktails.solvro.pl).
 Next.js (App Router) · TypeScript · Tailwind CSS · TanStack Query.
 
+**Wersja online:** <https://homework-solvro.vercel.app/> (dane z publicznego API Solvro; własny backend z katalogu `backend/` nie jest jeszcze podłączony).
+
 ## Funkcje
 - lista koktajli z paginacją
 - wyszukiwanie po nazwie (z opóźnieniem 300 ms), filtr kategorii i alkoholu, sortowanie — po stronie API; filtry są w URL-u (odświeżenie, link i „wstecz” je zachowują)
