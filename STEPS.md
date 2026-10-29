@@ -281,3 +281,5 @@ Computed on every request from unique visitor-days (no stored state). Thresholds
 One `status` is shown, in order: trending, most popular, popular. Known approximation: no memory of "was trending for 14 days" (an exact clock would need stored state and a daily job).
 
 Built: reviews, reports and rating numbers (176 tests); the verified badge. Not built yet: views counting, the three labels and their sorts, the schema picture, the final pass.
+
+Built: views counting with anti-abuse (level 1), the `status` label, sorts `trending`/`popular`/`top_rated` and `?status=` (206 tests). Not built yet: the schema picture and the final pass.

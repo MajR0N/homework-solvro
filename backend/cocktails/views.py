@@ -2,14 +2,17 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import generics, status, viewsets
 from rest_framework.exceptions import APIException, PermissionDenied
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.views import APIView
 
 from .filters import CocktailFilter, IngredientFilter
-from .models import Category, Cocktail, Ingredient, Review, ReviewReport
+from .models import Category, Cocktail, CocktailView, Ingredient, Review, ReviewReport
 from .pagination import Pagination
 from .permissions import IsAuthorOrAdmin, ReviewPermission
 from .serializers import (
@@ -21,6 +24,7 @@ from .serializers import (
     ReviewReportSerializer,
     ReviewSerializer,
 )
+from .visitors import visitor_id
 
 
 class AuthorOnCreateMixin:
@@ -47,7 +51,7 @@ class CocktailViewSet(AuthorOnCreateMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         # order_by jest konieczne: bez stałej kolejności paginacja mogłaby powtarzać lub gubić wiersze
-        qs = Cocktail.objects.with_ratings().select_related("category").order_by("name", "id")
+        qs = Cocktail.objects.with_stats().select_related("category").order_by("name", "id")
         if self.action == "retrieve":
             qs = qs.prefetch_related("links__ingredient")
         return qs
@@ -148,3 +152,27 @@ class ReviewReportCreate(generics.CreateAPIView):
             review=review, reporter=request.user, defaults={"reason": serializer.validated_data.get("reason", "")}
         )
         return Response({"reason": report.reason}, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+
+class CocktailViewCount(APIView):
+    """Zlicz wyświetlenie koktajlu (frontend wywołuje to raz po otwarciu strony szczegółów).
+
+    Zawsze 204, także gdy wyświetlenie się nie liczy (ten sam odwiedzający tego dnia, autor koktajlu), żeby skrypt
+    nie mógł sprawdzać, które wywołania podziałały. Powtórzenia i sztuczne nabijanie ogranicza jeden wpis na
+    odwiedzającego, koktajl i dzień oraz limit wywołań na IP.
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "views"
+
+    @extend_schema(request=None, responses={204: None})
+    def post(self, request, cocktail_id):
+        cocktail = get_object_or_404(Cocktail, pk=cocktail_id)
+        is_author = request.user.is_authenticated and cocktail.author_id == request.user.id
+        if not is_author:
+            day = timezone.localdate()
+            visitor = visitor_id(request, cocktail.id, day)
+            # ignore_conflicts = INSERT ... ON CONFLICT DO NOTHING: bezpieczne także przy równoległych żądaniach
+            CocktailView.objects.bulk_create([CocktailView(cocktail=cocktail, day=day, visitor=visitor)], ignore_conflicts=True)
+        return Response(status=status.HTTP_204_NO_CONTENT)

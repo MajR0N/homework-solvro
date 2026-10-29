@@ -27,6 +27,9 @@ class CocktailListSerializer(serializers.ModelSerializer):
     category = serializers.CharField(source="category.name")
     rating_avg = serializers.SerializerMethodField()  # None, gdy nie ma jeszcze opinii
     rating_count = serializers.IntegerField(read_only=True)
+    views_14d = serializers.IntegerField(read_only=True)
+    views_30d = serializers.IntegerField(read_only=True)
+    status = serializers.ChoiceField(choices=["trending", "popular", "most_popular"], read_only=True, allow_null=True)
 
     def get_rating_avg(self, cocktail) -> float | None:
         return None if cocktail.rating_avg is None else round(float(cocktail.rating_avg), 2)
@@ -35,7 +38,7 @@ class CocktailListSerializer(serializers.ModelSerializer):
         model = Cocktail
         fields = [
             "id", "name", "category", "glass", "alcoholic", "image_url", "verified", "rating_avg", "rating_count",
-            "author", "author_name",
+            "views_14d", "views_30d", "status", "author", "author_name",
         ]
 
 
@@ -98,7 +101,7 @@ class CocktailWriteSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         # odpowiedź po zapisie wygląda tak samo jak GET /cocktails/{id}/ (z policzonymi ocenami)
-        instance = Cocktail.objects.with_ratings().get(pk=instance.pk)
+        instance = Cocktail.objects.with_stats().get(pk=instance.pk)
         return CocktailDetailSerializer(instance, context=self.context).data
 
 

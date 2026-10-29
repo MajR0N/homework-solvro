@@ -45,7 +45,19 @@ class CocktailFilter(StableOrderFilterSet):
     verified = true_false_filter()
     ingredient = django_filters.CharFilter(method="filter_ingredient", help_text="Fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie, np. mint,lime.")
     id = IdInFilter(field_name="id", lookup_expr="in", help_text="Tylko te koktajle (id po przecinku); puste ?id= daje brak wyników.")
-    ordering = django_filters.OrderingFilter(fields=("name", "id", "verified"), help_text="Sortowanie; minus oznacza malejąco. Przy remisie decyduje id.")
+    status = django_filters.ChoiceFilter(
+        choices=[("trending", "trending"), ("popular", "popular"), ("most_popular", "most_popular")],
+        help_text="Etykieta popularności: trending, popular albo most_popular.",
+    )
+    ordering = django_filters.OrderingFilter(
+        # (pole w bazie, nazwa w adresie): trending = przyrost wyświetleń (ostatnie 7 dni minus 7 dni wcześniej),
+        # popular = wyświetlenia z 30 dni, top_rated = średnia ważona ocen
+        fields=(
+            ("name", "name"), ("id", "id"), ("verified", "verified"),
+            ("trend", "trending"), ("views_30d", "popular"), ("top_rated_score", "top_rated"),
+        ),
+        help_text="Sortowanie: name, id, verified, trending, popular, top_rated; minus oznacza malejąco. Przy remisie decyduje id.",
+    )
 
     class Meta:
         model = Cocktail

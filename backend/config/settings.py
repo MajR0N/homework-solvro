@@ -124,11 +124,20 @@ USE_TZ = True
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework_simplejwt.authentication.JWTAuthentication'],
-    'DEFAULT_THROTTLE_RATES': {'auth': '10/min'},
+    'DEFAULT_THROTTLE_RATES': {'auth': '10/min', 'views': '30/min'},
     # Ile serwerów pośredniczących stoi przed Django (0 lokalnie). Na hostingu trzeba ustawić poprawnie,
     # inaczej limity per IP liczą adres pośrednika albo dają się obejść podrobionym nagłówkiem.
     'NUM_PROXIES': int(os.environ.get('NUM_PROXIES', '0')),
 }
+
+# Progi etykiet popularności (wartości demo, można zmienić zmiennymi środowiskowymi bez ruszania kodu)
+LABEL_THRESHOLDS = {
+    'trending_views_14d': int(os.environ.get('TRENDING_MIN_VIEWS', '10')),
+    'popular_views_30d': int(os.environ.get('POPULAR_MIN_VIEWS', '20')),
+    'most_popular_views_30d': int(os.environ.get('MOST_POPULAR_MIN_VIEWS', '100')),
+}
+# Ranking "najlepiej oceniane": koktajl z mniej niż tyloma opiniami jest ściągany w stronę średniej wszystkich ocen
+TOP_RATED_PRIOR_REVIEWS = 5
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),

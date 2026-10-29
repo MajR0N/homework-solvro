@@ -120,7 +120,8 @@ Parametry listy koktajli (łączą się ze sobą i z paginacją; zła wartość 
 | `alcoholic` | `?alcoholic=true` | tylko `true` lub `false` |
 | `ingredient` | `?ingredient=mint,lime` | fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie |
 | `id` | `?id=11000,11007` | tylko te koktajle (ulubione); samo `?id=` = brak wyników |
-| `ordering` | `?ordering=-name` | `name`, `id`, `verified` (minus = malejąco; `-verified` daje zweryfikowane na początku); przy remisie decyduje `id` |
+| `status` | `?status=trending` | etykieta popularności: `trending`, `popular`, `most_popular` |
+| `ordering` | `?ordering=-popular` | `name`, `id`, `verified`, `trending`, `popular`, `top_rated` (minus = malejąco); przy remisie decyduje `id` |
 
 Przykład z zadania („bezalkoholowe koktajle z miętą”): `GET /api/v1/cocktails/?alcoholic=false&ingredient=mint`.
 
@@ -173,7 +174,7 @@ Sprawdzenie schematu: `python manage.py spectacular --validate --fail-on-warn`.
 ## Testy
 
 ```bash
-python -m pytest              # 176 testów, ok. 2 s, bez internetu
+python -m pytest              # 206 testów, ok. 2 s, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
@@ -250,3 +251,35 @@ Koktajl ma pole `verified`. To znaczek i filtr, nie bramka: **nic nie jest ukryw
 - Admin **usuwa**, ale nie **edytuje** cudzych opinii; autor koktajlu może opinię tylko **zgłosić**, nie usunąć (inaczej kasowałby złe oceny).
 - Po usunięciu konta opinia zostaje i nadal liczy się do średniej, a `author` oraz `author_username` mają wartość `null` (frontend pokazuje „usunięty użytkownik”).
 - Zgłoszenia i opinie są w CMS (Reviews, Review reports): admin sortuje opinie po liczbie zgłoszeń i je usuwa albo odrzuca zgłoszenie (usuwa samo zgłoszenie). Opinii w CMS nie da się edytować.
+
+## Wyświetlenia i etykiety popularności
+
+`POST /api/v1/cocktails/{id}/views/` liczy wyświetlenie (frontend woła to raz po otwarciu strony szczegółów). Zawsze odpowiada **204** (404 dla nieistniejącego koktajlu), także gdy wyświetlenie się nie liczy, żeby skrypt nie mógł sprawdzać, które wywołania podziałały. Odczyt (`GET`) niczego nie zmienia.
+
+**Ochrona przed nabijaniem (poziom 1):**
+
+| Atak | Obrona |
+|---|---|
+| tryb incognito, czyszczenie ciasteczek, zmiana przeglądarki | odwiedzający jest rozpoznawany **tylko po adresie IP**, nigdy po ciasteczku ani user-agencie |
+| odświeżanie, skrypt z jednego komputera | jeden policzony odwiedzający na koktajl i dzień (unikalny wpis w bazie, `INSERT ... ON CONFLICT DO NOTHING`) oraz limit 30 wywołań na minutę na IP (429) |
+| zmiana adresu w obrębie swojej sieci IPv6 | IPv6 liczone po prefiksie `/64`; `::ffff:1.2.3.4` to ten sam odwiedzający co `1.2.3.4` |
+| podrobiony nagłówek `X-Forwarded-For` | ignorowany, dopóki `NUM_PROXIES` = 0; za serwerem pośredniczącym trzeba ustawić poprawną liczbę (test pilnuje obu przypadków) |
+| autor „nakręca” własny koktajl | wyświetlenia zalogowanego autora koktajlu się nie liczą |
+
+W bazie nie ma adresów IP: zapisujemy skrót HMAC z sekretu, dnia, koktajlu i sieci IP. Nie da się go cofnąć do adresu ani połączyć tej samej osoby między dniami i koktajlami.
+
+**Czego to nie zatrzyma:** wielu różnych adresów IP (botnet, rotujące VPN-y): każdy z nich dodaje jedno wyświetlenie dziennie. Realna obrona to CAPTCHA albo proof-of-work (np. Cloudflare Turnstile), poza zakresem. Wspólny adres (szkoła, biuro) liczy się jako jeden odwiedzający, więc raczej zaniżamy niż zawyżamy.
+
+**Etykieta `status`** jest liczona przy każdym zapytaniu z liczby unikalnych odwiedzających (bez zapisanego stanu). Progi to wartości demo, w `settings.LABEL_THRESHOLDS` (zmienne środowiskowe `TRENDING_MIN_VIEWS`, `POPULAR_MIN_VIEWS`, `MOST_POPULAR_MIN_VIEWS`):
+
+| `status` | Reguła |
+|---|---|
+| `trending` | co najmniej 10 wyświetleń w ostatnich 14 dniach **i** ostatnie 7 dni mają więcej wyświetleń niż 7 dni wcześniej (nadal rośnie) |
+| `popular` | nie `trending`, co najmniej 20 wyświetleń w ostatnich 30 dniach |
+| `most_popular` | co najmniej 100 wyświetleń w ostatnich 30 dniach |
+
+Pokazywana jest jedna etykieta, w kolejności: `trending`, `most_popular`, `popular`. W odpowiedzi są też liczby: `views_14d`, `views_30d`, `rating_avg`, `rating_count`.
+
+**Sortowanie:** `-trending` (przyrost: ostatnie 7 dni minus 7 dni wcześniej), `-popular` (wyświetlenia z 30 dni), `-top_rated` (średnia ważona: koktajl z mniej niż 5 opiniami jest ściągany w stronę średniej wszystkich ocen, więc jedna piątka nie wygrywa z dwudziestoma ocenami po 4,8).
+
+Przybliżenie: etykieta nie ma „pamięci” (nie wie, że koktajl był trendujący 14 dni od startu). Dokładny zegar wymagałby zapisanego stanu i codziennego zadania. Tabela wyświetleń rośnie; wpisy starsze niż 30 dni nie są potrzebne do etykiet i można je kasować (osobne zadanie, gdy tabela urośnie).

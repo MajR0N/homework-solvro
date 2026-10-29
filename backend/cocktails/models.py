@@ -1,9 +1,12 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex, OpClass
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Avg, Count, Q
-from django.db.models.functions import Upper
+from django.db.models import Avg, Case, Count, ExpressionWrapper, F, FloatField, OuterRef, Q, Subquery, Value, When
+from django.db.models.functions import Coalesce, Upper
+from django.utils import timezone
 
 
 class Category(models.Model):
@@ -32,9 +35,53 @@ class Ingredient(models.Model):
 
 
 class CocktailQuerySet(models.QuerySet):
-    def with_ratings(self):
-        # średnia ocen i liczba opinii liczone w bazie, jednym zapytaniem dla całej listy
-        return self.annotate(rating_avg=Avg("reviews__rating"), rating_count=Count("reviews"))
+    def with_stats(self):
+        """Oceny, wyświetlenia i etykieta popularności, wszystko liczone w bazie na każde zapytanie (bez zapisanych wyników)."""
+        today = timezone.localdate()
+        thresholds = settings.LABEL_THRESHOLDS
+
+        # Oceny przez podzapytania, a nie join: join z wyświetleniami pomnożyłby wiersze i zafałszował liczby.
+        reviews = Review.objects.filter(cocktail=OuterRef("pk")).order_by().values("cocktail")
+        site_avg = Coalesce(
+            Subquery(Review.objects.annotate(k=Value(1)).values("k").annotate(v=Avg("rating")).values("v")),
+            Value(3.0, output_field=FloatField()),
+        )
+        prior = Value(float(settings.TOP_RATED_PRIOR_REVIEWS), output_field=FloatField())
+
+        def seen(newer_than_days, older_than_days=None):
+            condition = Q(views__day__gt=today - timedelta(days=newer_than_days))
+            if older_than_days:
+                condition &= Q(views__day__lte=today - timedelta(days=older_than_days))
+            return Count("views", filter=condition)
+
+        return (
+            self.annotate(
+                rating_avg=Subquery(reviews.annotate(v=Avg("rating")).values("v")),
+                rating_count=Coalesce(Subquery(reviews.annotate(v=Count("pk")).values("v")), 0),
+                views_7d=seen(7),
+                views_prev_7d=seen(14, 7),
+                views_14d=seen(14),
+                views_30d=seen(30),
+            )
+            .annotate(
+                trend=F("views_7d") - F("views_prev_7d"),
+                # Średnia ważona: mało opinii = bliżej średniej wszystkich ocen, żeby jedna piątka nie wygrywała z setką czwórek
+                top_rated_score=ExpressionWrapper(
+                    (site_avg * prior + Coalesce(F("rating_avg"), 0.0) * F("rating_count")) / (prior + F("rating_count")),
+                    output_field=FloatField(),
+                ),
+                status=Case(
+                    When(
+                        Q(views_14d__gte=thresholds["trending_views_14d"], views_7d__gt=F("views_prev_7d")),
+                        then=Value("trending"),
+                    ),
+                    When(views_30d__gte=thresholds["most_popular_views_30d"], then=Value("most_popular")),
+                    When(views_30d__gte=thresholds["popular_views_30d"], then=Value("popular")),
+                    default=Value(None),
+                    output_field=models.CharField(),
+                ),
+            )
+        )
 
 
 class Cocktail(models.Model):
@@ -117,3 +164,15 @@ class ReviewReport(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["reporter", "review"], name="one_report_per_user_per_review")]
+
+
+class CocktailView(models.Model):
+    """Jedno wyświetlenie = jeden odwiedzający, jeden koktajl, jeden dzień. Adresu IP tu nie ma, tylko jego skrót."""
+
+    cocktail = models.ForeignKey(Cocktail, on_delete=models.CASCADE, related_name="views")
+    day = models.DateField()
+    visitor = models.CharField(max_length=64)  # HMAC(sekret, dzień + koktajl + sieć IP): nie da się cofnąć do adresu
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["cocktail", "day", "visitor"], name="one_view_per_visitor_per_day")]
+        # ponytail: wiersze starsze niż 30 dni nie są potrzebne do etykiet; kasowanie ich to osobne zadanie, gdy tabela urośnie
