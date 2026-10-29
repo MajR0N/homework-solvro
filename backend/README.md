@@ -113,7 +113,10 @@ Parametry listy koktajli (łączą się ze sobą i z paginacją; zła wartość 
 | `category` | `?category=Shot` | dokładna nazwa kategorii |
 | `glass` | `?glass=Jar` | dokładna nazwa szklanki |
 | `alcoholic` | `?alcoholic=true` | tylko `true` lub `false` |
+| `ingredient` | `?ingredient=mint,lime` | fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie |
 | `id` | `?id=11000,11007` | tylko te koktajle (ulubione); samo `?id=` = brak wyników |
 | `ordering` | `?ordering=-name` | `name`, `-name`, `id`, `-id`; przy remisie decyduje `id` |
+
+Przykład z zadania („bezalkoholowe koktajle z miętą”): `GET /api/v1/cocktails/?alcoholic=false&ingredient=mint`.
 
 Zapis (POST/PUT/DELETE) odpowiada 405, bo dodamy go w kolejnym kroku.

@@ -1,6 +1,7 @@
 import django_filters
+from django.db.models import Exists, OuterRef
 
-from .models import Cocktail
+from .models import Cocktail, CocktailIngredient
 
 
 class IdInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
@@ -15,6 +16,7 @@ class CocktailFilter(django_filters.FilterSet):
     alcoholic = django_filters.TypedChoiceFilter(
         choices=[("true", "true"), ("false", "false")], coerce=lambda v: v == "true"
     )
+    ingredient = django_filters.CharFilter(method="filter_ingredient")
     id = IdInFilter(field_name="id", lookup_expr="in")
     # Niedozwolona wartość (np. ?ordering=glass) daje 400, a nie po cichu ignorowane sortowanie.
     ordering = django_filters.OrderingFilter(fields=("name", "id"))
@@ -22,6 +24,14 @@ class CocktailFilter(django_filters.FilterSet):
     class Meta:
         model = Cocktail
         fields = []
+
+    def filter_ingredient(self, queryset, name, value):
+        # ?ingredient=mint,lime -> koktajl musi mieć OBA. Exists zamiast join, żeby koktajl nie pojawił się
+        # dwa razy, gdy pasują mu dwa składniki naraz (np. "Lime" i "Lime juice").
+        for term in filter(None, (t.strip() for t in value.split(","))):
+            has_term = CocktailIngredient.objects.filter(cocktail=OuterRef("pk"), ingredient__name__icontains=term)
+            queryset = queryset.filter(Exists(has_term))
+        return queryset
 
     def filter_queryset(self, queryset):
         # Samo ?id= (puste) znaczy "żadne", a nie "wszystkie" - inaczej pusta lista ulubionych zwróciłaby całą bazę.
