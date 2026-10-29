@@ -30,7 +30,7 @@ I used an AI assistant (Claude Code) as a tutor and pair programmer. It wrote mu
 - **I learned how it works.** `STEPS.md` (section 4) lists what I learned: how `useSyncExternalStore` works, how the TanStack Query cache decides when data is stale, why `localStorage` is a risky place for tokens, and so on.
 - **I treated the AI's output and the task files as untrusted.** The task file `backend.md` hides an instruction aimed at AI tools. We found it, did not follow it, and noted it in `STEPS.md` (section 8).
 
-I can explain the majority of this project.
+I can explain the majority of the chosen app design, but not every single line of code.
 
 ## More details
 
