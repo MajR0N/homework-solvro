@@ -1,7 +1,16 @@
 from django.db import transaction
+from urllib.parse import urlparse
+
 from rest_framework import serializers
 
 from .models import Category, Cocktail, CocktailIngredient, Ingredient, Review, ReviewReport
+
+
+def check_https(value):
+    """Adresy zdjęć tylko po https: http miesza treść w stronie https, a ftp nie ma tu zastosowania."""
+    if value and urlparse(value).scheme != "https":
+        raise serializers.ValidationError("Adres zdjęcia musi zaczynać się od https://.")
+    return value
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -9,7 +18,13 @@ class IngredientSerializer(serializers.ModelSerializer):
         model = Ingredient
         fields = ["id", "name", "description", "alcoholic", "type", "percentage", "image_url", "author", "author_name"]
         read_only_fields = ["author", "author_name"]  # ustawia serwer z konta w tokenie, klient nie może ich podać
-        extra_kwargs = {"percentage": {"min_value": 0, "max_value": 100}}  # zawartość alkoholu w %
+        extra_kwargs = {
+            "percentage": {"min_value": 0, "max_value": 100},  # zawartość alkoholu w %
+            "description": {"max_length": 10000},
+        }
+
+    def validate_image_url(self, value):
+        return check_https(value)
 
 
 class CocktailIngredientSerializer(serializers.ModelSerializer):
@@ -65,11 +80,15 @@ class IngredientAmountSerializer(serializers.Serializer):
 class CocktailWriteSerializer(serializers.ModelSerializer):
     # kategoria po nazwie (jak przy odczycie); nieznana nazwa = 400, nie tworzymy kategorii "przy okazji"
     category = serializers.SlugRelatedField(slug_field="name", queryset=Category.objects.all())
-    ingredients = IngredientAmountSerializer(many=True, required=False)
+    ingredients = IngredientAmountSerializer(many=True, required=False, max_length=50)  # najwięcej ma dziś 10
 
     class Meta:
         model = Cocktail
         fields = ["id", "name", "category", "glass", "alcoholic", "image_url", "instructions", "ingredients"]
+        extra_kwargs = {"instructions": {"max_length": 5000}}
+
+    def validate_image_url(self, value):
+        return check_https(value)
 
     def validate_ingredients(self, rows):
         ids = [row["ingredient"].id for row in rows]

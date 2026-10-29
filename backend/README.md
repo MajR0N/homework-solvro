@@ -386,10 +386,33 @@ Do wiedzenia:
 - DRF sprawdza uprawnienia **przed** limitami, więc żądania bez logowania odrzucone kodem 401 nie są liczone. Nic się wtedy nie zapisuje, a odczyty bez logowania są limitowane normalnie.
 - Liczniki leżą w pamięci procesu serwera. Przy jednym procesie (lokalnie) działa to dokładnie, ale przy kilku procesach lub serwerach limity się mnożą. Na produkcji trzeba współdzielonego cache (np. wbudowany `DatabaseCache`, bez nowych pakietów).
 
+### Wstrzykiwanie SQL i zabezpieczenie wejścia
+
+- **SQL injection:** cały dostęp do bazy idzie przez ORM Django, który przekazuje wartości jako parametry zapytania, nigdy nie sklejając ich w tekst SQL. W naszym kodzie nie ma `raw()`, `extra()` ani ręcznego `execute` z danymi od użytkownika (jedyne `execute` w poleceniu importu wykonuje SQL wygenerowany przez samo Django). Wartości `ordering`, `status`, `alcoholic` i `verified` są dodatkowo ograniczone do listy dozwolonych. Znaki `%` i `_` w wyszukiwaniu są traktowane dosłownie.
+- **Limity wejścia** (żeby jedno żądanie nie zlecało bazie dowolnie dużo pracy; zła wartość daje 400):
+
+| Co | Limit |
+|---|---|
+| `search`, `category`, `glass`, `type` | do 100 znaków |
+| `author` | do 150 znaków (długość nazwy użytkownika) |
+| `ingredient` | do 10 składników po 100 znaków |
+| `id` | do 200 wartości |
+| `instructions` (koktajl) | do 5000 znaków |
+| `description` (składnik) | do 10000 znaków (najdłuższy opis z importu ma ok. 7000) |
+| `ingredients[]` w koktajlu | do 50 wierszy (największy koktajl ma dziś 10) |
+| całe żądanie | do 100 000 bajtów, inaczej 413 (sprawdzane po `Content-Length`, zanim ciało zostanie przeczytane) |
+
+### XSS (wstrzykiwanie skryptów)
+
+- API odpowiada wyłącznie JSON-em (`application/json` z `X-Content-Type-Options: nosniff`), a wersja HTML („browsable API” DRF) jest wyłączona. Przeglądarka nie wykona zawartości JSON-a.
+- **Treść od użytkowników jest zapisywana bez zmian** (nie „czyścimy” jej po cichu), a bezpieczeństwo zapewnia kodowanie przy wyświetlaniu: React koduje wszystko, we frontendzie nie ma `dangerouslySetInnerHTML` ani `innerHTML`, a panel `/admin/` ma automatyczne kodowanie szablonów Django. Test sprawdza, że `<img src=x onerror=...>` wraca jako zwykły tekst w JSON-ie.
+- `image_url` musi zaczynać się od `https://` (odrzucane: `http:`, `ftp:`, `javascript:`, `data:`, adresy bez schematu). Zdjęcia z obcych hostów frontend dodatkowo pomija.
+- Nie ustawiamy nagłówka `Content-Security-Policy` dla API: odpowiedzi JSON nie są wykonywane przez przeglądarkę, a `nosniff` jest tu standardową obroną. CSP ma sens dla stron HTML (frontend, panel).
+
 ## Testy
 
 ```bash
-python -m pytest              # 224 testy, kilka sekund, bez internetu
+python -m pytest              # 248 testów, kilka sekund, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 

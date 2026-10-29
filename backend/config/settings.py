@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'accounts.middleware.BodySizeLimit',
     'accounts.middleware.AdminLoginLimit',
     'corsheaders.middleware.CorsMiddleware',  # przed CommonMiddleware, żeby dodać nagłówki CORS do odpowiedzi
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -131,6 +132,9 @@ USE_I18N = True
 USE_TZ = True
 
 
+# Największe dozwolone żądanie w bajtach (nasze największe ma kilka KB), sprawdza je accounts.middleware.BodySizeLimit
+MAX_REQUEST_BODY_BYTES = 100_000
+
 # Próby logowania do panelu /admin/ na minutę z jednego adresu IP
 ADMIN_LOGIN_ATTEMPTS_PER_MINUTE = 10
 
@@ -139,6 +143,8 @@ ADMIN_LOGIN_ATTEMPTS_PER_MINUTE = 10
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    # Tylko JSON: bez HTML-owego "browsable API" (mniej powierzchni ataku, a dokumentację daje Swagger)
+    'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework_simplejwt.authentication.JWTAuthentication'],
     # Limity na adres IP (niezalogowani) albo konto (zalogowani). Liczniki siedzą w pamięci procesu, więc
     # przy kilku procesach serwera limity się mnożą: na produkcji trzeba współdzielonego cache (patrz README).

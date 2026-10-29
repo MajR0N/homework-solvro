@@ -1,7 +1,14 @@
 import django_filters
 from django.db.models import Exists, OuterRef
+from rest_framework.exceptions import ValidationError
 
 from .models import Cocktail, CocktailIngredient, Ingredient
+
+
+# Górne limity wartości z adresu URL: bez nich jedno żądanie mogłoby zlecić bazie dowolnie dużo pracy
+MAX_IDS = 200
+MAX_INGREDIENT_TERMS = 10
+MAX_TEXT = 100
 
 
 class IdInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
@@ -26,8 +33,8 @@ class StableOrderFilterSet(django_filters.FilterSet):
 
 
 class IngredientFilter(StableOrderFilterSet):
-    search = django_filters.CharFilter(field_name="name", lookup_expr="icontains", help_text="Fragment nazwy, bez rozróżniania wielkości liter.")
-    type = django_filters.CharFilter(field_name="type", help_text="Dokładny typ składnika, np. Fruit.")
+    search = django_filters.CharFilter(field_name="name", lookup_expr="icontains", max_length=MAX_TEXT, help_text="Fragment nazwy, bez rozróżniania wielkości liter.")
+    type = django_filters.CharFilter(field_name="type", max_length=MAX_TEXT, help_text="Dokładny typ składnika, np. Fruit.")
     alcoholic = true_false_filter()
     # Niedozwolona wartość (np. ?ordering=type) daje 400, a nie po cichu ignorowane sortowanie.
     ordering = django_filters.OrderingFilter(fields=("name", "id"), help_text="Sortowanie; minus oznacza malejąco. Remisy rozstrzyga nazwa, potem id.")
@@ -38,10 +45,10 @@ class IngredientFilter(StableOrderFilterSet):
 
 
 class CocktailFilter(StableOrderFilterSet):
-    search = django_filters.CharFilter(field_name="name", lookup_expr="icontains", help_text="Fragment nazwy, bez rozróżniania wielkości liter.")
-    category = django_filters.CharFilter(field_name="category__name", help_text="Dokładna nazwa kategorii, np. Shot.")  # po nazwie, nie po id
-    glass = django_filters.CharFilter(field_name="glass", help_text="Dokładna nazwa szklanki, np. Jar.")
-    author = django_filters.CharFilter(field_name="author__username", lookup_expr="iexact", help_text="Nazwa użytkownika, który dodał koktajl (istniejące konto).")
+    search = django_filters.CharFilter(field_name="name", lookup_expr="icontains", max_length=MAX_TEXT, help_text="Fragment nazwy, bez rozróżniania wielkości liter.")
+    category = django_filters.CharFilter(field_name="category__name", max_length=MAX_TEXT, help_text="Dokładna nazwa kategorii, np. Shot.")  # po nazwie, nie po id
+    glass = django_filters.CharFilter(field_name="glass", max_length=MAX_TEXT, help_text="Dokładna nazwa szklanki, np. Jar.")
+    author = django_filters.CharFilter(field_name="author__username", lookup_expr="iexact", max_length=150, help_text="Nazwa użytkownika, który dodał koktajl (istniejące konto).")
     alcoholic = true_false_filter()
     verified = true_false_filter()
     ingredient = django_filters.CharFilter(method="filter_ingredient", help_text="Fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie, np. mint,lime.")
@@ -74,6 +81,12 @@ class CocktailFilter(StableOrderFilterSet):
 
     def filter_queryset(self, queryset):
         # Samo ?id= (puste) znaczy "żadne", a nie "wszystkie" - inaczej pusta lista ulubionych zwróciłaby całą bazę.
-        if self.data.get("id") == "":
+        ids = self.data.get("id")
+        if ids == "":
             return queryset.none()
+        if ids and len(ids.split(",")) > MAX_IDS:
+            raise ValidationError({"id": [f"Najwyżej {MAX_IDS} wartości naraz."]})
+        terms = [t.strip() for t in (self.data.get("ingredient") or "").split(",") if t.strip()]
+        if len(terms) > MAX_INGREDIENT_TERMS or any(len(t) > MAX_TEXT for t in terms):
+            raise ValidationError({"ingredient": [f"Najwyżej {MAX_INGREDIENT_TERMS} składników po {MAX_TEXT} znaków."]})
         return super().filter_queryset(queryset)
