@@ -13,10 +13,6 @@ Zadanie (<https://github.com/Solvro/rekrutacja>) ma motyw koktajli: miejsce do p
 | `backend/` | Własne REST API koktajli i składników. Django, Django REST Framework, PostgreSQL. Konta i role, opinie, CMS, etykiety popularności, Swagger, testy. | Gotowe, przetestowane i **wdrożone** na Vercelu (baza Neon). Opis w [`backend/README.md`](backend/README.md). |
 | `uiux/` | Zadanie UI/UX: projekt landing page'a. Wszystko jest w HTML (paleta, czcionki, komponenty), więc da się to otworzyć w przeglądarce. | W trakcie. |
 
-## Dlaczego te ścieżki
-
-Wybrałem **Frontend + Backend** (full stack) oraz **UI/UX**. Pominąłem Mobile, DevOps, AI/ML, Project Management i Promotion.
-
 ## Pomysł
 
 Frontend korzysta z dwóch źródeł danych: gotowego API Solvro albo mojego własnego API w Django, z przełącznikiem w interfejsie, żeby obie części zadania działały razem jako jeden projekt. Przełącznik jest widoczny także na wersji online (adres backendu ustawia zmienna środowiskowa, patrz [`frontend/README.md`](frontend/README.md)); domyślnym źródłem zostaje API Solvro. Logowania i formularzy w interfejsie jeszcze nie ma: backend je obsługuje, ale frontend tylko czyta.
