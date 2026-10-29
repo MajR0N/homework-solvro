@@ -32,6 +32,10 @@ I used an AI assistant (Claude Code) as a tutor and pair programmer. It wrote mu
 
 I can explain the majority of the chosen app design, but not every single line of code.
 
+**What this means.** I can explain what the app does, which technologies I chose and why, and how the parts connect: how the frontend talks to the API, what server state is and how TanStack Query caches it, why tokens should not live in `localStorage`, and what the known limitations are. I cannot promise to explain every line, for example the exact syntax of a TypeScript generic or why one Tailwind class is used instead of another. For those I would need to read the code again.
+
+**Why I say it.** The AI wrote much of the code, so claiming that I understand every line would not be honest. My goal in this homework was to practice the part I can fully own: deciding how a system should be built, checking that it works, and understanding the main ideas well enough to defend them. The decisions and the lessons I learned are written down in `STEPS.md`, so they can be checked.
+
 ## More details
 
 - `STEPS.md` — the full log: what was decided, what was built, why, and the problems met on the way.
