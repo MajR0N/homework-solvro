@@ -266,3 +266,5 @@ Scope the user added after the backend core (step 3) was finished. Order of buil
 Built: step 5a (accounts, JWT, 71 tests). Not built yet: author fields and permissions (5b), CMS rules per role, reviews, views and trending.
 
 Built: step 5b (authors, permissions, `?author=` filter; 99 tests). Not built yet: CMS rules per role (the Django admin, restricted by role and rank), reviews with moderation and reports, views and trending.
+
+Built: the CMS (Django admin restricted by role and rank; 137 tests). Not built yet: reviews with moderation and reports, views and trending, the verified badge, the schema screenshot.

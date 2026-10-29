@@ -172,7 +172,7 @@ Sprawdzenie schematu: `python manage.py spectacular --validate --fail-on-warn`.
 ## Testy
 
 ```bash
-python -m pytest              # 99 testów, ok. 2 s, bez internetu
+python -m pytest              # 137 testów, ok. 2 s, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
@@ -215,3 +215,17 @@ Brak pola e-mail (mniej danych osobowych). Weryfikacji e-mail też nie ma, więc
 - Autora ustawia serwer z konta w tokenie (`author` = id, `author_name` = kopia nazwy). Klient nie może go podać ani zmienić później; test pilnuje, żeby nie dało się „przejąć” cudzego wpisu przez PATCH.
 - Po usunięciu konta treść zostaje: `author` staje się `null`, a `author_name` zachowuje starą nazwę. Taki wpis może już zmienić tylko admin wzwyż.
 - Niezalogowany zapis daje 401, brak uprawnień 403.
+
+## CMS (panel `/admin/`)
+
+Panel administracyjny Django, ograniczony rolami. Wchodzą do niego tylko `admin`, `staff` i `owner` (zwykły użytkownik jest odsyłany do logowania). Pierwsze konto ownera: `python manage.py createsuperuser`.
+
+| Co | Zasada |
+|---|---|
+| koktajle, składniki, kategorie | admin, staff i owner dodają, zmieniają i usuwają wszystko (składnik w użyciu jest chroniony) |
+| konta użytkowników | zmieniać i usuwać można **tylko konta o niższej randze** niż własna; siebie ani równych sobie nie |
+| nadawanie ról | **tylko rolę niższą od własnej**: admin tworzy zwykłych użytkowników, staff także adminów, owner także staff. Ownera nie da się nadać w panelu (tylko `createsuperuser`). |
+| flagi `is_staff` / `is_superuser` | nie ma ich w formularzu; wynikają z roli przy zapisie |
+| wpis dodany w panelu | dostaje autora z zalogowanego konta, tak jak przez API |
+
+Rangi: user < admin < staff < owner. Nikt nie może edytować własnego konta w panelu ani innego ownera, żeby nie dało się wszystkich zablokować.
