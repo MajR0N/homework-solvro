@@ -3,9 +3,11 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import CocktailCard from "@/components/CocktailCard";
+import SourceSwitch from "@/components/SourceSwitch";
 import { getCategories, listCocktails, type Filters } from "@/lib/api";
 import { useFavorites } from "@/lib/favorites";
 import { pl } from "@/lib/pl";
+import { useSource } from "@/lib/source";
 
 // API sortuje tylko z prefiksem + lub - (samo "name" jest po cichu ignorowane)
 const SORTS = [
@@ -22,6 +24,7 @@ function Cocktails() {
   const router = useRouter();
   const sp = useSearchParams();
   const favs = useFavorites();
+  const source = useSource();
 
   // URL to dane od użytkownika - każdą wartość sprawdzamy
   const name = sp.get("q") ?? "";
@@ -55,16 +58,19 @@ function Cocktails() {
   // ponytail: id[] trafia do URL-a zapytania, więc setki ulubionych = długi URL; wtedy filtrowanie po stronie klienta
   const filters: Filters = { name, category, alcoholic, sort, page, ids: onlyFav ? favs : undefined };
   const { data, isPending, isError, isPlaceholderData, refetch } = useQuery({
-    queryKey: ["cocktails", filters], // zmiana filtrów = nowy klucz = nowe zapytanie
-    queryFn: () => listCocktails(filters),
+    queryKey: ["cocktails", source, filters], // zmiana filtrów albo źródła = nowy klucz = nowe zapytanie
+    queryFn: () => listCocktails(filters, source),
     enabled: !noFavs,
     placeholderData: keepPreviousData, // poprzednie wyniki widoczne, gdy ładują się nowe
   });
-  const categories = useQuery({ queryKey: ["categories"], queryFn: getCategories, staleTime: Infinity });
+  const categories = useQuery({ queryKey: ["categories", source], queryFn: () => getCategories(source), staleTime: Infinity });
 
   return (
     <main className="mx-auto w-full max-w-5xl p-4">
-      <h1 className="mb-6 text-3xl font-bold">Koktajle</h1>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <h1 className="text-3xl font-bold">Koktajle</h1>
+        <SourceSwitch />
+      </div>
 
       <form
         role="search"

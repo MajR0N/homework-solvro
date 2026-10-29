@@ -186,7 +186,7 @@ Status as of 29 October 2026 in brackets.
 5. JWT, roles, permissions, author copies, reviews. **[done, and extended: four roles, the CMS, the verified badge, views counting and popularity labels; sections 15-16]**
 6. **Check-in at the end of day 3.** **[skipped]**
 7. Deploy the backend (Cloud Run + Neon). **[not done: the user decided not to deploy for now]**
-8. Frontend: shadcn restyle, source switch + adapter, secure Next.js path, unit conversion. **[not started; the restyle is decided in section 14]**
+8. Frontend: shadcn restyle, source switch + adapter, secure Next.js path, unit conversion. **[source switch + adapter done (read-only, section 18); the restyle (section 14), the secure Next.js path and the unit conversion are not started]**
 9. Frontend: login/register/forms, profile pages. **[not started]**
 10. Signed uploads to Google Cloud Storage (riskiest, so late). **[not started]**
 11. UI/UX task. **[in progress: palette and font decision; section 13]**
@@ -297,9 +297,21 @@ Still to do: the UI/UX homework, the frontend restyle (F1-F8), the source switch
 | D23 (deleted users) | built differently: the author link is emptied and the name copy stays; the copied user number and the profile page were not built; reviews of a deleted user are shown as "deleted user" (A9) |
 | D15 (tests) | built: `pytest` + `pytest-django` on real PostgreSQL |
 | D18, D19, D24 (HttpOnly cookies and the secure Next.js path) | only the JWT part (lifetimes, rotation, blacklist) is built; the cookies and the Next.js server path are not |
-| D1, D2, D8 (switchable frontend, adapter) | not started |
+| D1, D2, D8 (switchable frontend, adapter) | built, read-only (section 18) |
 | D6, D16, D17 (full frontend UI, shadcn, forms) | not started; the look is decided in section 14 |
 | D7, D13 (backend deployment on Cloud Run + Neon) | not done; the user decided not to deploy for now |
 | D11, D12 (image upload to Google Cloud Storage) | not started |
 | D4, D9, D10 (import with Solvro ids, category table, trigram index) | built |
 | D3 (measure as free text, unit conversion in the frontend) | the text is stored; the frontend conversion is not built |
+
+## 18. Backend wiring — source switch and adapter (29 October 2026)
+
+Scope A was chosen (read-only wiring plus the view call). Decisions: the switch only appears when `NEXT_PUBLIC_BACKEND_URL` is set (so the live Vercel site stays on Solvro); images from hosts other than `cocktails.solvro.pl` are dropped for the own backend (placeholder); the source is part of every query key (D8).
+
+**Backend:** `django-cors-headers` (allowed origins from `CORS_ALLOWED_ORIGINS`, only `/api/`, no credentials); sorting by `category`; ties in every sort are now broken by name, then id. 216 tests.
+
+**Frontend:** `lib/source.ts` (store + env), the adapter in `lib/api.ts` (translates `name`/`search`, `perPage`/`page_size`, `sort`/`ordering`, `id[]`/`id=1,2`, the page envelope, `image_url`/`imageUrl`, `alcoholic`/`alcohol`, the categories shape), `SourceSwitch`, and a fire-and-forget view call on the detail page.
+
+**Checked for real:** `tsc`, lint and production build pass. The real adapter code was run against the live Solvro API and the live local backend: 89 comparisons matched (totals, page counts, the same cocktails on every page, all 10 category filters, search, alcohol filter, favorites, combined filters, three full detail pages with every ingredient). Remaining differences, all understood: the own backend has 9 categories (Solvro lists an empty 10th); names with punctuation sort slightly differently (collation); inside one category Solvro's order is undefined and ours is alphabetical. Also checked live: foreign and insecure image hosts are dropped, two view calls from one visitor add exactly one view, and CORS headers are sent only for allowed origins. **Not checked:** the switch in a real browser (look, keyboard use, persistence after reload), and what the user sees when the backend is down (the generic error).
+
+Still to do for the frontend: login and forms (D6, D17), showing ratings, the verified badge and labels, the restyle (section 14), and the unit conversion (D3).

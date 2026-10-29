@@ -2,9 +2,11 @@
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import FavoriteButton from "@/components/FavoriteButton";
-import { getCocktail, HttpError } from "@/lib/api";
+import { countView, getCocktail, HttpError } from "@/lib/api";
 import { pl } from "@/lib/pl";
+import { useSource } from "@/lib/source";
 
 const button = "rounded-lg border px-4 py-2 hover:bg-foreground/10";
 
@@ -23,12 +25,18 @@ function Back() {
 
 export default function CocktailPage() {
   const { id } = useParams<{ id: string }>();
+  const source = useSource();
   const { data, isPending, error, refetch } = useQuery({
-    queryKey: ["cocktail", id],
-    queryFn: () => getCocktail(id),
+    queryKey: ["cocktail", source, id],
+    queryFn: () => getCocktail(id, source),
     // 4xx = błędny adres, ponowne próby nic nie dadzą
     retry: (count, e) => !(e instanceof HttpError && e.status < 500) && count < 2,
   });
+
+  // własny backend liczy wyświetlenia szczegółów; Solvro nie ma takiej funkcji
+  useEffect(() => {
+    if (source === "own") countView(id);
+  }, [id, source]);
 
   if (error) {
     const notFound = error instanceof HttpError && error.status < 500;

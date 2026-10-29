@@ -9,8 +9,8 @@ Zadanie (<https://github.com/Solvro/rekrutacja>) ma motyw koktajli: miejsce do p
 
 | Folder | Co to jest | Stan |
 |---|---|---|
-| `frontend/` | Strona do przeglądania koktajli: lista, wyszukiwanie, filtry, ulubione, szczegóły. Next.js, TypeScript, Tailwind CSS, TanStack Query. | Działa i jest wdrożona. Czyta dane z publicznego API Solvro. |
-| `backend/` | Własne REST API koktajli i składników. Django, Django REST Framework, PostgreSQL. Konta i role, opinie, CMS, etykiety popularności, Swagger, testy. | Gotowe i przetestowane, działa lokalnie (nie jest wdrożone). Opis w [`backend/README.md`](backend/README.md). |
+| `frontend/` | Strona do przeglądania koktajli: lista, wyszukiwanie, filtry, ulubione, szczegóły. Next.js, TypeScript, Tailwind CSS, TanStack Query. | Działa i jest wdrożona (Solvro). Lokalnie ma przełącznik na własny backend. |
+| `backend/` | Własne REST API koktajli i składników. Django, Django REST Framework, PostgreSQL. Konta i role, opinie, CMS, etykiety popularności, Swagger, testy. | Gotowe i przetestowane, działa lokalnie (nie jest wdrożone), frontend czyta z niego po włączeniu przełącznika. Opis w [`backend/README.md`](backend/README.md). |
 | `uiux/` | Zadanie UI/UX: projekt landing page'a. Wszystko jest w HTML (paleta, czcionki, komponenty), więc da się to otworzyć w przeglądarce. | W trakcie. |
 
 ## Dlaczego te ścieżki
@@ -19,7 +19,7 @@ Wybrałem **Frontend + Backend** (full stack) oraz **UI/UX**. Pominąłem Mobile
 
 ## Pomysł
 
-Frontend ma korzystać z dwóch źródeł danych: gotowego API Solvro albo mojego własnego API w Django, z przełącznikiem w interfejsie, żeby obie części zadania działały razem jako jeden projekt. **Na razie to nie jest zrobione:** frontend czyta tylko API Solvro, a backend działa osobno (ma własny Swagger i testy).
+Frontend korzysta z dwóch źródeł danych: gotowego API Solvro albo mojego własnego API w Django, z przełącznikiem w interfejsie, żeby obie części zadania działały razem jako jeden projekt. Przełącznik działa lokalnie (po ustawieniu adresu backendu, patrz [`frontend/README.md`](frontend/README.md)). Na wersji online go nie ma, bo backend nie jest wdrożony. Logowania i formularzy w interfejsie jeszcze nie ma: backend je obsługuje, ale frontend tylko czyta.
 
 ## Jak korzystałem z AI
 

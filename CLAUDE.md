@@ -6,7 +6,7 @@ Task specs: https://github.com/Solvro/rekrutacja (cocktails theme). Cocktails AP
 
 ## Scope
 - `frontend/` — Next.js (App Router), TypeScript, Tailwind CSS, TanStack Query. UI text and code comments in **Polish**, identifiers in English.
-- `backend/` — Django (+ Django REST Framework), PostgreSQL. **Built**: CRUD, pagination, validation, filters, Swagger, JWT accounts with four roles, CMS, reviews, views and popularity labels, tests. See `backend/README.md`. It runs locally, is not deployed, and the frontend does not use it yet.
+- `backend/` — Django (+ Django REST Framework), PostgreSQL. **Built**: CRUD, pagination, validation, filters, Swagger, JWT accounts with four roles, CMS, reviews, views and popularity labels, tests. See `backend/README.md`. It runs locally and is not deployed; the frontend reads from it through the source switch when `NEXT_PUBLIC_BACKEND_URL` is set (read-only: no login or write forms yet).
 - UI/UX design task — started now at the user's request. **Every deliverable is HTML in `uiux/`**, including `uiux/README.html` (no README.md there): designs, color palettes, typography and every component. The goal is **creativity**: ask for the user's ideas first, don't just copy brand defaults. The task still requires the **official Solvro logo, unmodified**; open Solvro's brand files only when the user says so.
 - Not doing: Mobile, DevOps, AI/ML, PM, Promotion.
 - README files (root, `frontend/`, `backend/`) are written in **Polish**; `STEPS.md` stays in English.
