@@ -137,7 +137,7 @@ function Cocktails() {
       </form>
 
       {noFavs ? (
-        <p className="py-12 text-center text-foreground/70">Nie masz jeszcze ulubionych koktajli. Kliknij ♡ na karcie.</p>
+        <p className="py-12 text-center text-foreground/70">Nie masz jeszcze ulubionych koktajli. Kliknij serce na karcie.</p>
       ) : isError ? (
         <div role="alert" className="rounded-xl border border-red-500/40 p-6 text-center">
           <p className="mb-3">Nie udało się pobrać koktajli.</p>

@@ -364,3 +364,13 @@ Owner asked to restyle the cards and the top bar so that dark glass can be used.
 
 **Checked:** tsc, lint, build; screenshots in light and dark at 1280 px. **Not checked:** the phone width with real cards (the screenshot only showed loading placeholders), badges on cards with the own backend, keyboard use. **Next:** filters and detail page on the same glass, then the UI/UX homework.
 
+## 24. Restyle step 2b — detail page (30 October 2026)
+
+Used the design-taste skill as a checklist. It targets landing pages, so only the parts that fit a browse/detail UI were applied (shape consistency, contrast, honest empty states, no gimmicks); its palette and font rules were skipped because the Solvro identity is fixed, and its icon-library rule was skipped because CLAUDE.md forbids unrequested dependencies (the three icons stay as small inline SVGs).
+
+**Changed:** the detail page is now as wide as the top bar (`max-w-5xl`), so the logo, content and cards share one left edge. Two columns from 1024 px: the photo (sticky, tinted shadow) on the left, everything else (name, tags, preparation, ingredients, reviews) on the right; one column on phones. An ingredient without a photo shows its first letter instead of an empty square. The empty-favorites message says "serce" instead of the ♡ character. Filters were left as they are: they already follow the same radius and contrast rules and I found nothing worth changing without adding features.
+
+**Checked:** tsc, lint, build; screenshots of the detail page (dark at 1280 px, light at 500 px). **Not checked:** keyboard use, a detail page with reviews and badges (own backend), the sticky photo while scrolling.
+
+**Suggested, not done (new features):** a "clear filters" button on the list. **Next:** the UI/UX homework in `uiux/`.
+

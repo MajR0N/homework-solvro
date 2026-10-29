@@ -69,13 +69,14 @@ export default function CocktailPage() {
   }
 
   return (
-    <main id="content" className="mx-auto w-full max-w-3xl p-4">
+    <main id="content" className="mx-auto w-full max-w-5xl p-4">
       <Back />
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="relative aspect-square overflow-hidden rounded-xl bg-foreground/5">
+      {/* zdjęcie po lewej i przyklejone przy przewijaniu, cała treść po prawej; na telefonie jedna kolumna */}
+      <div className="grid gap-8 lg:grid-cols-[2fr_3fr]">
+        <div className="relative aspect-square self-start overflow-hidden rounded-xl bg-foreground/5 shadow-lg shadow-primary/20 lg:sticky lg:top-24">
           {data.imageUrl && (
-            <Image src={data.imageUrl} alt={data.name} fill priority sizes="(min-width: 640px) 50vw, 100vw" className="object-cover" />
+            <Image src={data.imageUrl} alt={data.name} fill priority sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
           )}
         </div>
 
@@ -96,68 +97,74 @@ export default function CocktailPage() {
           </div>
 
           <h2 className="mt-6 text-xl font-semibold">Przygotowanie</h2>
-          <p className="mt-2 leading-relaxed">{data.instructions}</p>
+          <p className="mt-2 max-w-prose leading-relaxed">{data.instructions}</p>
+
+      <h2 className="mt-8 mb-3 text-xl font-semibold">Składniki</h2>
+          <ul className="divide-y divide-foreground/15 rounded-xl border border-foreground/15">
+            {data.ingredients.map((ing) => (
+              <li key={ing.id} className="p-3">
+                <div className="flex items-center gap-3">
+                  <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-foreground/5">
+                    {ing.imageUrl ? (
+                    <Image src={ing.imageUrl} alt="" fill sizes="48px" className="object-cover" />
+                  ) : (
+                    <span aria-hidden="true" className="grid size-full place-items-center text-lg font-semibold text-foreground/60">
+                      {ing.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{ing.name}</p>
+                    {ing.type && <p className="text-sm text-foreground/70">{ing.type}</p>}
+                  </div>
+                  {/* measure z API ma spację na końcu; null = brak ilości */}
+                  <p className="shrink-0 text-right">{ing.measure?.trim() || "do smaku"}</p>
+                </div>
+                {ing.description && (
+                  <details className="mt-2 text-sm text-foreground/80">
+                    <summary className="cursor-pointer">O składniku</summary>
+                    <p className="mt-2 whitespace-pre-line">{ing.description}</p>
+                  </details>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          {source === "own" && (
+            <section className="mt-8" aria-labelledby="opinie">
+              <h2 id="opinie" className="mb-3 text-xl font-semibold">
+                Opinie{reviews.data ? ` (${reviews.data.total})` : ""}
+              </h2>
+              {reviews.isError ? (
+                <p role="alert">Nie udało się pobrać opinii.</p>
+              ) : reviews.isPending ? (
+                <p className="text-foreground/70">Ładowanie opinii…</p>
+              ) : reviews.data.reviews.length === 0 ? (
+                <p className="text-foreground/70">Nikt jeszcze nie ocenił tego koktajlu.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {reviews.data.reviews.map((r) => (
+                    <li key={r.id} className="rounded-xl border border-foreground/15 p-3">
+                      <div className="flex flex-wrap items-center gap-x-3 text-sm">
+                        <Stars rating={r.rating} />
+                        {/* author = null: konto zostało usunięte, ale opinia i jej ocena zostają */}
+                        <span className={r.author ? "font-medium" : "italic text-foreground/70"}>{r.author ?? "usunięty użytkownik"}</span>
+                        <time dateTime={r.createdAt} className="text-foreground/70">
+                          {new Date(r.createdAt).toLocaleDateString("pl-PL")}
+                        </time>
+                      </div>
+                      {r.text && <p className="mt-2 whitespace-pre-line">{r.text}</p>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-4 text-sm text-foreground/70">
+                Opinie dodaje się na razie przez API po zalogowaniu (Swagger); formularza w interfejsie jeszcze nie ma.
+              </p>
+            </section>
+          )}
         </div>
       </div>
-
-      <h2 className="mt-10 mb-3 text-xl font-semibold">Składniki</h2>
-      <ul className="divide-y divide-foreground/15 rounded-xl border border-foreground/15">
-        {data.ingredients.map((ing) => (
-          <li key={ing.id} className="p-3">
-            <div className="flex items-center gap-3">
-              <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-foreground/5">
-                {ing.imageUrl && <Image src={ing.imageUrl} alt="" fill sizes="48px" className="object-cover" />}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-medium">{ing.name}</p>
-                {ing.type && <p className="text-sm text-foreground/70">{ing.type}</p>}
-              </div>
-              {/* measure z API ma spację na końcu; null = brak ilości */}
-              <p className="shrink-0 text-right">{ing.measure?.trim() || "do smaku"}</p>
-            </div>
-            {ing.description && (
-              <details className="mt-2 text-sm text-foreground/80">
-                <summary className="cursor-pointer">O składniku</summary>
-                <p className="mt-2 whitespace-pre-line">{ing.description}</p>
-              </details>
-            )}
-          </li>
-        ))}
-      </ul>
-
-      {source === "own" && (
-        <section className="mt-10" aria-labelledby="opinie">
-          <h2 id="opinie" className="mb-3 text-xl font-semibold">
-            Opinie{reviews.data ? ` (${reviews.data.total})` : ""}
-          </h2>
-          {reviews.isError ? (
-            <p role="alert">Nie udało się pobrać opinii.</p>
-          ) : reviews.isPending ? (
-            <p className="text-foreground/70">Ładowanie opinii…</p>
-          ) : reviews.data.reviews.length === 0 ? (
-            <p className="text-foreground/70">Nikt jeszcze nie ocenił tego koktajlu.</p>
-          ) : (
-            <ul className="space-y-3">
-              {reviews.data.reviews.map((r) => (
-                <li key={r.id} className="rounded-xl border border-foreground/15 p-3">
-                  <div className="flex flex-wrap items-center gap-x-3 text-sm">
-                    <Stars rating={r.rating} />
-                    {/* author = null: konto zostało usunięte, ale opinia i jej ocena zostają */}
-                    <span className={r.author ? "font-medium" : "italic text-foreground/70"}>{r.author ?? "usunięty użytkownik"}</span>
-                    <time dateTime={r.createdAt} className="text-foreground/70">
-                      {new Date(r.createdAt).toLocaleDateString("pl-PL")}
-                    </time>
-                  </div>
-                  {r.text && <p className="mt-2 whitespace-pre-line">{r.text}</p>}
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className="mt-4 text-sm text-foreground/70">
-            Opinie dodaje się na razie przez API po zalogowaniu (Swagger); formularza w interfejsie jeszcze nie ma.
-          </p>
-        </section>
-      )}
     </main>
   );
 }
