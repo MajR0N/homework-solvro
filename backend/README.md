@@ -141,3 +141,20 @@ Przykład z zadania („bezalkoholowe koktajle z miętą”): `GET /api/v1/cockt
 - Nazwa jest przycinana z białych znaków, niepusta, do 200 znaków; `image_url` musi być poprawnym adresem.
 - Koktajl i jego składniki zapisują się w jednej transakcji.
 - **Uwaga:** zapis jest na razie otwarty dla każdego. Przed publikacją backendu trzeba go zamknąć (logowanie i uprawnienia to osobny krok).
+
+### Składniki
+
+| Metoda i adres | Działanie | Odpowiedź |
+|---|---|---|
+| `GET /api/v1/ingredients/` | lista po 20 (`?page=`, `?page_size=` do 100) | 200 |
+| `GET /api/v1/ingredients/{id}/` | jeden składnik | 200 |
+| `POST /api/v1/ingredients/` | utwórz (wymagane `name`) | 201 |
+| `PUT` / `PATCH /api/v1/ingredients/{id}/` | zastąp / zmień wybrane pola | 200 |
+| `DELETE /api/v1/ingredients/{id}/` | usuń | 204; **409**, gdy składnik jest użyty w jakimś koktajlu |
+
+Filtry listy: `?search=` (fragment nazwy), `?type=` (dokładny typ), `?alcoholic=true|false`, `?ordering=name|-name|id|-id`. Zła wartość daje 400.
+Walidacja: `name` wymagane, do 200 znaków; `percentage` od 0 do 100; `image_url` musi być adresem.
+
+### Znane ograniczenie: równoległa edycja
+
+Wysłana lista `ingredients` zastępuje całą starą. Gdy dwie osoby edytują ten sam koktajl jednocześnie, wygrywa ostatni zapis (bez blokady optymistycznej). Ryzyko jest małe, bo po dodaniu autorów edytować będzie mógł tylko autor lub administrator. Rozwiązaniem „książkowym” byłoby pole `updated_at` i nagłówek `If-Match` (odpowiedź 412 przy nieaktualnej wersji).

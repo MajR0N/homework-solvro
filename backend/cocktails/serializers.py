@@ -8,6 +8,7 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ["id", "name", "description", "alcoholic", "type", "percentage", "image_url"]
+        extra_kwargs = {"percentage": {"min_value": 0, "max_value": 100}}  # zawartość alkoholu w %
 
 
 class CocktailIngredientSerializer(serializers.ModelSerializer):
