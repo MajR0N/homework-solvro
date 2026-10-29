@@ -23,7 +23,7 @@ python -m venv .venv
 # PowerShell:  Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned; .\.venv\Scripts\Activate.ps1
 # Git Bash:    source .venv/Scripts/activate
 pip install -r requirements.txt
-cp .env.example .env                # uzupełnij SECRET_KEY i DB_PASSWORD
+cp .env.example .env                # uzupełnij SECRET_KEY, JWT_SIGNING_KEY i DB_PASSWORD
 # w psql:  CREATE DATABASE cocktails;
 python manage.py migrate
 python manage.py import_solvro      # kopiuje koktajle i składniki z API Solvro (kilka sekund)
@@ -38,6 +38,7 @@ Zmienne w pliku `.env` (wszystkie sekrety zostają poza gitem):
 | Zmienna | Znaczenie |
 |---|---|
 | `SECRET_KEY` | **wymagana**, długi losowy ciąg; bez niej Django nie wystartuje |
+| `JWT_SIGNING_KEY` | **wymagana**, osobny od `SECRET_KEY` klucz do podpisywania tokenów, co najmniej 32 znaki (krótszy zatrzymuje start serwera) |
 | `DB_PASSWORD` | **wymagana**, hasło użytkownika PostgreSQL |
 | `DEBUG` | `true` tylko lokalnie; domyślnie wyłączone |
 | `DB_NAME`, `DB_USER`, `DB_HOST`, `DB_PORT` | domyślnie `cocktails`, `postgres`, `localhost`, `5432` |
@@ -386,6 +387,15 @@ Do wiedzenia:
 - DRF sprawdza uprawnienia **przed** limitami, więc żądania bez logowania odrzucone kodem 401 nie są liczone. Nic się wtedy nie zapisuje, a odczyty bez logowania są limitowane normalnie.
 - Liczniki leżą w pamięci procesu serwera. Przy jednym procesie (lokalnie) działa to dokładnie, ale przy kilku procesach lub serwerach limity się mnożą. Na produkcji trzeba współdzielonego cache (np. wbudowany `DatabaseCache`, bez nowych pakietów).
 
+### Uwierzytelnianie i hasła
+
+- **Blokada konta:** po 5 nieudanych logowaniach dla jednej nazwy użytkownika (z dowolnego adresu IP, w oknie 15 minut od pierwszego błędu) kolejne próby dostają **429** z `Retry-After: 900`, nawet z poprawnym hasłem. Udane logowanie zeruje licznik, a próby w trakcie blokady jej nie przedłużają. Blokada działa tak samo dla nazw, które nie istnieją, więc nie zdradza, które konta są prawdziwe, a wielkość liter w nazwie nie pozwala obejść licznika. Limit 10 prób na minutę na IP (patrz wyżej) tego nie zastępuje: botnet może zgadywać hasło jednego konta z wielu adresów.
+- **Cena blokady:** ktoś może celowo zablokować cudze konto na 15 minut, wpisując 5 razy złe hasło. Tak działa każda blokada, a jej brak zostawia zgadywanie haseł bez ograniczeń.
+- **Hasła:** od 10 do 128 znaków; odrzucane są hasła z listy popularnych, same cyfry i hasła zbyt podobne do nazwy użytkownika. Maksimum chroni przed marnowaniem czasu na hashowanie gigantycznych tekstów. W bazie jest tylko hash (PBKDF2, 1,5 mln iteracji), nigdy hasło.
+- **Tokeny JWT:** podpisywane osobnym kluczem `JWT_SIGNING_KEY` (nie `SECRET_KEY` Django), algorytm HS256 przypięty na stałe. Token z innym algorytmem (`none`, `HS512`), z podmienioną treścią albo podpisany `SECRET_KEY` jest odrzucany (401). Token dostępu żyje 10 minut, odświeżający 7 dni; przy każdym odświeżeniu dostajesz nowy, a stary przestaje działać, wylogowanie unieważnia bieżący.
+- Odpowiedź na logowanie jest taka sama dla złego hasła i nieistniejącego użytkownika.
+- **Dziennik zdarzeń** (logger `security`, standardowe wyjście): nieudane, zablokowane i udane logowania, odmowy dostępu (403) i przekroczone limity (429), z adresem IP i numerem konta. **Nigdy nie zawiera haseł ani wpisanych nazw**, bo ludzie czasem wklejają hasło w pole nazwy. Komunikaty w dzienniku nie mają polskich znaków, żeby nie psuły się w narzędziach z innym kodowaniem.
+
 ### Wstrzykiwanie SQL i zabezpieczenie wejścia
 
 - **SQL injection:** cały dostęp do bazy idzie przez ORM Django, który przekazuje wartości jako parametry zapytania, nigdy nie sklejając ich w tekst SQL. W naszym kodzie nie ma `raw()`, `extra()` ani ręcznego `execute` z danymi od użytkownika (jedyne `execute` w poleceniu importu wykonuje SQL wygenerowany przez samo Django). Wartości `ordering`, `status`, `alcoholic` i `verified` są dodatkowo ograniczone do listy dozwolonych. Znaki `%` i `_` w wyszukiwaniu są traktowane dosłownie.
@@ -412,7 +422,7 @@ Do wiedzenia:
 ## Testy
 
 ```bash
-python -m pytest              # 248 testów, kilka sekund, bez internetu
+python -m pytest              # 272 testy, kilka sekund, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
@@ -431,7 +441,8 @@ Testy były też sprawdzane „od drugiej strony”: kod był celowo psuty w kil
 
 - **Równoległa edycja:** wysłana lista `ingredients` zastępuje całą starą. Gdy dwie osoby edytują ten sam koktajl jednocześnie, wygrywa ostatni zapis (bez blokady optymistycznej). Ryzyko jest małe, bo edytować może tylko autor lub admin. „Książkowym” rozwiązaniem byłoby pole `updated_at` i nagłówek `If-Match` (odpowiedź 412 przy nieaktualnej wersji).
 - **Brak weryfikacji e-mail** (w ogóle nie ma e-maila), więc skrypt może powoli zakładać wiele kont. Rejestracja jest ograniczona limitem 10 prób na minutę z jednego IP.
-- **Limity w pamięci procesu:** patrz „Limity zapytań” wyżej; na produkcji potrzebny jest współdzielony cache.
+- **Limity w pamięci procesu:** patrz „Limity zapytań” wyżej; na produkcji potrzebny jest współdzielony cache. To dotyczy też liczników blokady konta.
+- **Blokada konta** pozwala celowo zablokować cudze konto na 15 minut (patrz „Uwierzytelnianie i hasła”).
 - **Wyświetlenia z wielu adresów IP** (botnet, rotujące VPN-y): każdy adres dodaje jedno wyświetlenie dziennie. Realna obrona to CAPTCHA albo proof-of-work (np. Cloudflare Turnstile), poza zakresem. Wspólny adres (szkoła, biuro) liczy się jako jeden odwiedzający, więc raczej zaniżamy niż zawyżamy.
 - **Etykiety bez „pamięci”:** `trending` jest liczone z bieżących liczb, więc koktajl nie wie, że był trendujący od 14 dni. Dokładny zegar wymagałby zapisanego stanu i codziennego zadania. Progi 10 / 20 / 100 to wartości demo.
 - **Wydajność etykiet:** liczby są liczone przy każdym zapytaniu o listę (kilka podzapytań na koktajl). Dla 220 koktajli to bez znaczenia; przy dużo większej bazie trzeba by je zapisywać (cache lub tabela zbiorcza). Tabela wyświetleń rośnie; wpisy starsze niż 30 dni nie są potrzebne do etykiet i można je kasować.

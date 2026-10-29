@@ -96,7 +96,8 @@ def test_logout_blacklists_the_refresh_token(api):
 
 def test_login_is_throttled_after_ten_attempts_per_minute(api):
     register(api)  # to jedna z 10 prób, bo rejestracja i logowanie dzielą limit
-    statuses = [login(api, password="wrong-password-1").status_code for _ in range(10)]
+    # za każdym razem inna nazwa użytkownika, żeby sprawdzać limit na IP, a nie blokadę konta
+    statuses = [login(api, username=f"nobody{i}", password="wrong-password-1").status_code for i in range(10)]
     assert statuses[:9] == [401] * 9 and statuses[9] == 429
 
 

@@ -9,6 +9,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -111,6 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 10},
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -145,6 +147,7 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     # Tylko JSON: bez HTML-owego "browsable API" (mniej powierzchni ataku, a dokumentację daje Swagger)
     'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],
+    'EXCEPTION_HANDLER': 'config.exception_handler.security_exception_handler',  # loguje 403 i 429
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework_simplejwt.authentication.JWTAuthentication'],
     # Limity na adres IP (niezalogowani) albo konto (zalogowani). Liczniki siedzą w pamięci procesu, więc
     # przy kilku procesach serwera limity się mnożą: na produkcji trzeba współdzielonego cache (patrz README).
@@ -175,7 +178,18 @@ LABEL_THRESHOLDS = {
 # Ranking "najlepiej oceniane": koktajl z mniej niż tyloma opiniami jest ściągany w stronę średniej wszystkich ocen
 TOP_RATED_PRIOR_REVIEWS = 5
 
+# Klucz do podpisywania tokenów JWT jest osobny od SECRET_KEY Django: wyciek jednego nie psuje drugiego.
+JWT_SIGNING_KEY = os.environ['JWT_SIGNING_KEY']
+if len(JWT_SIGNING_KEY) < 32:
+    raise ImproperlyConfigured('JWT_SIGNING_KEY musi mieć co najmniej 32 znaki')
+
+# Blokada logowania: tyle nieudanych prób dla jednej nazwy użytkownika, na tyle sekund
+LOGIN_MAX_FAILURES = 5
+LOGIN_LOCKOUT_SECONDS = 15 * 60
+
 SIMPLE_JWT = {
+    'ALGORITHM': 'HS256',  # jawnie przypięty algorytm: token z innym (np. "none") jest odrzucany
+    'SIGNING_KEY': JWT_SIGNING_KEY,
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,  # każde odświeżenie daje nowy refresh token...
@@ -187,6 +201,17 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'REST API koktajli i składników (zadanie rekrutacyjne Solvro).',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,  # sam Swagger nie dokleja linku do surowego schematu
+}
+
+
+# Dziennik zdarzeń bezpieczeństwa (nieudane i zablokowane logowania, odmowy dostępu, przekroczone limity).
+# Trafia na standardowe wyjście; nigdy nie zawiera haseł ani treści żądań.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {'plain': {'format': '%(asctime)s %(levelname)s %(name)s %(message)s'}},
+    'handlers': {'console': {'class': 'logging.StreamHandler', 'formatter': 'plain'}},
+    'loggers': {'security': {'handlers': ['console'], 'level': 'INFO'}},
 }
 
 
