@@ -14,8 +14,8 @@ export default function SourceSwitch({ compact = false, className = "" }: { comp
         onChange={(e) => setSource(e.target.value as Source)}
         className={
           compact
-            ? "rounded-lg border border-current/35 bg-current/10 px-2 py-2 text-sm [&>option]:bg-background [&>option]:text-foreground"
-            : "mt-1 block rounded-lg border border-foreground/25 bg-background px-3 py-2"
+            ? "select rounded-full border border-current/35 bg-current/10 py-2 pl-4 text-sm [&>option]:bg-background [&>option]:text-foreground"
+            : "select mt-1 block rounded-full border border-foreground/25 bg-background py-2 pl-4"
         }
       >
         <option value="solvro">API Solvro</option>

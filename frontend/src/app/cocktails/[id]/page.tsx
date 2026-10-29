@@ -9,7 +9,8 @@ import { countView, getCocktail, HttpError, listReviews } from "@/lib/api";
 import { pl } from "@/lib/pl";
 import { useSource } from "@/lib/source";
 
-const button = "rounded-lg border px-4 py-2 hover:bg-foreground/10";
+const button = "rounded-full border border-foreground/30 px-5 py-2 hover:bg-foreground/10";
+const heading = "text-2xl font-semibold tracking-tight";
 
 // "Wstecz" przywraca listę razem z filtrami z URL-a; po wejściu bezpośrednim (brak historii) idziemy na /
 function Back() {
@@ -17,7 +18,7 @@ function Back() {
   return (
     <button
       onClick={() => (window.history.length > 1 ? router.back() : router.push("/"))}
-      className="mb-6 inline-block underline underline-offset-4"
+      className="mb-6 inline-block rounded-full py-1 pr-2 underline underline-offset-4 hover:text-primary"
     >
       ← Wróć do listy
     </button>
@@ -82,31 +83,38 @@ export default function CocktailPage() {
 
         <div>
           <div className="flex items-start justify-between gap-3">
-            <h1 className="text-3xl font-bold">{data.name}</h1>
+            <h1 className="text-4xl font-bold leading-tight tracking-tight">{data.name}</h1>
             <FavoriteButton id={data.id} name={data.name} className="shrink-0 border" />
           </div>
-          <ul className="mt-3 flex flex-wrap gap-2 text-sm">
-            {[pl(data.category), pl(data.glass), data.alcoholic ? "Z alkoholem" : "Bezalkoholowy"].map((tag) => (
-              <li key={tag} className="rounded-full border border-foreground/25 px-3 py-1">
-                {tag}
-              </li>
-            ))}
-          </ul>
-          <div className="mt-3">
+          <div className="mt-3 empty:hidden">
             <Badges cocktail={data} />
           </div>
 
-          <h2 className="mt-6 text-xl font-semibold">Przygotowanie</h2>
-          <p className="mt-2 max-w-prose leading-relaxed">{data.instructions}</p>
+          {/* podstawowe fakty w jednym rzędzie; wartości dłuższe niż kolumna zawijają się do kolejnej linii */}
+          <dl className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(9.5rem,1fr))] gap-3">
+            {[
+              ["Kategoria", pl(data.category)],
+              ["Naczynie", pl(data.glass)],
+              ["Alkohol", data.alcoholic ? "Z alkoholem" : "Bezalkoholowy"],
+            ].map(([term, value]) => (
+              <div key={term} className="rounded-xl border border-foreground/15 bg-foreground/5 px-4 py-3">
+                <dt className="text-sm text-foreground/70">{term}</dt>
+                <dd className="mt-0.5 font-semibold">{value}</dd>
+              </div>
+            ))}
+          </dl>
 
-      <h2 className="mt-8 mb-3 text-xl font-semibold">Składniki</h2>
-          <ul className="divide-y divide-foreground/15 rounded-xl border border-foreground/15">
+          <h2 className={`mt-10 ${heading}`}>Przygotowanie</h2>
+          <p className="mt-3 max-w-prose text-lg leading-relaxed">{data.instructions}</p>
+
+      <h2 className={`mt-10 mb-4 ${heading}`}>Składniki</h2>
+          <ul className="divide-y divide-foreground/15 rounded-xl border border-foreground/15 bg-foreground/5">
             {data.ingredients.map((ing) => (
-              <li key={ing.id} className="p-3">
+              <li key={ing.id} className="px-4 py-3.5">
                 <div className="flex items-center gap-3">
-                  <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-foreground/5">
+                  <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-foreground/10">
                     {ing.imageUrl ? (
-                    <Image src={ing.imageUrl} alt="" fill sizes="48px" className="object-cover" />
+                    <Image src={ing.imageUrl} alt="" fill sizes="56px" className="object-cover" />
                   ) : (
                     <span aria-hidden="true" className="grid size-full place-items-center text-lg font-semibold text-foreground/60">
                       {ing.name.charAt(0).toUpperCase()}
@@ -114,15 +122,15 @@ export default function CocktailPage() {
                   )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium">{ing.name}</p>
+                    <p className="text-lg font-semibold leading-tight">{ing.name}</p>
                     {ing.type && <p className="text-sm text-foreground/70">{ing.type}</p>}
                   </div>
                   {/* measure z API ma spację na końcu; null = brak ilości */}
-                  <p className="shrink-0 text-right">{ing.measure?.trim() || "do smaku"}</p>
+                  <p className="shrink-0 text-right font-semibold tabular-nums text-primary">{ing.measure?.trim() || "do smaku"}</p>
                 </div>
                 {ing.description && (
                   <details className="mt-2 text-sm text-foreground/80">
-                    <summary className="cursor-pointer">O składniku</summary>
+                    <summary className="cursor-pointer py-1 hover:text-foreground">O składniku</summary>
                     <p className="mt-2 whitespace-pre-line">{ing.description}</p>
                   </details>
                 )}
@@ -131,8 +139,8 @@ export default function CocktailPage() {
           </ul>
 
           {source === "own" && (
-            <section className="mt-8" aria-labelledby="opinie">
-              <h2 id="opinie" className="mb-3 text-xl font-semibold">
+            <section className="mt-10" aria-labelledby="opinie">
+              <h2 id="opinie" className={`mb-4 ${heading}`}>
                 Opinie{reviews.data ? ` (${reviews.data.total})` : ""}
               </h2>
               {reviews.isError ? (

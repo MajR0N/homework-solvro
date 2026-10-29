@@ -32,8 +32,9 @@ export default function TopBar() {
   };
 
   return (
-    <header className="glass sticky top-0 z-30 border-x-0 border-t-0">
-      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+    // zewnętrzny element jest przezroczysty i trzyma pigułkę w tej samej szerokości co treść strony
+    <header className="sticky top-3 z-30 mx-auto mt-3 w-full max-w-5xl px-4">
+      <div className="glass flex flex-wrap items-center gap-x-3 gap-y-2 rounded-3xl px-4 py-2.5 sm:rounded-full sm:py-2 sm:pr-3">
         <Link href="/" aria-label="Solvro, strona główna" className="shrink-0 rounded-md sm:order-1">
           {/* oficjalne logo bez zmian: białe na ciemnym szkle */}
           <Image src="/solvro/KN_Solvro_White.svg" alt="" width={131} height={28} unoptimized className="block" />
@@ -43,7 +44,7 @@ export default function TopBar() {
           type="button"
           onClick={() => go({ fav: onlyFav ? "" : "1" })}
           aria-pressed={onlyFav}
-          className={`ml-auto inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm sm:order-3 sm:ml-0 ${onlyFav ? "border-transparent bg-warm text-on-warm" : "border-current/35"}`}
+          className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm sm:order-3 sm:ml-0 ${onlyFav ? "border-transparent bg-warm text-on-warm" : "border-current/35"}`}
         >
           <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true" fill={onlyFav ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
             <path d={HEART} />
@@ -68,7 +69,7 @@ export default function TopBar() {
               timer.current = setTimeout(() => go({ q: value.trim() }), 300);
             }}
             placeholder="Szukaj koktajlu"
-            className="w-full rounded-lg border border-current/35 bg-current/10 px-3 py-2 text-sm placeholder:text-current/75"
+            className="w-full rounded-full border border-current/35 bg-current/10 px-4 py-2 text-sm placeholder:text-current/75"
           />
         </form>
 

@@ -374,3 +374,15 @@ Used the design-taste skill as a checklist. It targets landing pages, so only th
 
 **Suggested, not done (new features):** a "clear filters" button on the list. **Next:** the UI/UX homework in `uiux/`.
 
+## 25. Restyle step 2c — pill bar, styled selects, richer detail page (30 October 2026)
+
+Owner feedback after looking at the live app: (1) the bar should be a dark blue glass pill, (3) the selects looked unstyled, (5) the detail page needs better spacing, colour and typography; also asked (2) why the popularity labels do not show, (4) for a way to create an account, (6) whether Space Grotesk is really used.
+
+**Done:** the bar is a floating pill (rounded-full on desktop, rounded-3xl on phones where it has two rows), sticky 12 px from the top, same width as the content. **Shape rule now documented:** controls (inputs, selects, buttons, tags) are pills, containers (cards, panels, ingredient list) are rounded-xl. Selects use `appearance: none` plus our own chevron (SVG data URI, colour per theme, always white on the glass). Detail page: bigger title, three fact boxes (category, glass, alcohol) instead of loose tags, larger readable instructions, ingredient quantities in the primary colour with tabular figures, larger ingredient photos, consistent section headings.
+
+**Answers:** (6) yes, Space Grotesk is shipped (woff2 files and `font-family: Space Grotesk` are in the build). (2) The labels exist in the code but the live database has no views or reviews yet, so only "Zweryfikowany" (set in the CMS) can appear; `seed_demo` has not been run on Neon. (4) Not built yet, waiting for the owner's decision; see below.
+
+**Open decision (accounts):** an `admin` can edit and delete every cocktail, including all imported data. A public one-click admin login would let any visitor wipe the demo database through the API, so the recommendation is a demo account with role `user` (can add cocktails and reviews, can only touch its own), plus a real registration form.
+
+**Checked:** tsc, lint, build, screenshots (dark desktop list and detail, dark phone list). **Not checked:** light theme after this change, keyboard use of the new selects.
+

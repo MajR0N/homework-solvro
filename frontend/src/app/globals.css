@@ -15,6 +15,8 @@
   --glass: rgb(32 53 96 / 0.85);
   --glass-solid: #415378; /* najgorszy przypadek szkła i zamiennik, gdy przeglądarka nie umie rozmycia: biały tekst 7,7:1 */
   --on-glass: #ffffff;
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23203560' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --chevron-on-glass: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   --glow-a: rgb(217 232 255 / 0.85); /* delikatna poświata tła, tylko dekoracja */
   --glow-b: rgb(128 179 255 / 0.22);
 }
@@ -30,6 +32,7 @@
     --on-warm: #0f1a30;
     --glass: rgb(39 66 118 / 0.85);
     --glass-solid: #475e8a; /* najgorszy przypadek (szkło na białym zdjęciu): biały tekst 6,5:1 */
+    --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     --glow-a: rgb(39 66 118 / 0.6);
     --glow-b: rgb(101 131 200 / 0.2);
   }
@@ -69,6 +72,21 @@ body {
       -webkit-backdrop-filter: blur(18px) saturate(1.4);
       backdrop-filter: blur(18px) saturate(1.4);
     }
+  }
+}
+
+/* Własny wygląd list rozwijanych: bez systemowej strzałki, z naszą (kolor zależy od motywu; na szkle zawsze biała). */
+@layer components {
+  .select {
+    appearance: none;
+    background-image: var(--chevron);
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+  }
+  .glass .select {
+    background-image: var(--chevron-on-glass);
   }
 }
 

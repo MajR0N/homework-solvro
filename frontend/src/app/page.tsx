@@ -23,8 +23,10 @@ const OWN_SORTS = [
   { value: "-top_rated", label: "Najlepiej oceniane" },
 ];
 
-const field = "w-full rounded-lg border border-foreground/25 bg-background px-3 py-2";
-const button = "rounded-lg border px-4 py-2 hover:bg-foreground/10 disabled:opacity-40";
+// pola jak w pasku: pigułki; listy mają własną strzałkę (klasa select z globals.css)
+const field = "mt-1 w-full rounded-full border border-foreground/25 bg-foreground/5 px-4 py-2 hover:bg-foreground/10 [&>option]:bg-background [&>option]:text-foreground";
+const label = "block text-sm font-medium";
+const button = "rounded-full border border-foreground/30 px-5 py-2 hover:bg-foreground/10 disabled:opacity-40";
 
 // Filtry żyją w URL-u (?q=...&category=...), więc odświeżenie, link i "wstecz" je zachowują.
 function Cocktails() {
@@ -76,9 +78,9 @@ function Cocktails() {
         onSubmit={(e) => e.preventDefault()}
         className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
       >
-        <label className="block text-sm">
+        <label className={label}>
           Kategoria
-          <select value={category} onChange={(e) => update({ category: e.target.value })} className={field}>
+          <select value={category} onChange={(e) => update({ category: e.target.value })} className={`select ${field}`}>
             <option value="">Wszystkie</option>
             {categories.data?.map((c) => (
               <option key={c} value={c}>
@@ -87,17 +89,17 @@ function Cocktails() {
             ))}
           </select>
         </label>
-        <label className="block text-sm">
+        <label className={label}>
           Alkohol
-          <select value={alcoholic} onChange={(e) => update({ alcohol: e.target.value })} className={field}>
+          <select value={alcoholic} onChange={(e) => update({ alcohol: e.target.value })} className={`select ${field}`}>
             <option value="">Wszystkie</option>
             <option value="true">Z alkoholem</option>
             <option value="false">Bezalkoholowe</option>
           </select>
         </label>
-        <label className="block text-sm">
+        <label className={label}>
           Sortuj
-          <select value={sort} onChange={(e) => update({ sort: e.target.value })} className={field}>
+          <select value={sort} onChange={(e) => update({ sort: e.target.value })} className={`select ${field}`}>
             {sorts.map((s) => (
               <option key={s.value} value={s.value}>
                 {s.label}
@@ -106,7 +108,7 @@ function Cocktails() {
           </select>
         </label>
         {source === "own" && (
-          <label className="block text-sm">
+          <label className={label}>
             Składnik
             <input
               type="search"
@@ -121,7 +123,7 @@ function Cocktails() {
               aria-describedby="ing-hint"
               className={field}
             />
-            <span id="ing-hint" className="mt-1 block text-xs text-foreground/70">
+            <span id="ing-hint" className="mt-1 block px-1 text-xs font-normal text-foreground/70">
               Nazwy po angielsku; po przecinku: koktajl musi mieć wszystkie.
             </span>
           </label>
@@ -129,7 +131,7 @@ function Cocktails() {
         {source === "own" && (
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm sm:col-span-2 lg:col-span-4">
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={verified} onChange={(e) => update({ verified: e.target.checked ? "1" : "" })} />
+              <input type="checkbox" checked={verified} onChange={(e) => update({ verified: e.target.checked ? "1" : "" })} className="size-4 accent-primary" />
               Tylko zweryfikowane
             </label>
           </div>
