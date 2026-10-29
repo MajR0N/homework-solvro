@@ -8,6 +8,7 @@ Docs: https://docs.djangoproject.com/en/6.1/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import parse_qs, unquote, urlparse
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -78,18 +79,40 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database (PostgreSQL; hasło musi być w .env)
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'cocktails'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ['DB_PASSWORD'],
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+# Database (PostgreSQL). Dwa sposoby konfiguracji:
+# - DATABASE_URL (tak podaje je hosting, np. Neon na Vercelu): postgresql://użytkownik:hasło@host/nazwa?sslmode=require
+# - albo osobne DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT (lokalnie, z pliku .env; hasło jest wymagane)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+_url_options = {}
+if DATABASE_URL:
+    _url = urlparse(DATABASE_URL)
+    if _url.scheme not in ('postgres', 'postgresql'):
+        raise ImproperlyConfigured('DATABASE_URL musi zaczynać się od postgresql://')
+    _query = {key: values[0] for key, values in parse_qs(_url.query).items()}
+    _url_options = {key: _query[key] for key in ('sslmode', 'channel_binding') if key in _query}
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': _url.path.lstrip('/'),
+            'USER': unquote(_url.username or ''),
+            'PASSWORD': unquote(_url.password or ''),  # znaki specjalne w haśle są w adresie zakodowane (%40 = @)
+            'HOST': _url.hostname,
+            'PORT': _url.port or 5432,
+            # Adres puli połączeń (PgBouncer, w nazwie hosta jest "-pooler") nie obsługuje kursorów po stronie serwera
+            'DISABLE_SERVER_SIDE_CURSORS': '-pooler' in (_url.hostname or ''),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'cocktails'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ['DB_PASSWORD'],
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
+    }
 
 
 # CORS: przeglądarka pozwoli stronie frontendu czytać to API tylko z wymienionych adresów (nie ma "*").
@@ -127,12 +150,21 @@ if PRODUCTION:
 
 # Szyfrowanie połączenia z bazą (TLS). Lokalnie "prefer" (próbuje TLS, a gdy lokalny serwer go nie ma, działa bez),
 # na produkcji domyślnie "require", a słabsze tryby są zabronione: zdalna baza nie może dostawać haseł i zapytań jawnym tekstem.
-DB_SSLMODE = os.environ.get('DB_SSLMODE', 'require' if PRODUCTION else 'prefer')
+DB_SSLMODE = os.environ.get('DB_SSLMODE') or _url_options.get('sslmode') or ('require' if PRODUCTION else 'prefer')
 if DB_SSLMODE not in ('disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'):
     raise ImproperlyConfigured(f'DB_SSLMODE={DB_SSLMODE!r} to nieznany tryb')
 if PRODUCTION and DB_SSLMODE not in ('require', 'verify-ca', 'verify-full'):
     raise ImproperlyConfigured('PRODUCTION=true wymaga DB_SSLMODE: require, verify-ca albo verify-full')
-DATABASES['default']['OPTIONS'] = {'sslmode': DB_SSLMODE}
+DATABASES['default']['OPTIONS'] = {**{k: v for k, v in _url_options.items() if k == 'channel_binding'}, 'sslmode': DB_SSLMODE}
+
+# Na produkcji instancje serwera pojawiają się i znikają i działają równolegle (np. Vercel), więc liczniki limitów i blokady
+# logowania muszą leżeć we wspólnym miejscu. Wbudowany cache w bazie nie wymaga nowego pakietu; tabelę tworzy jednorazowo
+# `python manage.py createcachetable`. (Redis byłby dokładniejszy: jego zwiększanie licznika jest atomowe.)
+if PRODUCTION:
+    CACHES = {'default': {'BACKEND': 'django.core.cache.backends.db.DatabaseCache', 'LOCATION': 'django_cache'}}
+
+# Adresy (z https://), z których panel /admin/ przyjmie formularze; potrzebne, gdy hosting zmienia schemat lub nagłówek Host
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 
 # HSTS "preload" (wpis na listę wbudowaną w przeglądarki) jest praktycznie nieodwracalny, więc go świadomie nie włączamy.
 SILENCED_SYSTEM_CHECKS = ['security.W021']
@@ -262,5 +294,6 @@ LOGGING = {
 # Static files (CSS, JavaScript, Images)
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # tu collectstatic zbiera pliki panelu; katalog jest poza gitem
 
 

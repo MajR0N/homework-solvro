@@ -11,7 +11,7 @@ REST API koktajli i składników. Django + Django REST Framework + PostgreSQL. D
 - panel CMS (`/admin/`) z uprawnieniami zależnymi od roli
 - dokumentacja Swagger/OpenAPI, diagram bazy danych, 200+ testów automatycznych
 
-**Spis treści:** [Szybki start](#szybki-start) · [Pakiety](#pakiety) · [Schemat bazy danych](#schemat-bazy-danych) · [API](#api) · [Konta, role i uprawnienia](#konta-role-i-uprawnienia) · [CMS](#cms-panel-admin) · [Opinie](#opinie-i-oceny) · [Wyświetlenia i etykiety](#wyświetlenia-i-etykiety-popularności) · [Bezpieczeństwo](#bezpieczeństwo) · [Testy](#testy) · [Znane ograniczenia](#znane-ograniczenia)
+**Spis treści:** [Szybki start](#szybki-start) · [Pakiety](#pakiety) · [Schemat bazy danych](#schemat-bazy-danych) · [API](#api) · [Konta, role i uprawnienia](#konta-role-i-uprawnienia) · [CMS](#cms-panel-admin) · [Opinie](#opinie-i-oceny) · [Wyświetlenia i etykiety](#wyświetlenia-i-etykiety-popularności) · [Bezpieczeństwo](#bezpieczeństwo) · [Wdrożenie na Vercelu](#wdrożenie-na-vercelu) · [Testy](#testy) · [Znane ograniczenia](#znane-ograniczenia)
 
 ## Szybki start
 
@@ -42,7 +42,9 @@ Zmienne w pliku `.env` (wszystkie sekrety zostają poza gitem):
 | `DB_PASSWORD` | **wymagana**, hasło użytkownika PostgreSQL |
 | `DEBUG` | `true` tylko lokalnie; domyślnie wyłączone |
 | `PRODUCTION` | `true` na serwerze produkcyjnym: włącza HTTPS, HSTS i bezpieczne ciasteczka oraz odmawia startu przy niebezpiecznej konfiguracji (patrz „Lista kontrolna przed wdrożeniem”) |
+| `DATABASE_URL` | zamiast `DB_*`: jeden adres bazy `postgresql://użytkownik:hasło@host/nazwa?sslmode=require` (tak podaje go hosting, np. Neon); gdy jest ustawiony, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST` i `DB_PORT` są ignorowane |
 | `DB_NAME`, `DB_USER`, `DB_HOST`, `DB_PORT` | domyślnie `cocktails`, `postgres`, `localhost`, `5432` |
+| `CSRF_TRUSTED_ORIGINS` | opcjonalnie: adresy `https://...` po przecinku, z których panel `/admin/` przyjmie formularze (potrzebne tylko, gdy logowanie do panelu kończy się błędem CSRF) |
 | `DB_SSLMODE` | szyfrowanie połączenia z bazą (TLS): lokalnie domyślnie `prefer` (próbuje TLS, a bez niego działa), na produkcji domyślnie `require`; przy `PRODUCTION=true` dozwolone tylko `require`, `verify-ca`, `verify-full` |
 | `ARGON2_MEMORY_KIB`, `ARGON2_TIME_COST`, `ARGON2_PARALLELISM` | parametry hashowania haseł (domyślnie 65536 = 64 MiB, 3 przebiegi, 2 wątki); wartości poniżej progu OWASP (19 MiB pamięci) zatrzymują start serwera |
 | `ALLOWED_HOSTS` | adresy po przecinku, domyślnie `localhost,127.0.0.1` |
@@ -455,7 +457,7 @@ Backend działa na razie lokalnie. Przed publikacją:
 
 1. Ustaw zmienne: `PRODUCTION=true`, `DEBUG=false`, `SECRET_KEY` i `JWT_SIGNING_KEY` (dwa różne, losowe, długie), `ALLOWED_HOSTS` (adres API), `CORS_ALLOWED_ORIGINS` (adres frontendu po `https://`), dane bazy, oraz `NUM_PROXIES` (zwykle `1` za jednym proxy hostingu). Przy `PRODUCTION=true` serwer **nie wystartuje**, jeśli `DEBUG` jest włączony albo `ALLOWED_HOSTS` / `CORS_ALLOWED_ORIGINS` nie są ustawione jawnie.
 2. Sprawdź konfigurację: `DEBUG=false PRODUCTION=true ... python manage.py check --deploy` ma zakończyć się bez ostrzeżeń (jedno sprawdzenie, HSTS preload, jest wyciszone świadomie: wpis na listę przeglądarek jest praktycznie nieodwracalny).
-3. Przełącz liczniki limitów na współdzielony cache (np. wbudowany `DatabaseCache`), bo liczniki w pamięci procesu przy kilku procesach się mnożą. To dotyczy limitów zapytań i blokady konta.
+3. Liczniki limitów i blokady konta na produkcji (`PRODUCTION=true`) leżą we współdzielonym cache w bazie (wbudowany `DatabaseCache`), bo instancje serwera działają równolegle i znikają. Tabelę trzeba raz utworzyć: `python manage.py createcachetable django_cache`. Ten cache nie jest atomowy; dokładniejszy byłby Redis.
 4. Dostrój Argon2 do hosta: zmierz, ile trwa jedno hashowanie (cel ok. 0,25 do 0,5 s) i dobierz `ARGON2_*` tak, żeby (liczba procesów serwera) x (pamięć) mieściło się w RAM; domyślne 64 MiB wymaga hosta z co najmniej ok. 512 MB.
 5. Przeskanuj zależności pod kątem znanych podatności, w osobnym środowisku, żeby nie dodawać narzędzia do projektu: `python -m venv audit`, zainstaluj w nim `pip-audit` i uruchom `pip-audit -r requirements.txt --no-deps --disable-pip`. Ostatni wynik: brak znanych podatności.
 6. Ustaw kopie zapasowe i szyfrowanie dysku bazy po stronie hostingu bazy.
@@ -483,10 +485,51 @@ Backend działa na razie lokalnie. Przed publikacją:
 - `image_url` musi zaczynać się od `https://` (odrzucane: `http:`, `ftp:`, `javascript:`, `data:`, adresy bez schematu). Zdjęcia z obcych hostów frontend dodatkowo pomija.
 - Nie ustawiamy nagłówka `Content-Security-Policy` dla API: odpowiedzi JSON nie są wykonywane przez przeglądarkę, a `nosniff` jest tu standardową obroną. CSP ma sens dla stron HTML (frontend, panel).
 
+## Wdrożenie na Vercelu
+
+Vercel obsługuje Django: znajduje `manage.py`, wczytuje aplikację z `WSGI_APPLICATION` i uruchamia ją jako jedną funkcję. Backend to **osobny projekt Vercela** z tego samego repozytorium (frontend zostaje swoim projektem), a baza to **Neon** (Postgres), bo Vercel sam bazy nie hostuje. Wersja Pythona jest w `backend/.python-version` (3.14).
+
+**1. Projekt.** W Vercelu: Add New, Project, to samo repozytorium, przy pozycji `backend` (Django) wybierz **Import single project** (nie „Services”). Zanim klikniesz Deploy, rozwiń **Environment Variables** i wpisz zmienne z tabeli niżej, bo Vercel uruchamia `manage.py` już podczas budowania i bez sekretów budowanie się zatrzymuje (to zamierzone: serwer nie startuje bez `SECRET_KEY`).
+
+**2. Baza.** W projekcie dodaj Neon (Storage lub Marketplace, plan darmowy). Integracja sama wpisuje adres bazy; sprawdź w ustawieniach, jak nazywa się zmienna z adresem (`DATABASE_URL`), i użyj w aplikacji adresu przez **pulę połączeń** (w nazwie hosta jest `-pooler`; ustawienia same wyłączają wtedy kursory po stronie serwera).
+
+**3. Zmienne środowiskowe** (nie kopiuj `.env.example` ani wartości z lokalnego `.env`):
+
+| Zmienna | Wartość |
+|---|---|
+| `SECRET_KEY` | **nowy** losowy ciąg: `python -c "import secrets; print(secrets.token_urlsafe(64))"` |
+| `JWT_SIGNING_KEY` | **inny nowy** losowy ciąg (to samo polecenie jeszcze raz) |
+| `PRODUCTION` | `true` |
+| `DEBUG` | `false` |
+| `ALLOWED_HOSTS` | adres backendu bez `https://`, np. `twoj-backend.vercel.app` |
+| `CORS_ALLOWED_ORIGINS` | adres frontendu z `https://`, np. `https://homework-solvro.vercel.app` |
+| `NUM_PROXIES` | `1` (Vercel stoi przed aplikacją jako jedno proxy) |
+| `DATABASE_URL` | adres z Neona (zwykle wpisuje go integracja) |
+
+Niepotrzebne (mają dobre wartości domyślne albo zastępuje je `DATABASE_URL`): `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, `DB_SSLMODE` (na produkcji domyślnie `require`), `ARGON2_*`, `TRENDING_MIN_VIEWS` i pozostałe progi (domyślnie 10 / 20 / 100; do dema można je obniżyć). `CSRF_TRUSTED_ORIGINS` dodaj dopiero wtedy, gdy logowanie do `/admin/` zgłosi błąd CSRF. Sekrety oznacz w Vercelu jako wrażliwe.
+
+**4. Deploy, a potem jednorazowo z własnego komputera na bazie produkcyjnej** (Vercel nie uruchamia migracji). W terminalu w `backend/`, z aktywnym środowiskiem wirtualnym; adres bazy podaj tylko w tym terminalu, najlepiej wersję **bez** puli (`-pooler`):
+
+```powershell
+$env:DATABASE_URL = "postgresql://..."
+python manage.py migrate
+python manage.py createcachetable django_cache
+python manage.py import_solvro
+python manage.py createsuperuser
+```
+
+(w Git Bash zamiast pierwszej linii: `export DATABASE_URL="postgresql://..."`)
+
+**5. Frontend.** W projekcie frontendu dodaj zmienną `NEXT_PUBLIC_BACKEND_URL` = `https://twoj-backend.vercel.app/api/v1` i wdróż ponownie. Na stronie pojawi się przełącznik „Źródło danych”.
+
+**6. Sprawdź:** `/api/docs/` się otwiera, `/api/v1/cocktails/` pokazuje 220 koktajli, przełącznik we frontendzie działa bez błędu CORS, logowanie działa (jeśli nie, zmniejsz `ARGON2_MEMORY_KIB`), a wyświetlenia z dwóch różnych sieci (komputer i telefon) liczą się jako dwóch odwiedzających (to sprawdza `NUM_PROXIES=1`).
+
+Do wiedzenia: pierwsze żądanie po przerwie jest wolniejsze (zimny start); liczniki limitów są w bazie, więc każdy limitowany request robi kilka dodatkowych zapytań; ten adres jest publiczny, więc obowiązuje wszystko z sekcji „Bezpieczeństwo”. Próbę generalną budowania (kopia bez `.env`, tylko zmienne Vercela) wykonuje test `tests/test_vercel_deployment.py`, ale samego Vercela nie da się stąd sprawdzić.
+
 ## Testy
 
 ```bash
-python -m pytest              # 298 testów, kilka sekund, bez internetu
+python -m pytest              # 315 testów, kilka sekund, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
