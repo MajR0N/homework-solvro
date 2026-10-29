@@ -73,6 +73,7 @@ python manage.py runserver        # http://127.0.0.1:8000
 | `psycopg` | sterownik PostgreSQL dla Django |
 | `python-dotenv` | wczytuje sekrety z pliku `.env` (poza gitem) |
 | `drf-spectacular` | generuje dokumentację OpenAPI i stronę Swagger (`/api/docs/`) |
+| `pytest`, `pytest-django` | testy automatyczne na prawdziwym PostgreSQL |
 
 ## Indeksy
 
@@ -165,3 +166,19 @@ Wysłana lista `ingredients` zastępuje całą starą. Gdy dwie osoby edytują t
 Po uruchomieniu serwera: <http://127.0.0.1:8000/api/docs/> (interaktywna, z przyciskiem „Try it out”) oraz surowy schemat OpenAPI pod `/api/schema/`. Generuje ją `drf-spectacular` z modeli, serializerów i filtrów; opisy parametrów pochodzą z `help_text` w `filters.py`. Strona Swaggera ładuje swój kod z CDN, więc wymaga internetu.
 
 Sprawdzenie schematu: `python manage.py spectacular --validate --fail-on-warn`.
+
+## Testy
+
+```bash
+python -m pytest              # 48 testów, ok. 2 s, bez internetu
+python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
+```
+
+Testy używają osobnej, tymczasowej bazy `test_cocktails` (tworzy ją i usuwa pytest-django), więc dane w bazie `cocktails` nie są ruszane. Zakres: filtry i paginacja, tworzenie/edycja/usuwanie koktajli i składników wraz z walidacją, reguła 409 przy usuwaniu używanego składnika, oraz import.
+
+Import jest sprawdzany dwojako, z różnych powodów:
+
+| Test | Co sprawdza | Kiedy |
+|---|---|---|
+| na atrapie API | **naszą logikę**: te same id co w Solvro, ponowny import nic nie zmienia, licznik id, składnik bez `measure`, brak połowicznych danych przy błędzie | zawsze |
+| na prawdziwym API | **świat zewnętrzny**: dane Solvro nadal mają kształt, jakiego oczekuje import | tylko na życzenie (`-m network`) |
