@@ -31,7 +31,9 @@ export default function Badges({ cocktail }: { cocktail: Cocktail }) {
   if (!verified && !status && !rated) return null;
   return (
     <ul className="flex flex-wrap items-center gap-1.5" aria-label="Znaczki">
-      {status && <li className={`${pill} bg-foreground text-background`}>{STATUS_PL[status]}</li>}
+      {status && (
+        <li className={`${pill} ${status === "trending" ? "bg-warm text-on-warm" : "bg-primary text-on-primary"}`}>{STATUS_PL[status]}</li>
+      )}
       {verified && (
         <li className={`${pill} border border-foreground/40`}>
           <svg viewBox="0 0 24 24" className="size-3.5" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5">

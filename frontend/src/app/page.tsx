@@ -3,9 +3,9 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import CocktailCard from "@/components/CocktailCard";
-import SourceSwitch from "@/components/SourceSwitch";
 import { getCategories, listCocktails, type Filters } from "@/lib/api";
 import { useFavorites } from "@/lib/favorites";
+import { patchParams } from "@/lib/params";
 import { pl } from "@/lib/pl";
 import { useSource } from "@/lib/source";
 
@@ -46,22 +46,10 @@ function Cocktails() {
   const page = Math.max(1, parseInt(sp.get("page") ?? "", 10) || 1);
   const onlyFav = sp.get("fav") === "1";
 
-  // Zmienia parametry URL-a; pusta wartość = usuń. Każda zmiana filtra wraca na stronę 1.
-  // Czyta window.location (nie sp), żeby opóźnione wywołanie nie użyło nieaktualnych parametrów.
-  const update = (patch: Record<string, string>) => {
-    const next = new URLSearchParams(window.location.search);
-    for (const [k, v] of Object.entries(patch)) {
-      if (v) next.set(k, v);
-      else next.delete(k);
-    }
-    if (!("page" in patch)) next.delete("page");
-    router.replace(next.toString() ? `?${next}` : "/", { scroll: false });
-  };
+  // Zmienia parametry URL-a (patrz lib/params.ts); wyszukiwarka i przycisk ulubionych są w pasku u góry (TopBar).
+  const update = (patch: Record<string, string>) => router.replace(patchParams(patch), { scroll: false });
 
-  // pole tekstowe ma własny stan (płynne pisanie), do URL-a trafia po 300 ms przerwy
-  const [text, setText] = useState(name);
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => () => clearTimeout(timer.current), []);
+  // pole składnika ma własny stan (płynne pisanie), do URL-a trafia po 300 ms przerwy
   const [ingText, setIngText] = useState(sp.get("ing") ?? "");
   const ingTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(ingTimer.current), []);
@@ -80,32 +68,14 @@ function Cocktails() {
   const categories = useQuery({ queryKey: ["categories", source], queryFn: () => getCategories(source), staleTime: Infinity });
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-4">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-3xl font-bold">Koktajle</h1>
-        <SourceSwitch />
-      </div>
+    <main id="content" className="mx-auto w-full max-w-5xl p-4">
+      <h1 className="mb-6 text-3xl font-bold">Koktajle</h1>
 
       <form
         role="search"
         onSubmit={(e) => e.preventDefault()}
         className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
       >
-        <label className="block text-sm">
-          Szukaj
-          <input
-            type="search"
-            value={text}
-            onChange={(e) => {
-              const v = e.target.value;
-              setText(v);
-              clearTimeout(timer.current);
-              timer.current = setTimeout(() => update({ q: v.trim() }), 300);
-            }}
-            placeholder="np. margarita"
-            className={field}
-          />
-        </label>
         <label className="block text-sm">
           Kategoria
           <select value={category} onChange={(e) => update({ category: e.target.value })} className={field}>
@@ -156,18 +126,14 @@ function Cocktails() {
             </span>
           </label>
         )}
-        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm sm:col-span-2 lg:col-span-4">
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={onlyFav} onChange={(e) => update({ fav: e.target.checked ? "1" : "" })} />
-            Tylko ulubione ({favs.length})
-          </label>
-          {source === "own" && (
+        {source === "own" && (
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm sm:col-span-2 lg:col-span-4">
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={verified} onChange={(e) => update({ verified: e.target.checked ? "1" : "" })} />
               Tylko zweryfikowane
             </label>
-          )}
-        </div>
+          </div>
+        )}
       </form>
 
       {noFavs ? (

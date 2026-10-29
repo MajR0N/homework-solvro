@@ -1,25 +1,82 @@
 @import "tailwindcss";
 
+/* Kolory marki Solvro (z "Paleta kolorów.png"): #FFF, #D9E8FF, #80B3FF, #6583C8, #274276, #203560.
+   Pozostałe wartości są z nich wyprowadzone, a każda para tekst/tło ma sprawdzony kontrast WCAG AA:
+   tekst 4,5:1 i więcej, elementy graficzne 3:1 i więcej. Motyw jasny albo ciemny wynika z ustawienia systemu. */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #203560; /* 12,1:1 na białym */
+  --primary: #274276; /* przycisk główny, 9,9:1 z białym tekstem */
+  --on-primary: #ffffff;
+  --ring: #6583c8; /* obwódka fokusu, 3,7:1 na białym */
+  --warm: #c2185b; /* jedyny ciepły akcent: serduszko i "Na topie"; 5,9:1 z białym */
+  --on-warm: #ffffff;
+  /* Szkło (odwrócone względem strony): w motywie jasnym granatowe, w ciemnym jasnoniebieskie. */
+  --glass: rgb(32 53 96 / 0.85);
+  --glass-solid: #415378; /* najgorszy przypadek szkła i zamiennik, gdy przeglądarka nie umie rozmycia: biały tekst 7,7:1 */
+  --on-glass: #ffffff;
+  --glow-a: rgb(217 232 255 / 0.85); /* delikatna poświata tła, tylko dekoracja */
+  --glow-b: rgb(128 179 255 / 0.22);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f1a30; /* ciemniejszy granat wyprowadzony z marki */
+    --foreground: #ffffff; /* 17,3:1 */
+    --primary: #80b3ff; /* 8,1:1 z tekstem w kolorze tła */
+    --on-primary: #0f1a30;
+    --ring: #80b3ff;
+    --warm: #ff7aa8; /* 7,1:1 na tle strony */
+    --on-warm: #0f1a30;
+    --glass: rgb(217 232 255 / 0.85);
+    --glass-solid: #bbc9e0; /* najgorszy przypadek: granatowy tekst 7,2:1 */
+    --on-glass: #203560;
+    --glow-a: rgb(39 66 118 / 0.6);
+    --glow-b: rgb(101 131 200 / 0.2);
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-warm: var(--warm);
+  --color-on-warm: var(--on-warm);
+  --font-sans: var(--font-space-grotesk);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image: radial-gradient(55rem 32rem at 10% -8%, var(--glow-a), transparent 70%),
+    radial-gradient(40rem 28rem at 96% 6%, var(--glow-b), transparent 70%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
+}
+
+/* Szklany panel. Bez obsługi rozmycia dostaje pełny kolor, który ma ten sam kontrast co najgorszy przypadek szkła. */
+.glass {
+  background: var(--glass-solid);
+  color: var(--on-glass);
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .glass {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    backdrop-filter: blur(18px) saturate(1.4);
+  }
+}
+
+/* Widoczny fokus dla klawiatury w całej aplikacji */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

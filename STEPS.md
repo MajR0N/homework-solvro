@@ -345,3 +345,16 @@ Step by step instructions and the exact list of variables are in `backend/README
 **Demo data:** `seed_demo` (with `--remove`, a confirmation that shows the database host, accounts without passwords, clearly marked names) creates reviews and views so every label shows; unreviewed cocktails now always sort last in `-top_rated` (found while looking at the demo output: they were landing in the middle). 328 backend tests.
 
 **Not done:** part B (restyle with Solvro's identity; needs the owner's permission to read the brand assets), login and write forms, and demo data on the live site (it has no reviews or views, so ratings and labels stay empty until someone adds them).
+
+## 22. Restyle with Solvro's identity — step 1 (30 October 2026)
+
+The owner allowed me to open Solvro's brand files (`assets/` in the Solvro repository: six logo SVGs, `Paleta kolorów.png`) and the UI/UX task brief. Findings: the palette is six colours, all blue (#FFF, #D9E8FF, #80B3FF, #6583C8, #274276, #203560); the brief asks for the official logo unchanged, Solvro colours and character (extra colours only if used consciously), contrast and accessibility, and allows Space Grotesk. Nothing suspicious in the downloaded files (read as data, nothing executed).
+
+**Decisions (owner approved 1 yes, 2 yes, 3 yes):** Solvro blues with a deeper navy `#0F1A30` derived for the dark page; **Space Grotesk** replaces Metropolis (U6); the pink/gold palette (U4) is dropped (not Solvro's, and the pink fails 2.5:1 on navy); the inverted glass idea (U2, U3, U5) is kept and mapped onto the brand (navy glass on the light page, pale-blue glass on the dark page); **one warm accent**, used sparingly (favourite heart, "Na topie"), never alone; light and dark follow the system. Every pair was checked against WCAG (numbers are in the comments of `globals.css`).
+
+**Built:** tokens and theme in `globals.css`; Space Grotesk through `next/font`; official logos copied byte for byte (checked by SHA-256); a shared glass top bar with logo, search, favourites and the source selector (search and favourites moved up from the page, F3); skip link; focus ring; heart as an SVG; badge colours. On phones the bar takes two rows instead of three.
+
+**Checked:** `tsc`, lint, build; and **screenshots with headless Edge** of the built app (light and dark, 1280 px desktop, 390 px phone through a frame, the list and a detail page). This found two real problems that I fixed: the bar was three rows tall on phones, and my first fix put the favourites button in the wrong row. Not checked: keyboard-only use, a screen reader, the own-backend badges visually (the screenshots used the Solvro source, so no ratings were shown).
+
+**Deviations from earlier decisions:** shadcn/ui (D16, F4) is not used for now (no new dependencies, little time); the filters stay native selects. **Still to do:** step 2 (cards, filters, detail page restyle), then the UI/UX homework on the same tokens.
+

@@ -45,7 +45,7 @@ export default function CocktailPage() {
   if (error) {
     const notFound = error instanceof HttpError && error.status < 500;
     return (
-      <main className="mx-auto w-full max-w-3xl p-4">
+      <main id="content" className="mx-auto w-full max-w-3xl p-4">
         <Back />
         <div role="alert" className="rounded-xl border border-red-500/40 p-6 text-center">
           <p className="mb-3">{notFound ? "Nie znaleziono takiego koktajlu." : "Nie udało się pobrać koktajlu."}</p>
@@ -61,7 +61,7 @@ export default function CocktailPage() {
 
   if (isPending) {
     return (
-      <main className="mx-auto w-full max-w-3xl p-4" aria-busy="true" aria-label="Ładowanie">
+      <main id="content" className="mx-auto w-full max-w-3xl p-4" aria-busy="true" aria-label="Ładowanie">
         <Back />
         <div className="aspect-square max-w-md animate-pulse rounded-xl bg-foreground/10" />
       </main>
@@ -69,7 +69,7 @@ export default function CocktailPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl p-4">
+    <main id="content" className="mx-auto w-full max-w-3xl p-4">
       <Back />
 
       <div className="grid gap-6 sm:grid-cols-2">
