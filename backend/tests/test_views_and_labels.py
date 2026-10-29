@@ -73,7 +73,8 @@ def test_an_ipv4_mapped_ipv6_address_is_the_same_visitor_as_the_ipv4(api, data):
 
 def test_the_same_visitor_counts_again_on_a_new_day(api, data, monkeypatch):
     visit(api, data.mojito)
-    monkeypatch.setattr(timezone, "localdate", lambda: timezone.now().date() + timedelta(days=1))
+    tomorrow = timezone.localdate() + timedelta(days=1)  # z tego samego zegara co aplikacja (czas lokalny, nie UTC)
+    monkeypatch.setattr(timezone, "localdate", lambda: tomorrow)
     visit(api, data.mojito)
     assert rows(data.mojito) == 2
 

@@ -89,3 +89,27 @@ def test_real_solvro_api_still_matches_what_the_importer_expects(db):
     mojito = Cocktail.objects.get(id=11000)
     assert mojito.name == "Mojito" and mojito.links.count() >= 3
     assert Cocktail.objects.filter(links__isnull=False).distinct().count() > 100
+
+
+# --- wydajność: import musi robić stałą, małą liczbę zapytań, bez względu na ilość danych ---
+
+
+def big_fake_get(path):
+    ingredients = [{**LIME, "id": 1000 + n, "name": f"Ingredient {n}"} for n in range(120)]
+    cocktails = [{**MOJITO, "id": 20000 + n, "name": f"Cocktail {n}", "category": f"Category {n % 5}"} for n in range(60)]
+    if path.startswith("/ingredients"):
+        return {"data": ingredients}
+    if path.startswith("/cocktails?"):
+        return {"data": cocktails}
+    cocktail = cocktails[int(path.rsplit("/", 1)[1]) - 20000]
+    return {"data": {**cocktail, "ingredients": [{**ingredients[(cocktail["id"] + k) % 120], "measure": "1"} for k in range(8)]}}
+
+
+def test_import_uses_a_handful_of_queries_not_one_per_row(db, monkeypatch, django_assert_max_num_queries):
+    monkeypatch.setattr(import_solvro, "get", big_fake_get)
+    with django_assert_max_num_queries(30):  # 120 składników, 60 koktajli i 480 powiązań; wiersz po wierszu byłoby ich ponad 500
+        call_command("import_solvro")
+    assert counts() == (60, 120, 480, 5)
+    with django_assert_max_num_queries(30):  # drugi przebieg (aktualizacja) też jest tani
+        call_command("import_solvro")
+    assert counts() == (60, 120, 480, 5)
