@@ -125,6 +125,15 @@ if PRODUCTION:
         # bez proxy klient mógłby go sam wysłać i udawać HTTPS.
         SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Szyfrowanie połączenia z bazą (TLS). Lokalnie "prefer" (próbuje TLS, a gdy lokalny serwer go nie ma, działa bez),
+# na produkcji domyślnie "require", a słabsze tryby są zabronione: zdalna baza nie może dostawać haseł i zapytań jawnym tekstem.
+DB_SSLMODE = os.environ.get('DB_SSLMODE', 'require' if PRODUCTION else 'prefer')
+if DB_SSLMODE not in ('disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'):
+    raise ImproperlyConfigured(f'DB_SSLMODE={DB_SSLMODE!r} to nieznany tryb')
+if PRODUCTION and DB_SSLMODE not in ('require', 'verify-ca', 'verify-full'):
+    raise ImproperlyConfigured('PRODUCTION=true wymaga DB_SSLMODE: require, verify-ca albo verify-full')
+DATABASES['default']['OPTIONS'] = {'sslmode': DB_SSLMODE}
+
 # HSTS "preload" (wpis na listę wbudowaną w przeglądarki) jest praktycznie nieodwracalny, więc go świadomie nie włączamy.
 SILENCED_SYSTEM_CHECKS = ['security.W021']
 
@@ -134,7 +143,7 @@ AUTH_USER_MODEL = 'accounts.User'
 # Hashowanie haseł: Argon2 (odporny na łamanie kartami graficznymi, bo zużywa dużo pamięci). Stare hashe PBKDF2 nadal
 # działają i same zamieniają się na Argon2 przy kolejnym logowaniu użytkownika.
 PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'accounts.hashers.TunedArgon2PasswordHasher',  # Argon2id z parametrami z ARGON2_* (patrz accounts/hashers.py)
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
 ]
 

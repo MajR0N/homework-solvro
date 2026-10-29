@@ -43,6 +43,8 @@ Zmienne w pliku `.env` (wszystkie sekrety zostają poza gitem):
 | `DEBUG` | `true` tylko lokalnie; domyślnie wyłączone |
 | `PRODUCTION` | `true` na serwerze produkcyjnym: włącza HTTPS, HSTS i bezpieczne ciasteczka oraz odmawia startu przy niebezpiecznej konfiguracji (patrz „Lista kontrolna przed wdrożeniem”) |
 | `DB_NAME`, `DB_USER`, `DB_HOST`, `DB_PORT` | domyślnie `cocktails`, `postgres`, `localhost`, `5432` |
+| `DB_SSLMODE` | szyfrowanie połączenia z bazą (TLS): lokalnie domyślnie `prefer` (próbuje TLS, a bez niego działa), na produkcji domyślnie `require`; przy `PRODUCTION=true` dozwolone tylko `require`, `verify-ca`, `verify-full` |
+| `ARGON2_MEMORY_KIB`, `ARGON2_TIME_COST`, `ARGON2_PARALLELISM` | parametry hashowania haseł (domyślnie 65536 = 64 MiB, 3 przebiegi, 2 wątki); wartości poniżej progu OWASP (19 MiB pamięci) zatrzymują start serwera |
 | `ALLOWED_HOSTS` | adresy po przecinku, domyślnie `localhost,127.0.0.1` |
 | `CORS_ALLOWED_ORIGINS` | adresy frontendu, którym przeglądarka pozwoli czytać API (po przecinku), domyślnie `http://localhost:3000,http://127.0.0.1:3000`; dotyczy tylko `/api/` |
 | `NUM_PROXIES` | ile serwerów pośredniczących stoi przed Django (domyślnie 0); ważne dla limitów i liczenia wyświetleń po IP |
@@ -384,7 +386,7 @@ Zależności sprawdzone narzędziem `pip-audit`: **brak znanych podatności** (w
 - brak uwierzytelniania dwuskładnikowego, CAPTCHA i weryfikacji e-mail (nie ma e-maila),
 - brak nagłówka `Content-Security-Policy` na API (odpowiedzi JSON nie są wykonywane przez przeglądarkę),
 - liczniki limitów i blokady leżą w pamięci procesu, więc przy kilku procesach potrzebny jest współdzielony cache,
-- połączenie z bazą nie jest jeszcze wymuszone przez TLS (lokalnie niepotrzebne; przy zdalnej bazie trzeba ustawić `sslmode`),
+- **prawdziwego, udanego szyfrowanego połączenia z bazą nie dało się tu pokazać**: lokalny Postgres nie ma TLS. Sprawdzone jest, że ustawienie dociera do sterownika i że `require` odmawia połączenia bez TLS; udane połączenie TLS trzeba sprawdzić na docelowej bazie,
 - backup, szyfrowanie dysku bazy i zarządzanie sekretami to zadania hostingu i wdrożenia, których tu nie da się sprawdzić.
 
 ### Rozwój długoterminowy
@@ -393,9 +395,9 @@ Wszystkie poniższe to zmiany konfiguracji albo wdrożenia, a nie przepisywanie 
 
 | Temat | Dziś | Docelowo |
 |---|---|---|
-| parametry Argon2 | domyślne z Django (100 MiB, 8 wątków) | dobrać do hosta tak, żeby jedno hashowanie trwało ok. 0,25 do 0,5 s i mieściło się w pamięci przy liczbie procesów; stare hashe działają dalej i same się aktualizują |
+| parametry Argon2 | jawne i konfigurowalne (64 MiB, 3 przebiegi, 2 wątki) | zmierzyć na docelowym hoście i dostroić `ARGON2_*` tak, żeby jedno hashowanie trwało ok. 0,25 do 0,5 s; stare hashe działają dalej i same się aktualizują |
 | liczniki limitów i blokady | pamięć procesu | Redis (wbudowany w Django backend cache, kod się nie zmienia, zmienia się tylko `CACHES`); tymczasowo `DatabaseCache` |
-| połączenie z bazą | bez wymuszonego TLS | `sslmode=require` lub `verify-full` przy bazie zdalnej |
+| połączenie z bazą | TLS wymuszony na produkcji (`require`) | `verify-full` z certyfikatem dostawcy, jeśli dostawca go udostępnia (chroni też przed podszyciem się pod serwer bazy) |
 | kopie zapasowe | brak | automatyczne, z regularnym sprawdzaniem odtworzenia (kopia, której nie przetestowano, nie jest kopią) |
 | sekrety | plik `.env` lokalnie | menedżer sekretów hostingu, okresowa zmiana kluczy (zmiana `JWT_SIGNING_KEY` unieważnia tokeny, co przy życiu 10 min / 7 dni jest akceptowalne) |
 | dziennik bezpieczeństwa | standardowe wyjście | wysyłka do usługi logów z alertem na nagły wzrost 401, 403 i 429 |
@@ -438,10 +440,11 @@ Aplikacja **nie zbiera danych osobowych**: nie ma e-maila, imienia, telefonu ani
 
 | Dane | Jak są chronione |
 |---|---|
-| **hasła** | wyłącznie hash **Argon2id** (100 MiB pamięci, 2 przebiegi, 8 wątków, losowa sól na każde hasło). Algorytm celowo zużywa dużo pamięci, więc łamanie kartami graficznymi jest bardzo drogie. Hashe PBKDF2 sprzed zmiany nadal działają i same zamieniają się na Argon2 przy następnym logowaniu. Zwykłe hasło nigdzie nie jest zapisywane ani logowane. |
+| **hasła** | wyłącznie hash **Argon2id** (domyślnie 64 MiB pamięci, 3 przebiegi, 2 wątki, losowa sól na każde hasło; parametry w `accounts/hashers.py`, do dostrojenia zmiennymi `ARGON2_*`). Algorytm celowo zużywa dużo pamięci, więc łamanie kartami graficznymi jest bardzo drogie. Hashe PBKDF2 albo Argon2 z innymi parametrami nadal działają i same przeliczają się na bieżące parametry przy następnym logowaniu. Zwykłe hasło nigdzie nie jest zapisywane ani logowane. |
 | **tokeny JWT** | podpisane osobnym kluczem (`JWT_SIGNING_KEY`), **ale nie szyfrowane**: każdy może przeczytać ich treść, dlatego jest w niej tylko numer konta. Token dostępu żyje 10 minut. |
 | **adresy IP odwiedzających** | nigdy nie są zapisywane; do liczenia wyświetleń służy skrót HMAC z sekretu, dnia, koktajlu i sieci IP, którego nie da się cofnąć |
-| **dane w drodze** | HTTPS włączany trybem `PRODUCTION=true`: przekierowanie z HTTP, nagłówek HSTS na rok, ciasteczka tylko przez HTTPS |
+| **dane w drodze (klient i serwer)** | HTTPS włączany trybem `PRODUCTION=true`: przekierowanie z HTTP, nagłówek HSTS na rok, ciasteczka tylko przez HTTPS |
+| **dane w drodze (serwer i baza)** | TLS do bazy: na produkcji wymuszone (`DB_SSLMODE=require` lub silniejsze, słabsze tryby zatrzymują start). Lokalna baza na tym samym komputerze zwykle nie ma TLS, więc lokalnie jest `prefer`, a test sprawdza, że `require` faktycznie odmawia połączenia z serwerem bez TLS. Uwaga: z tego powodu `PRODUCTION=true` nie połączy się z lokalną bazą bez TLS. |
 | **dane w bazie (w spoczynku)** | nie ma tam danych osobowych, a treści (koktajle, opinie) są publiczne z założenia. Szyfrowanie samych dysków bazy jest zadaniem hostingu bazy danych (zarządzane bazy robią to domyślnie) i nie jest tu udawane aplikacyjnie. |
 
 Gdyby w przyszłości dodać e-mail do kont, trzeba byłoby szyfrować to pole (np. biblioteką `cryptography`) i trzymać obok skrót HMAC do wyszukiwania po adresie, a także dodać weryfikację adresu i reset hasła. Alternatywą jest logowanie wyłącznie przez OAuth (wtedy nie przechowujemy haseł).
@@ -453,7 +456,7 @@ Backend działa na razie lokalnie. Przed publikacją:
 1. Ustaw zmienne: `PRODUCTION=true`, `DEBUG=false`, `SECRET_KEY` i `JWT_SIGNING_KEY` (dwa różne, losowe, długie), `ALLOWED_HOSTS` (adres API), `CORS_ALLOWED_ORIGINS` (adres frontendu po `https://`), dane bazy, oraz `NUM_PROXIES` (zwykle `1` za jednym proxy hostingu). Przy `PRODUCTION=true` serwer **nie wystartuje**, jeśli `DEBUG` jest włączony albo `ALLOWED_HOSTS` / `CORS_ALLOWED_ORIGINS` nie są ustawione jawnie.
 2. Sprawdź konfigurację: `DEBUG=false PRODUCTION=true ... python manage.py check --deploy` ma zakończyć się bez ostrzeżeń (jedno sprawdzenie, HSTS preload, jest wyciszone świadomie: wpis na listę przeglądarek jest praktycznie nieodwracalny).
 3. Przełącz liczniki limitów na współdzielony cache (np. wbudowany `DatabaseCache`), bo liczniki w pamięci procesu przy kilku procesach się mnożą. To dotyczy limitów zapytań i blokady konta.
-4. Zapewnij hostowi co najmniej ok. 512 MB pamięci: jedno logowanie lub rejestracja zużywa chwilowo ok. 100 MiB (Argon2).
+4. Dostrój Argon2 do hosta: zmierz, ile trwa jedno hashowanie (cel ok. 0,25 do 0,5 s) i dobierz `ARGON2_*` tak, żeby (liczba procesów serwera) x (pamięć) mieściło się w RAM; domyślne 64 MiB wymaga hosta z co najmniej ok. 512 MB.
 5. Przeskanuj zależności pod kątem znanych podatności, w osobnym środowisku, żeby nie dodawać narzędzia do projektu: `python -m venv audit`, zainstaluj w nim `pip-audit` i uruchom `pip-audit -r requirements.txt --no-deps --disable-pip`. Ostatni wynik: brak znanych podatności.
 6. Ustaw kopie zapasowe i szyfrowanie dysku bazy po stronie hostingu bazy.
 
@@ -483,7 +486,7 @@ Backend działa na razie lokalnie. Przed publikacją:
 ## Testy
 
 ```bash
-python -m pytest              # 284 testy, kilka sekund, bez internetu
+python -m pytest              # 298 testów, kilka sekund, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
@@ -502,7 +505,7 @@ Testy były też sprawdzane „od drugiej strony”: kod był celowo psuty w kil
 
 - **Równoległa edycja:** wysłana lista `ingredients` zastępuje całą starą. Gdy dwie osoby edytują ten sam koktajl jednocześnie, wygrywa ostatni zapis (bez blokady optymistycznej). Ryzyko jest małe, bo edytować może tylko autor lub admin. „Książkowym” rozwiązaniem byłoby pole `updated_at` i nagłówek `If-Match` (odpowiedź 412 przy nieaktualnej wersji).
 - **Brak weryfikacji e-mail** (w ogóle nie ma e-maila), więc skrypt może powoli zakładać wiele kont. Rejestracja jest ograniczona limitem 10 prób na minutę z jednego IP.
-- **Argon2 zużywa ok. 100 MiB pamięci na jedno hashowanie**, więc bardzo małe hosty mogą mieć z nim problem; limit 10 logowań na minutę na IP ogranicza liczbę równoległych hashowań.
+- **Argon2 zużywa domyślnie ok. 64 MiB pamięci na jedno hashowanie**, więc bardzo małe hosty trzeba dostroić zmiennymi `ARGON2_*`; limit 10 logowań na minutę na IP ogranicza liczbę równoległych hashowań.
 - **Limity w pamięci procesu:** patrz „Limity zapytań” wyżej; na produkcji potrzebny jest współdzielony cache. To dotyczy też liczników blokady konta.
 - **Blokada konta** pozwala celowo zablokować cudze konto na 15 minut (patrz „Uwierzytelnianie i hasła”).
 - **Wyświetlenia z wielu adresów IP** (botnet, rotujące VPN-y): każdy adres dodaje jedno wyświetlenie dziennie. Realna obrona to CAPTCHA albo proof-of-work (np. Cloudflare Turnstile), poza zakresem. Wspólny adres (szkoła, biuro) liczy się jako jeden odwiedzający, więc raczej zaniżamy niż zawyżamy.
