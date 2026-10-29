@@ -72,3 +72,26 @@ python manage.py runserver        # http://127.0.0.1:8000
 | `django-filter` | filtrowanie list przez parametry URL-a (`?category=...`) |
 | `psycopg` | sterownik PostgreSQL dla Django |
 | `python-dotenv` | wczytuje sekrety z pliku `.env` (poza gitem) |
+
+## Indeksy
+
+| Indeks | Po co |
+|---|---|
+| klucze obce (automatyczne) | szybkie łączenie koktajli z kategorią i składnikami |
+| B-tree na `Cocktail.name`, `Cocktail.glass`, `Ingredient.name` | sortowanie i filtrowanie po tych polach |
+| unikalne `(cocktail, ingredient)` | brak duplikatów składnika w koktajlu; służy też jako indeks po koktajlu |
+| trigramowy GIN na `UPPER(Cocktail.name)` | wyszukiwanie po fragmencie nazwy |
+
+Django zamienia `name__icontains="marg"` na `UPPER(name) LIKE UPPER('%marg%')`, dlatego indeks trigramowy jest zbudowany na `UPPER(name)` (rozszerzenie `pg_trgm`, migracja `0002`). Zwykły indeks B-tree nie pomaga przy `LIKE '%fragment%'`.
+
+Plan zapytania (`Cocktail.objects.filter(name__icontains="marg").explain(analyze=True)`):
+
+```
+Bitmap Heap Scan on cocktails_cocktail  (actual time=0.069..0.075 rows=3 loops=1)
+  Recheck Cond: (upper((name)::text) ~~ '%MARG%'::text)
+  ->  Bitmap Index Scan on cocktail_name_trgm  (actual time=0.038..0.038 rows=3 loops=1)
+        Index Cond: (upper((name)::text) ~~ '%MARG%'::text)
+Execution Time: 0.581 ms
+```
+
+Przy 220 koktajlach to tylko demonstracja: tabela mieści się w kilku stronach pamięci, więc nawet przeszukanie całej tabeli byłoby równie szybkie. Zysk byłby widoczny dopiero przy dziesiątkach tysięcy wierszy.

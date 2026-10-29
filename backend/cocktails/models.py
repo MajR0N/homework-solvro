@@ -1,4 +1,6 @@
+from django.contrib.postgres.indexes import GinIndex, OpClass
 from django.db import models
+from django.db.models.functions import Upper
 
 
 class Category(models.Model):
@@ -30,6 +32,11 @@ class Cocktail(models.Model):
     # PROTECT: nie da się usunąć kategorii, która ma koktajle
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="cocktails")
     ingredients = models.ManyToManyField(Ingredient, through="CocktailIngredient", related_name="cocktails")
+
+    class Meta:
+        # Szybkie wyszukiwanie po fragmencie nazwy. Django zamienia icontains na UPPER(name) LIKE UPPER('%x%'),
+        # więc indeks musi być zbudowany na UPPER(name), inaczej Postgres go nie użyje.
+        indexes = [GinIndex(OpClass(Upper("name"), name="gin_trgm_ops"), name="cocktail_name_trgm")]
 
     def __str__(self):
         return self.name
