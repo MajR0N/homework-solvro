@@ -3,14 +3,14 @@
 To repozytorium zawiera moje zadanie rekrutacyjne do koła naukowego **KN Solvro**.
 Zadanie (<https://github.com/Solvro/rekrutacja>) ma motyw koktajli: miejsce do przechowywania i przeglądania przepisów (składniki z ilościami + instrukcja).
 
-**Wersja online (frontend):** <https://homework-solvro.vercel.app/>
+**Wersja online:** frontend <https://homework-solvro.vercel.app/> · backend (API z dokumentacją Swagger) <https://homework-solvro-backend-fsuaihda.vercel.app/api/docs/>
 
 ## Co jest w repozytorium
 
 | Folder | Co to jest | Stan |
 |---|---|---|
-| `frontend/` | Strona do przeglądania koktajli: lista, wyszukiwanie, filtry, ulubione, szczegóły. Next.js, TypeScript, Tailwind CSS, TanStack Query. | Działa i jest wdrożona (Solvro). Lokalnie ma przełącznik na własny backend. |
-| `backend/` | Własne REST API koktajli i składników. Django, Django REST Framework, PostgreSQL. Konta i role, opinie, CMS, etykiety popularności, Swagger, testy. | Gotowe i przetestowane, działa lokalnie (nie jest wdrożone), frontend czyta z niego po włączeniu przełącznika. Opis w [`backend/README.md`](backend/README.md). |
+| `frontend/` | Strona do przeglądania koktajli: lista, wyszukiwanie, filtry, ulubione, szczegóły. Next.js, TypeScript, Tailwind CSS, TanStack Query. | Działa i jest wdrożona na Vercelu. Domyślnie czyta publiczne API Solvro, a przełącznik „Źródło danych” pozwala wybrać mój własny backend. |
+| `backend/` | Własne REST API koktajli i składników. Django, Django REST Framework, PostgreSQL. Konta i role, opinie, CMS, etykiety popularności, Swagger, testy. | Gotowe, przetestowane i **wdrożone** na Vercelu (baza Neon). Opis w [`backend/README.md`](backend/README.md). |
 | `uiux/` | Zadanie UI/UX: projekt landing page'a. Wszystko jest w HTML (paleta, czcionki, komponenty), więc da się to otworzyć w przeglądarce. | W trakcie. |
 
 ## Dlaczego te ścieżki
@@ -19,7 +19,7 @@ Wybrałem **Frontend + Backend** (full stack) oraz **UI/UX**. Pominąłem Mobile
 
 ## Pomysł
 
-Frontend korzysta z dwóch źródeł danych: gotowego API Solvro albo mojego własnego API w Django, z przełącznikiem w interfejsie, żeby obie części zadania działały razem jako jeden projekt. Przełącznik działa lokalnie (po ustawieniu adresu backendu, patrz [`frontend/README.md`](frontend/README.md)). Na wersji online go nie ma, bo backend nie jest wdrożony. Logowania i formularzy w interfejsie jeszcze nie ma: backend je obsługuje, ale frontend tylko czyta.
+Frontend korzysta z dwóch źródeł danych: gotowego API Solvro albo mojego własnego API w Django, z przełącznikiem w interfejsie, żeby obie części zadania działały razem jako jeden projekt. Przełącznik jest widoczny także na wersji online (adres backendu ustawia zmienna środowiskowa, patrz [`frontend/README.md`](frontend/README.md)); domyślnym źródłem zostaje API Solvro. Logowania i formularzy w interfejsie jeszcze nie ma: backend je obsługuje, ale frontend tylko czyta.
 
 ## Jak korzystałem z AI
 

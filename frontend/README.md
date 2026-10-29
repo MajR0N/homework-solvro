@@ -3,7 +3,7 @@
 Przeglądarka koktajli oparta o [Cocktails API Solvro](https://cocktails.solvro.pl).
 Next.js (App Router) · TypeScript · Tailwind CSS · TanStack Query.
 
-**Wersja online:** <https://homework-solvro.vercel.app/> (dane z publicznego API Solvro). Własny backend z katalogu `backend/` działa tylko lokalnie, więc na wersji online przełącznik źródła jest ukryty.
+**Wersja online:** <https://homework-solvro.vercel.app/>. Domyślnie dane pochodzą z publicznego API Solvro, a przełącznik „Źródło danych” pozwala wybrać własny backend z katalogu `backend/` (wdrożony: <https://homework-solvro-backend-fsuaihda.vercel.app/api/docs/>).
 
 ## Funkcje
 - lista koktajli z paginacją
@@ -23,7 +23,7 @@ npm run build   # build produkcyjny
 
 ## Własny backend (przełącznik źródła)
 
-Frontend umie czytać dane z API Solvro (domyślnie) albo z własnego backendu z katalogu `backend/`. Przełącznik „Źródło danych” pojawia się tylko wtedy, gdy ustawiona jest zmienna z adresem backendu. Wybór jest zapamiętany w przeglądarce.
+Frontend umie czytać dane z API Solvro (domyślnie) albo z własnego backendu z katalogu `backend/`. Przełącznik „Źródło danych” pojawia się tylko wtedy, gdy ustawiona jest zmienna z adresem backendu. Wybór jest zapamiętany w przeglądarce. Na wersji online zmienna jest ustawiona, więc przełącznik jest widoczny.
 
 ```bash
 # 1. uruchom backend (patrz backend/README.md), domyślnie http://127.0.0.1:8000
@@ -44,7 +44,7 @@ Dane są kopią danych Solvro (te same id), więc ulubione działają na obu źr
 - `src/components/` — `CocktailCard`, `FavoriteButton`, `SourceSwitch`, `Badges` (znaczki i gwiazdki)
 
 ## Znane ograniczenia
-- **Własny backend nie jest wdrożony**, więc na wersji online (Vercel) działa tylko Solvro. Gdy backend jest wyłączony, a wybrano go jako źródło, strona pokazuje zwykły komunikat o błędzie pobierania.
+- **Własny backend działa na darmowych planach** (Vercel i Neon), więc pierwsze zapytanie po dłuższej przerwie może trwać dłużej. Gdy backend jest niedostępny, a wybrano go jako źródło, strona pokazuje zwykły komunikat o błędzie pobierania.
 - Zdjęcia z własnego backendu pokazujemy tylko z adresów `https://cocktails.solvro.pl` (inne hosty `next/image` odrzuca, a pozwolenie na wszystkie otworzyłoby optymalizator dla obcych). Własne koktajle z innym adresem zdjęcia dostają puste miejsce.
 - Własny backend ma 9 kategorii (tylko te w użyciu), a Solvro 10 (jedna pusta). Kolejność nazw z interpunkcją (spacja i myślnik) może się minimalnie różnić, bo bazy mają inne reguły sortowania. W obrębie jednej kategorii Solvro nie gwarantuje żadnej kolejności, nasz backend sortuje alfabetycznie.
 - Logowanie oraz dodawanie opinii i koktajli nie mają jeszcze formularzy w interfejsie (backend to obsługuje: Swagger i panel CMS). Opinie na razie można czytać, nie pisać.

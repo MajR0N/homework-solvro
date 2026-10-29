@@ -2,6 +2,8 @@
 
 REST API koktajli i składników. Django + Django REST Framework + PostgreSQL. Dane startowe pochodzą z publicznego API Solvro (220 koktajli, 552 składniki), a do tego są konta użytkowników z rolami, opinie, panel administracyjny (CMS) i etykiety popularności.
 
+**Wersja online:** API <https://homework-solvro-backend-fsuaihda.vercel.app/api/v1/>, dokumentacja Swagger <https://homework-solvro-backend-fsuaihda.vercel.app/api/docs/> (wdrożone na Vercelu, baza Neon). Opinie i etykiety popularności są puste, dopóki nikt ich nie doda; do pokazu służy polecenie `seed_demo` (sekcja „Dane demonstracyjne”).
+
 **Co jest w środku:**
 
 - pełny CRUD koktajli i składników, paginacja, walidacja, filtrowanie i sortowanie (także „bezalkoholowe koktajle z miętą”)
@@ -453,7 +455,7 @@ Gdyby w przyszłości dodać e-mail do kont, trzeba byłoby szyfrować to pole (
 
 ### Lista kontrolna przed wdrożeniem
 
-Backend działa na razie lokalnie. Przed publikacją:
+Backend jest już wdrożony na Vercelu (sekcja „Wdrożenie na Vercelu” niżej); ta lista dotyczy każdego wdrożenia na serwer. Przed publikacją:
 
 1. Ustaw zmienne: `PRODUCTION=true`, `DEBUG=false`, `SECRET_KEY` i `JWT_SIGNING_KEY` (dwa różne, losowe, długie), `ALLOWED_HOSTS` (adres API), `CORS_ALLOWED_ORIGINS` (adres frontendu po `https://`), dane bazy, oraz `NUM_PROXIES` (zwykle `1` za jednym proxy hostingu). Przy `PRODUCTION=true` serwer **nie wystartuje**, jeśli `DEBUG` jest włączony albo `ALLOWED_HOSTS` / `CORS_ALLOWED_ORIGINS` nie są ustawione jawnie.
 2. Sprawdź konfigurację: `DEBUG=false PRODUCTION=true ... python manage.py check --deploy` ma zakończyć się bez ostrzeżeń (jedno sprawdzenie, HSTS preload, jest wyciszone świadomie: wpis na listę przeglądarek jest praktycznie nieodwracalny).
@@ -572,5 +574,6 @@ Testy były też sprawdzane „od drugiej strony”: kod był celowo psuty w kil
 - **Etykiety bez „pamięci”:** `trending` jest liczone z bieżących liczb, więc koktajl nie wie, że był trendujący od 14 dni. Dokładny zegar wymagałby zapisanego stanu i codziennego zadania. Progi 10 / 20 / 100 to wartości demo.
 - **Wydajność etykiet:** liczby są liczone przy każdym zapytaniu o listę (kilka podzapytań na koktajl). Dla 220 koktajli to bez znaczenia; przy dużo większej bazie trzeba by je zapisywać (cache lub tabela zbiorcza). Tabela wyświetleń rośnie; wpisy starsze niż 30 dni nie są potrzebne do etykiet i można je kasować.
 - **Swagger** ładuje swój kod z CDN, więc strona `/api/docs/` wymaga internetu.
-- **Backend nie jest wdrożony:** działa lokalnie. Do publikacji brakuje produkcyjnych ustawień (pliki statyczne, serwer aplikacji, sekrety w zmiennych środowiskowych, `NUM_PROXIES`).
+- **Wdrożenie na darmowych planach** (Vercel i Neon): pierwsze zapytanie po dłuższej przerwie bywa wolniejsze (zimny start, uśpiona baza), a plany mają swoje limity.
+- **Niesprawdzone na żywo:** czy liczenie wyświetleń po adresie IP zgadza się z proxy Vercela (`NUM_PROXIES=1`; sprawdza to otwarcie koktajlu z dwóch różnych sieci) oraz czy przy dużym ruchu wystarczy pamięci na Argon2 (w razie problemów zmniejsz `ARGON2_MEMORY_KIB`).
 - Dane z API Solvro są importowane bez zmian, także ich błędy (np. część flag alkoholu jest nieprawdziwa).
