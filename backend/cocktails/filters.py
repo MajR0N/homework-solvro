@@ -40,6 +40,7 @@ class CocktailFilter(StableOrderFilterSet):
     search = django_filters.CharFilter(field_name="name", lookup_expr="icontains", help_text="Fragment nazwy, bez rozróżniania wielkości liter.")
     category = django_filters.CharFilter(field_name="category__name", help_text="Dokładna nazwa kategorii, np. Shot.")  # po nazwie, nie po id
     glass = django_filters.CharFilter(field_name="glass", help_text="Dokładna nazwa szklanki, np. Jar.")
+    author = django_filters.CharFilter(field_name="author__username", lookup_expr="iexact", help_text="Nazwa użytkownika, który dodał koktajl (istniejące konto).")
     alcoholic = alcoholic_filter()
     ingredient = django_filters.CharFilter(method="filter_ingredient", help_text="Fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie, np. mint,lime.")
     id = IdInFilter(field_name="id", lookup_expr="in", help_text="Tylko te koktajle (id po przecinku); puste ?id= daje brak wyników.")

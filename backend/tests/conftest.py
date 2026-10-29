@@ -4,7 +4,14 @@ import pytest
 from django.core.cache import cache
 from rest_framework.test import APIClient
 
+from accounts.models import User
 from cocktails.models import Category, Cocktail, CocktailIngredient, Ingredient
+
+
+@pytest.fixture(autouse=True)
+def fast_password_hashing(settings):
+    # Django celowo hashuje hasła powoli; w testach to tylko strata czasu (produkcja zostaje bez zmian)
+    settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 
 @pytest.fixture(autouse=True)
@@ -15,6 +22,35 @@ def clear_throttle_counters():
 @pytest.fixture
 def api():
     return APIClient()
+
+
+@pytest.fixture
+def make_user(db):
+    def make(username, role="user"):
+        return User.objects.create_user(username, password="Sup3r-secret-pw", role=role)
+
+    return make
+
+
+def logged_in(user):
+    client = APIClient()
+    client.force_authenticate(user)  # pomija sam token JWT; jego działanie sprawdza test_accounts.py
+    return client
+
+
+@pytest.fixture
+def as_user():
+    return logged_in
+
+
+@pytest.fixture
+def user_api(make_user):
+    return logged_in(make_user("anna"))
+
+
+@pytest.fixture
+def admin_api(make_user):
+    return logged_in(make_user("adam", role="admin"))
 
 
 def make_cocktail(name, category, ingredients, alcoholic):

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex, OpClass
 from django.db import models
 from django.db.models.functions import Upper
@@ -18,6 +19,11 @@ class Ingredient(models.Model):
     type = models.CharField(max_length=100, blank=True)
     percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     image_url = models.URLField(max_length=500, blank=True)
+    # Autor: link znika, gdy konto zostanie usunięte, a kopia nazwy zostaje. Puste = dane zaimportowane z Solvro.
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="%(class)ss"
+    )
+    author_name = models.CharField(max_length=150, blank=True)
 
     def __str__(self):
         return self.name
@@ -32,6 +38,11 @@ class Cocktail(models.Model):
     # PROTECT: nie da się usunąć kategorii, która ma koktajle
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="cocktails")
     ingredients = models.ManyToManyField(Ingredient, through="CocktailIngredient", related_name="cocktails")
+    # Autor: link znika, gdy konto zostanie usunięte, a kopia nazwy zostaje. Puste = dane zaimportowane z Solvro.
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="%(class)ss"
+    )
+    author_name = models.CharField(max_length=150, blank=True)
 
     class Meta:
         # Szybkie wyszukiwanie po fragmencie nazwy. Django zamienia icontains na UPPER(name) LIKE UPPER('%x%'),

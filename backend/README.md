@@ -115,6 +115,7 @@ Parametry listy koktajli (łączą się ze sobą i z paginacją; zła wartość 
 | `search` | `?search=marg` | fragment nazwy, bez rozróżniania wielkości liter |
 | `category` | `?category=Shot` | dokładna nazwa kategorii |
 | `glass` | `?glass=Jar` | dokładna nazwa szklanki |
+| `author` | `?author=anna` | koktajle dodane przez to konto (bez rozróżniania wielkości liter) |
 | `alcoholic` | `?alcoholic=true` | tylko `true` lub `false` |
 | `ingredient` | `?ingredient=mint,lime` | fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie |
 | `id` | `?id=11000,11007` | tylko te koktajle (ulubione); samo `?id=` = brak wyników |
@@ -143,7 +144,7 @@ Przykład z zadania („bezalkoholowe koktajle z miętą”): `GET /api/v1/cockt
 - `ingredients`: lista `{ingredient: id, measure}`; nieznane id lub ten sam składnik dwa razy = 400. Wysłana lista **zastępuje** starą, pominięta zostawia ją bez zmian.
 - Nazwa jest przycinana z białych znaków, niepusta, do 200 znaków; `image_url` musi być poprawnym adresem.
 - Koktajl i jego składniki zapisują się w jednej transakcji.
-- **Uwaga:** zapis jest na razie otwarty dla każdego. Przed publikacją backendu trzeba go zamknąć (logowanie i uprawnienia to osobny krok).
+- Zapis wymaga zalogowania (nagłówek `Authorization: Bearer <access>`); zasady w sekcji „Uprawnienia”.
 
 ### Składniki
 
@@ -171,7 +172,7 @@ Sprawdzenie schematu: `python manage.py spectacular --validate --fail-on-warn`.
 ## Testy
 
 ```bash
-python -m pytest              # 71 testów, ok. 2 s, bez internetu
+python -m pytest              # 99 testów, ok. 2 s, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
@@ -201,3 +202,16 @@ Rejestracja i logowanie mają wspólny limit 10 prób na minutę z jednego IP. L
 Brak pola e-mail (mniej danych osobowych). Weryfikacji e-mail też nie ma, więc skrypt może powoli zakładać wiele kont; to znane ograniczenie.
 
 **Zmiana modelu użytkownika wymaga świeżej bazy:** po pobraniu tej zmiany na istniejącej bazie `migrate` zgłosi niespójną historię migracji. Lokalnie: `DROP DATABASE cocktails; CREATE DATABASE cocktails;`, potem `migrate` i `import_solvro`.
+
+## Uprawnienia i autorzy
+
+| Kto | Koktajle i składniki |
+|---|---|
+| każdy, także niezalogowany | czyta |
+| zalogowany (`user`) | dodaje; zmienia i usuwa **tylko swoje** |
+| `admin`, `staff`, `owner` | zmieniają i usuwają **wszystko**, także dane zaimportowane |
+
+- Dane z importu Solvro nie mają autora (`author: null`, `author_name: ""`), więc zwykły użytkownik nie może ich zmienić.
+- Autora ustawia serwer z konta w tokenie (`author` = id, `author_name` = kopia nazwy). Klient nie może go podać ani zmienić później; test pilnuje, żeby nie dało się „przejąć” cudzego wpisu przez PATCH.
+- Po usunięciu konta treść zostaje: `author` staje się `null`, a `author_name` zachowuje starą nazwę. Taki wpis może już zmienić tylko admin wzwyż.
+- Niezalogowany zapis daje 401, brak uprawnień 403.

@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from .filters import CocktailFilter, IngredientFilter
 from .models import Category, Cocktail, Ingredient
 from .pagination import Pagination
+from .permissions import IsAuthorOrAdmin
 from .serializers import (
     CategorySerializer,
     CocktailDetailSerializer,
@@ -16,14 +17,23 @@ from .serializers import (
 )
 
 
+class AuthorOnCreateMixin:
+    """Autora ustawia serwer z zalogowanego konta; kopia nazwy zostaje, gdy konto zostanie usunięte."""
+
+    permission_classes = [IsAuthorOrAdmin]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user, author_name=self.request.user.username)
+
+
 # Odpowiedź po zapisie ma kształt szczegółów (z ingredients[]), a nie ciała żądania; bez tego Swagger pokazałby złą
 @extend_schema_view(
     create=extend_schema(responses={201: CocktailDetailSerializer}),
     update=extend_schema(responses=CocktailDetailSerializer),
     partial_update=extend_schema(responses=CocktailDetailSerializer),
 )
-class CocktailViewSet(viewsets.ModelViewSet):
-    """CRUD koktajli. Zapis jest na razie dostępny dla każdego (autoryzacja w kolejnym kroku)."""
+class CocktailViewSet(AuthorOnCreateMixin, viewsets.ModelViewSet):
+    """CRUD koktajli: czytanie dla wszystkich, dodawanie po zalogowaniu, zmiany tylko autor lub admin wzwyż."""
 
     pagination_class = Pagination
     filter_backends = [DjangoFilterBackend]
@@ -57,8 +67,8 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
         responses={204: None, 409: OpenApiResponse(description="Składnik jest użyty w koktajlu, więc nie można go usunąć.")}
     )
 )
-class IngredientViewSet(viewsets.ModelViewSet):
-    """CRUD składników. Zapis jest na razie dostępny dla każdego (autoryzacja w kolejnym kroku)."""
+class IngredientViewSet(AuthorOnCreateMixin, viewsets.ModelViewSet):
+    """CRUD składników, te same zasady co przy koktajlach."""
 
     queryset = Ingredient.objects.order_by("name", "id")
     serializer_class = IngredientSerializer

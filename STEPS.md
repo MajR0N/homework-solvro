@@ -223,7 +223,7 @@ Separate from the `uiux/` homework (section 13). It is the "shadcn restyle" from
 
 ## 15. Backend step 3 — decisions made while building (29 October 2026)
 
-- **B1. Writes are open for now** (no login) — the user's decision, because nothing is deployed yet. **Must be closed (JWT, step 5) before any deploy.** Also noted in `backend/README.md`.
+- **B1. (CLOSED by step 5b: writes now need a login.) Writes were open** (no login) — the user's decision, because nothing is deployed yet. **Must be closed (JWT, step 5) before any deploy.** Also noted in `backend/README.md`.
 - **B2. Pagination** is required by the task for cocktails **and ingredients**; categories (9 rows) are not paginated.
 - **B3. Filter rules:** bad values return 400 (not silently ignored, unlike Solvro's `sort`); `?id=` (empty) means none; `?ingredient=mint,lime` means contains all; sorting has an `id` tiebreaker so pages are stable.
 - **B4. Writes:** category by **name**, ingredients as `{ingredient: id, measure}`, a sent list **replaces** the old one, everything in one transaction.
@@ -264,3 +264,5 @@ Scope the user added after the backend core (step 3) was finished. Order of buil
 | A11 | Defaults that stand (no objection): no email field; access 10 min, refresh 7 days with rotation and blacklist; 10 per minute per IP on login and register. |
 
 Built: step 5a (accounts, JWT, 71 tests). Not built yet: author fields and permissions (5b), CMS rules per role, reviews, views and trending.
+
+Built: step 5b (authors, permissions, `?author=` filter; 99 tests). Not built yet: CMS rules per role (the Django admin, restricted by role and rank), reviews with moderation and reports, views and trending.

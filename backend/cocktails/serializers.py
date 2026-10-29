@@ -7,7 +7,8 @@ from .models import Category, Cocktail, CocktailIngredient, Ingredient
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = ["id", "name", "description", "alcoholic", "type", "percentage", "image_url"]
+        fields = ["id", "name", "description", "alcoholic", "type", "percentage", "image_url", "author", "author_name"]
+        read_only_fields = ["author", "author_name"]  # ustawia serwer z konta w tokenie, klient nie może ich podać
         extra_kwargs = {"percentage": {"min_value": 0, "max_value": 100}}  # zawartość alkoholu w %
 
 
@@ -27,7 +28,7 @@ class CocktailListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cocktail
-        fields = ["id", "name", "category", "glass", "alcoholic", "image_url"]
+        fields = ["id", "name", "category", "glass", "alcoholic", "image_url", "author", "author_name"]
 
 
 class CocktailDetailSerializer(CocktailListSerializer):
