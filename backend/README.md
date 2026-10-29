@@ -173,7 +173,7 @@ Sprawdzenie schematu: `python manage.py spectacular --validate --fail-on-warn`.
 ## Testy
 
 ```bash
-python -m pytest              # 142 testy, ok. 2 s, bez internetu
+python -m pytest              # 176 testów, ok. 2 s, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
@@ -234,3 +234,19 @@ Rangi: user < admin < staff < owner. Nikt nie może edytować własnego konta w 
 ## Znaczek „zweryfikowany”
 
 Koktajl ma pole `verified`. To znaczek i filtr, nie bramka: **nic nie jest ukrywane**. Ustawia go ręcznie admin wzwyż w CMS (akcje „Mark selected cocktails as verified” i „Remove the verified mark”). Przez API nie da się go zmienić (nawet właścicielowi), więc autor nie może sam sobie go nadać. Dane z importu Solvro startują jako zweryfikowane, a ponowny import nie cofa decyzji admina.
+
+## Opinie i oceny
+
+| Metoda i adres | Działanie | Odpowiedź |
+|---|---|---|
+| `GET /api/v1/cocktails/{id}/reviews/` | opinie o koktajlu, najnowsze pierwsze, po 20 | 200 (404, gdy nie ma koktajlu) |
+| `POST /api/v1/cocktails/{id}/reviews/` | dodaj swoją: `rating` 1-5 (liczba całkowita), `text` do 2000 znaków (opcjonalny) | 201; **409**, gdy już oceniłeś; **403**, gdy to Twój koktajl |
+| `GET` / `PATCH` / `PUT /api/v1/reviews/{id}/` | czytaj / zmień (tylko autor) | 200 |
+| `DELETE /api/v1/reviews/{id}/` | usuń: autor albo admin, staff, owner | 204 |
+| `POST /api/v1/reviews/{id}/report/` | zgłoś opinię adminowi (zalogowany, `reason` opcjonalny, do 300 znaków) | 201; 200 przy powtórzeniu |
+
+- Każdy koktajl w liście i szczegółach ma `rating_avg` (średnia, 2 miejsca, `null` bez opinii) i `rating_count`.
+- Opinię może dodać tylko zalogowany, jedną na koktajl (pilnuje tego też baza), nie o własnym koktajlu (autor mógłby sobie zawyżać ocenę).
+- Admin **usuwa**, ale nie **edytuje** cudzych opinii; autor koktajlu może opinię tylko **zgłosić**, nie usunąć (inaczej kasowałby złe oceny).
+- Po usunięciu konta opinia zostaje i nadal liczy się do średniej, a `author` oraz `author_username` mają wartość `null` (frontend pokazuje „usunięty użytkownik”).
+- Zgłoszenia i opinie są w CMS (Reviews, Review reports): admin sortuje opinie po liczbie zgłoszeń i je usuwa albo odrzuca zgłoszenie (usuwa samo zgłoszenie). Opinii w CMS nie da się edytować.

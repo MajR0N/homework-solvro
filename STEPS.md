@@ -268,3 +268,16 @@ Built: step 5a (accounts, JWT, 71 tests). Not built yet: author fields and permi
 Built: step 5b (authors, permissions, `?author=` filter; 99 tests). Not built yet: CMS rules per role (the Django admin, restricted by role and rank), reviews with moderation and reports, views and trending.
 
 Built: the CMS (Django admin restricted by role and rank; 137 tests). Not built yet: reviews with moderation and reports, views and trending, the verified badge, the schema screenshot.
+
+### Popular, trending, most popular — final definition (decided)
+Computed on every request from unique visitor-days (no stored state). Thresholds live in settings so they can be tuned (demo values).
+
+| Label | Rule |
+|---|---|
+| trending | at least 10 views in the last 14 days **and** the last 7 days have more views than the 7 days before (still rising) |
+| popular | not trending, at least 20 views in the last 30 days |
+| most popular | at least 100 views in the last 30 days |
+
+One `status` is shown, in order: trending, most popular, popular. Known approximation: no memory of "was trending for 14 days" (an exact clock would need stored state and a daily job).
+
+Built: reviews, reports and rating numbers (176 tests); the verified badge. Not built yet: views counting, the three labels and their sorts, the schema picture, the final pass.

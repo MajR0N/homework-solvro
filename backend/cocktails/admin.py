@@ -1,8 +1,9 @@
 from django.contrib import admin
+from django.db.models import Count
 
 from accounts.admin import RoleAdminMixin
 
-from .models import Category, Cocktail, CocktailIngredient, Ingredient
+from .models import Category, Cocktail, CocktailIngredient, Ingredient, Review, ReviewReport
 
 admin.site.site_header = "Koktajle CMS"
 admin.site.site_title = "Koktajle CMS"
@@ -52,3 +53,41 @@ class CocktailAdmin(RoleAdminMixin, AuthorOnAddMixin, admin.ModelAdmin):
     @admin.action(description="Remove the verified mark from selected cocktails")
     def mark_unverified(self, request, queryset):
         self.message_user(request, f"Unverified: {queryset.update(verified=False)}")
+
+
+@admin.register(Review)
+class ReviewAdmin(RoleAdminMixin, admin.ModelAdmin):
+    """Admin przegląda i usuwa opinie, ale nie przepisuje cudzych słów (stąd brak edycji i dodawania)."""
+
+    list_display = ("cocktail", "rating", "author", "report_count", "created_at")
+    list_filter = ("rating",)
+    ordering = ("-created_at",)  # kolumna Reports sortuje po liczbie zgłoszeń (kliknij nagłówek)
+    search_fields = ("text", "cocktail__name", "author__username")
+    readonly_fields = ("cocktail", "author", "rating", "text", "created_at", "updated_at")
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(_reports=Count("reports"))
+
+    @admin.display(ordering="_reports", description="Reports")
+    def report_count(self, review):
+        return review._reports
+
+
+@admin.register(ReviewReport)
+class ReviewReportAdmin(RoleAdminMixin, admin.ModelAdmin):
+    """Rozpatrzenie zgłoszenia: usuń opinię (Reviews) albo samo zgłoszenie (odrzucenie)."""
+
+    list_display = ("review", "reporter", "reason", "created_at")
+    readonly_fields = ("review", "reporter", "reason", "created_at")
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

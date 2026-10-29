@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex, OpClass
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Avg, Count, Q
 from django.db.models.functions import Upper
 
 
@@ -29,6 +31,12 @@ class Ingredient(models.Model):
         return self.name
 
 
+class CocktailQuerySet(models.QuerySet):
+    def with_ratings(self):
+        # średnia ocen i liczba opinii liczone w bazie, jednym zapytaniem dla całej listy
+        return self.annotate(rating_avg=Avg("reviews__rating"), rating_count=Count("reviews"))
+
+
 class Cocktail(models.Model):
     name = models.CharField(max_length=200, db_index=True)
     instructions = models.TextField(blank=True)
@@ -40,6 +48,8 @@ class Cocktail(models.Model):
     # PROTECT: nie da się usunąć kategorii, która ma koktajle
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="cocktails")
     ingredients = models.ManyToManyField(Ingredient, through="CocktailIngredient", related_name="cocktails")
+
+    objects = CocktailQuerySet.as_manager()
     # Autor: link znika, gdy konto zostanie usunięte, a kopia nazwy zostaje. Puste = dane zaimportowane z Solvro.
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="%(class)ss"
@@ -70,3 +80,40 @@ class CocktailIngredient(models.Model):
 
     def __str__(self):
         return f"{self.cocktail} / {self.ingredient}"
+
+
+class Review(models.Model):
+    cocktail = models.ForeignKey(Cocktail, on_delete=models.CASCADE, related_name="reviews")
+    # Po usunięciu konta opinia zostaje (ocena nadal się liczy), a autor jest pusty: pokazujemy "usunięty użytkownik".
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="reviews"
+    )
+    rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    text = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            # to samo co walidacja w API, ale pilnowane przez bazę, gdyby ktoś ominął API
+            models.CheckConstraint(condition=Q(rating__gte=1, rating__lte=5), name="review_rating_1_to_5"),
+            # jedna opinia na użytkownika i koktajl; puste (usunięte) konta się nie wykluczają, bo NULL != NULL
+            models.UniqueConstraint(fields=["author", "cocktail"], name="one_review_per_user_per_cocktail"),
+        ]
+
+    def __str__(self):
+        return f"{self.rating}/5 {self.cocktail}"
+
+
+class ReviewReport(models.Model):
+    """Zgłoszenie opinii do sprawdzenia przez admina. Rozpatrzenie = usunięcie opinii albo samego zgłoszenia."""
+
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="reports")
+    reporter = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="review_reports"
+    )
+    reason = models.CharField(max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["reporter", "review"], name="one_report_per_user_per_review")]

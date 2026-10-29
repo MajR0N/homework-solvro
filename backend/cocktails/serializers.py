@@ -1,7 +1,7 @@
 from django.db import transaction
 from rest_framework import serializers
 
-from .models import Category, Cocktail, CocktailIngredient, Ingredient
+from .models import Category, Cocktail, CocktailIngredient, Ingredient, Review, ReviewReport
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -25,10 +25,18 @@ class CocktailIngredientSerializer(serializers.ModelSerializer):
 
 class CocktailListSerializer(serializers.ModelSerializer):
     category = serializers.CharField(source="category.name")
+    rating_avg = serializers.SerializerMethodField()  # None, gdy nie ma jeszcze opinii
+    rating_count = serializers.IntegerField(read_only=True)
+
+    def get_rating_avg(self, cocktail) -> float | None:
+        return None if cocktail.rating_avg is None else round(float(cocktail.rating_avg), 2)
 
     class Meta:
         model = Cocktail
-        fields = ["id", "name", "category", "glass", "alcoholic", "image_url", "verified", "author", "author_name"]
+        fields = [
+            "id", "name", "category", "glass", "alcoholic", "image_url", "verified", "rating_avg", "rating_count",
+            "author", "author_name",
+        ]
 
 
 class CocktailDetailSerializer(CocktailListSerializer):
@@ -89,5 +97,25 @@ class CocktailWriteSerializer(serializers.ModelSerializer):
         return cocktail
 
     def to_representation(self, instance):
-        # odpowiedź po zapisie wygląda tak samo jak GET /cocktails/{id}/
+        # odpowiedź po zapisie wygląda tak samo jak GET /cocktails/{id}/ (z policzonymi ocenami)
+        instance = Cocktail.objects.with_ratings().get(pk=instance.pk)
         return CocktailDetailSerializer(instance, context=self.context).data
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author_username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Review
+        fields = ["id", "cocktail", "author", "author_username", "rating", "text", "created_at", "updated_at"]
+        read_only_fields = ["cocktail", "author", "created_at", "updated_at"]
+        extra_kwargs = {"text": {"max_length": 2000}}
+
+    def get_author_username(self, review) -> str | None:
+        return review.author.username if review.author_id else None  # None = usunięty użytkownik
+
+
+class ReviewReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReviewReport
+        fields = ["reason"]
