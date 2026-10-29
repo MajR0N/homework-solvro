@@ -76,6 +76,108 @@ python manage.py runserver        # http://127.0.0.1:8000
 | `drf-spectacular` | generuje dokumentację OpenAPI i stronę Swagger (`/api/docs/`) |
 | `pytest`, `pytest-django` | testy automatyczne na prawdziwym PostgreSQL |
 
+## Schemat bazy danych
+
+Diagram jest wygenerowany z modeli Django (nie rysowany ręcznie), więc zgadza się z bazą. GitHub rysuje go automatycznie.
+
+```mermaid
+erDiagram
+    accounts_user {
+        bigint id PK
+        varchar password
+        varchar username UK
+        boolean is_active
+        timestamp date_joined
+        varchar role
+    }
+    cocktails_category {
+        bigint id PK
+        varchar name UK
+    }
+    cocktails_cocktail {
+        bigint id PK
+        varchar name
+        text instructions
+        varchar glass
+        boolean alcoholic
+        varchar image_url
+        boolean verified
+        bigint category_id FK
+        bigint author_id FK
+        varchar author_name
+    }
+    cocktails_ingredient {
+        bigint id PK
+        varchar name
+        text description
+        boolean alcoholic
+        varchar type
+        decimal percentage
+        varchar image_url
+        bigint author_id FK
+        varchar author_name
+    }
+    cocktails_cocktailingredient {
+        bigint id PK
+        bigint cocktail_id FK
+        bigint ingredient_id FK
+        varchar measure
+    }
+    cocktails_review {
+        bigint id PK
+        bigint cocktail_id FK
+        bigint author_id FK
+        smallint rating
+        text text
+        timestamp created_at
+        timestamp updated_at
+    }
+    cocktails_reviewreport {
+        bigint id PK
+        bigint review_id FK
+        bigint reporter_id FK
+        varchar reason
+        timestamp created_at
+    }
+    cocktails_cocktailview {
+        bigint id PK
+        bigint cocktail_id FK
+        date day
+        varchar visitor
+    }
+    cocktails_category ||--o{ cocktails_cocktail : "category"
+    accounts_user |o--o{ cocktails_cocktail : "author"
+    accounts_user |o--o{ cocktails_ingredient : "author"
+    cocktails_cocktail ||--o{ cocktails_cocktailingredient : "cocktail"
+    cocktails_ingredient ||--o{ cocktails_cocktailingredient : "ingredient"
+    cocktails_cocktail ||--o{ cocktails_review : "cocktail"
+    accounts_user |o--o{ cocktails_review : "author"
+    cocktails_review ||--o{ cocktails_reviewreport : "review"
+    accounts_user |o--o{ cocktails_reviewreport : "reporter"
+    cocktails_cocktail ||--o{ cocktails_cocktailview : "cocktail"
+```
+
+Jak czytać: `PK` klucz główny, `FK` klucz obcy, `UK` wartość unikalna. `||--o{` znaczy „jeden do wielu”, a `|o--o{` „zero lub jeden do wielu” (autor może być pusty).
+
+| Relacja | Znaczenie |
+|---|---|
+| kategoria → koktajle | jedna kategoria ma wiele koktajli; kategorii z koktajlami nie da się usunąć (`PROTECT`) |
+| koktajl ↔ składnik | wiele do wielu przez `cocktailingredient`, który trzyma też ilość (`measure`); składnika w użyciu nie da się usunąć (`PROTECT`) |
+| użytkownik → koktajle, składniki, opinie, zgłoszenia | autor jest opcjonalny: dane z importu go nie mają, a po usunięciu konta pole się zeruje (`SET_NULL`), więc treść zostaje |
+| koktajl → opinie, wyświetlenia | usunięcie koktajlu usuwa jego opinie i wyświetlenia (`CASCADE`) |
+| opinia → zgłoszenia | usunięcie opinii usuwa jej zgłoszenia (`CASCADE`) |
+
+Ograniczenia pilnowane przez samą bazę (nie tylko przez API):
+
+| Tabela | Ograniczenie | Po co |
+|---|---|---|
+| `cocktailingredient` | unikalne `(cocktail, ingredient)` | ten sam składnik nie może wystąpić dwa razy w koktajlu |
+| `review` | `rating` od 1 do 5 | ocena spoza zakresu jest odrzucana nawet z pominięciem API |
+| `review` | unikalne `(author, cocktail)` | jedna opinia na użytkownika i koktajl |
+| `reviewreport` | unikalne `(reporter, review)` | jedno zgłoszenie danej opinii przez jedną osobę |
+| `cocktailview` | unikalne `(cocktail, day, visitor)` | jedno policzone wyświetlenie na odwiedzającego, koktajl i dzień |
+| `cocktail` | indeks trigramowy `cocktail_name_trgm` | szybkie wyszukiwanie po fragmencie nazwy (sekcja „Indeksy”) |
+
 ## Indeksy
 
 | Indeks | Po co |
