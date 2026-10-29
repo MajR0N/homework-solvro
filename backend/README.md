@@ -95,3 +95,12 @@ Execution Time: 0.581 ms
 ```
 
 Przy 220 koktajlach to tylko demonstracja: tabela mieści się w kilku stronach pamięci, więc nawet przeszukanie całej tabeli byłoby równie szybkie. Zysk byłby widoczny dopiero przy dziesiątkach tysięcy wierszy.
+
+## Endpointy (tylko odczyt)
+
+| Metoda i adres | Zwraca |
+|---|---|
+| `GET /api/v1/cocktails/` | lista po 20 (`?page=2`, `?page_size=50`, maks. 100) |
+| `GET /api/v1/cocktails/{id}/` | jeden koktajl z instrukcją i listą `ingredients[]` (każdy z polem `measure`) |
+
+Zapis (POST/PUT/DELETE) odpowiada 405, bo dodamy go w kolejnym kroku.
