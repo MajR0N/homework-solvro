@@ -103,6 +103,11 @@ if DATABASE_URL:
         }
     }
 else:
+    if 'DB_PASSWORD' not in os.environ:
+        raise ImproperlyConfigured(
+            'Brak konfiguracji bazy danych: ustaw DATABASE_URL (niepusty adres postgresql://...) '
+            'albo DB_PASSWORD (oraz opcjonalnie DB_NAME, DB_USER, DB_HOST, DB_PORT)'
+        )
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

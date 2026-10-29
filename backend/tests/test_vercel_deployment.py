@@ -152,3 +152,13 @@ def test_the_cache_table_can_be_created_by_name_without_switching_production_mod
     with connection.cursor() as cursor:
         cursor.execute("select to_regclass('django_cache') is not null")
         assert cursor.fetchone()[0] is True
+
+
+@pytest.mark.parametrize("value", ["", None])
+def test_an_empty_or_missing_database_address_gives_a_clear_error_not_a_bare_keyerror(clean_copy, value):
+    extra = {k: v for k, v in VERCEL_ENV.items() if k != "DATABASE_URL"}
+    if value is not None:
+        extra["DATABASE_URL"] = value  # pusta zmienna na Vercelu: dokładnie ten przypadek, który wywrócił budowanie
+    result = run(["manage.py", "check"], env_for(extra), cwd=clean_copy)
+    assert result.returncode != 0
+    assert "DATABASE_URL" in result.stderr and "KeyError" not in result.stderr
