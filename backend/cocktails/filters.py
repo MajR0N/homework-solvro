@@ -20,8 +20,9 @@ def true_false_filter():
 class StableOrderFilterSet(django_filters.FilterSet):
     def filter_queryset(self, queryset):
         qs = super().filter_queryset(queryset)
-        # id na końcu sortowania: bez tego rekordy o tej samej nazwie mogłyby przeskakiwać między stronami.
-        return qs.order_by(*qs.query.order_by, "id")
+        # Remisy rozstrzyga nazwa, a na końcu id. Nazwa: żeby np. sortowanie po kategorii dawało w obrębie kategorii
+        # kolejność alfabetyczną. Id: bez niego rekordy o tej samej nazwie mogłyby przeskakiwać między stronami.
+        return qs.order_by(*qs.query.order_by, "name", "id")
 
 
 class IngredientFilter(StableOrderFilterSet):
@@ -29,7 +30,7 @@ class IngredientFilter(StableOrderFilterSet):
     type = django_filters.CharFilter(field_name="type", help_text="Dokładny typ składnika, np. Fruit.")
     alcoholic = true_false_filter()
     # Niedozwolona wartość (np. ?ordering=type) daje 400, a nie po cichu ignorowane sortowanie.
-    ordering = django_filters.OrderingFilter(fields=("name", "id"), help_text="Sortowanie; minus oznacza malejąco. Przy remisie decyduje id.")
+    ordering = django_filters.OrderingFilter(fields=("name", "id"), help_text="Sortowanie; minus oznacza malejąco. Remisy rozstrzyga nazwa, potem id.")
 
     class Meta:
         model = Ingredient
@@ -56,7 +57,7 @@ class CocktailFilter(StableOrderFilterSet):
             ("name", "name"), ("id", "id"), ("verified", "verified"), ("category__name", "category"),
             ("trend", "trending"), ("views_30d", "popular"), ("top_rated_score", "top_rated"),
         ),
-        help_text="Sortowanie: name, id, verified, category, trending, popular, top_rated; minus oznacza malejąco. Przy remisie decyduje id.",
+        help_text="Sortowanie: name, id, verified, category, trending, popular, top_rated; minus oznacza malejąco. Remisy rozstrzyga nazwa, potem id.",
     )
 
     class Meta:

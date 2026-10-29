@@ -232,7 +232,7 @@ Lista (`GET /cocktails/`) zwraca po 20 na stronę w formacie `{count, next, prev
 | `ingredient` | `?ingredient=mint,lime` | fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie |
 | `id` | `?id=11000,11007` | tylko te koktajle (ulubione); samo `?id=` = brak wyników |
 | `status` | `?status=trending` | etykieta popularności: `trending`, `popular`, `most_popular` |
-| `ordering` | `?ordering=-popular` | `name`, `id`, `verified`, `category`, `trending`, `popular`, `top_rated` (minus = malejąco); przy remisie decyduje `id` |
+| `ordering` | `?ordering=-popular` | `name`, `id`, `verified`, `category`, `trending`, `popular`, `top_rated` (minus = malejąco); remisy rozstrzyga nazwa, potem `id` |
 
 Przykład „bezalkoholowe koktajle z miętą”: `GET /api/v1/cocktails/?alcoholic=false&ingredient=mint`.
 
@@ -365,7 +365,7 @@ Pokazywana jest jedna etykieta, w kolejności: `trending`, `most_popular`, `popu
 ## Testy
 
 ```bash
-python -m pytest              # 215 testów, kilka sekund, bez internetu
+python -m pytest              # 216 testów, kilka sekund, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 

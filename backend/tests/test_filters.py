@@ -94,6 +94,14 @@ def test_verified_filter_and_sorting(api, data):
     assert api.get(URL, {"verified": "yes"}).status_code == 400
 
 
+def test_ties_in_a_sort_are_broken_alphabetically(api, data):
+    # "Zeta" ma niższe id niż "Alpha", ale w obrębie jednej kategorii kolejność ma być alfabetyczna
+    Cocktail.objects.create(name="Zeta", category=data.shot_cat)
+    Cocktail.objects.create(name="Alpha", category=data.shot_cat)
+    in_shot = [n for n in names(api.get(URL, {"ordering": "category"})) if n in ("Lemon Shot", "Zeta", "Alpha")]
+    assert in_shot == ["Alpha", "Lemon Shot", "Zeta"]
+
+
 def test_sort_by_category_name(api, data):
     assert names(api.get(URL, {"ordering": "category"}))[-1] == "Lemon Shot"  # Cocktail < Shot
     assert names(api.get(URL, {"ordering": "-category"}))[0] == "Lemon Shot"
