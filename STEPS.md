@@ -205,3 +205,18 @@ All deliverables are HTML in `uiux/` (including `uiux/README.html`, still to be 
 | U5 | **Background color from the drink photos, subtle ("ambient glow"):** the base stays pure black/white; the photo's main color becomes a soft capped glow behind the panes. Top bar, buttons, pink accent and text stay constant. Rule: **all text sits on glass.** Details (strength, picking the color, limits) to be discussed later. Reading colors from photos in the real app needs CORS on Solvro's image host (not checked). |
 | U6 | **Font family: Metropolis** (Chris Simpson, SIL Open Font License 1.1; 9 weights + italics; OTF files from 1001fonts, no CDN, so the files must be stored in `uiux/assets/fonts/` together with the license text). All 18 Polish letters are present. **Weights still to be decided** (suggested: Regular 400 for text, Medium 500 for UI labels, Bold 700 for headlines; Regular alone gives weak hierarchy). **Metropolis lacks these characters:** ★ ♥ ♡ ← ✓ ✗, `·`, `•` and the Polish opening quote `„` (it has `”`, dashes, `…`, `×`, digits). So icons must be **inline SVG**, not text characters, and `·` / `„` avoided. Files are not in the repo yet. |
 | — | Open: font weights, type scale, components, page layout, accessibility pass, `uiux/README.html`. |
+
+## 14. Frontend UI/UX restyle — decisions (grilling, 29 October 2026)
+
+Separate from the `uiux/` homework (section 13). It is the "shadcn restyle" from D16, now with a defined look.
+
+| # | Question | Decision |
+|---|---|---|
+| F1 | How close to the `uiux/` design? | **Shared foundation:** colors from `uiux/tokens.css`, Metropolis font, pink accent (buttons, favorited heart). Cards are flat. |
+| F2 | Where is glass used? | **Top bar only** (sticky, so the blur is real). Inversion from U3 stays: dark glass in light mode, light glass in dark mode. |
+| F3 | What is in the top bar? | Title on the left, search in the middle, "Tylko ulubione (n)" on the right. The category / alcohol / sort dropdowns are a flat row below. No theme toggle (follows the OS). The source switch (D8) gets its slot when the backend exists. |
+| F4 | shadcn scope | `Button`, `Input`, `Checkbox`, `Badge`, `Skeleton`. The three dropdowns stay **native `<select>`** styled to match (better on phones, fewer dependencies). This narrows D16 "everywhere". |
+| F5 | Font in the app | **Metropolis**, loaded with `next/font/local`, files + license in the repo. Weights are decided in the UI/UX grilling first. Metropolis has no `·`, so the card subtitle separator must change (to `–` or CSS). |
+| F6 | Cards | Restyle plus: a solid-background **badge** "Z alkoholem" / "Bezalkoholowy" on the photo (opposite the heart), category as plain text, fixed photo ratio, subtle hover. Caveat: Solvro's alcohol flags are sometimes wrong and the badge makes that more visible. |
+| F7 | Detail page | **Two columns on desktop** (photo and tags sticky left; ingredients, then instructions, right), one column on phones. oz to ml conversion (D3) stays its own later step. |
+| F8 | When? | **Backend core first**, then the UI/UX font step, then the restyle (about 4 small commits: shadcn + tokens + font, top bar, cards, detail), then JWT and the rest. This moves the restyle ahead of section 12 step 5. |
