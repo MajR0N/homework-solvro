@@ -367,6 +367,40 @@ Pokazywana jest jedna etykieta, w kolejności: `trending`, `most_popular`, `popu
 
 ## Bezpieczeństwo
 
+Przed wprowadzeniem zabezpieczeń zrobiono audyt kodu (sondy ataków na prawdziwej aplikacji), a po ich wprowadzeniu powtórzono go. Wyniki obu przebiegów:
+
+| Obszar | Przed | Po |
+|---|---|---|
+| **1. SQL injection** | 144 próbne ataki (`' OR '1'='1`, `DROP TABLE`, `UNION SELECT`, bajt NUL, teksty po 5000 znaków) przez każdy parametr: bez błędów 500, dane nietknięte, `%` i `_` traktowane dosłownie. Brak limitów długości. | Ten sam wynik (nadal 0 błędów 500, tabele nietknięte), a do tego limity długości i liczby wartości w filtrach i w zapisie, oraz limit rozmiaru żądania (413). |
+| **2. XSS** | JSON z `nosniff`, ale dostępne HTML-owe „browsable API”, a adresy zdjęć `http://` i `ftp://` przyjmowane (201). | Tylko JSON; `http:`, `ftp:`, `javascript:` i `data:` w adresie zdjęcia odrzucane (400); HTML w nazwie zapisany jako zwykły tekst. |
+| **3. Limity zapytań** | Tylko logowanie i wyświetlenia. 150 żądań z rzędu: wszystkie 200. Panel `/admin/`: 15 prób z 15 przeszło. Zapisy bez limitu. | 150 żądań: 120 razy 200 i 30 razy 429. Panel: 10 prób, reszta 429. Zapisy: 30 na minutę, potem 429. |
+| **4. Szyfrowanie** | Hasła PBKDF2; token podpisany tym samym kluczem co Django; ustawienia HTTPS wyłączone; kontrola wdrożeniowa Django: 5 problemów. | Hasła Argon2id; osobny klucz tokenów; przełącznik `PRODUCTION=true` (HTTPS, HSTS, bezpieczne ciasteczka); kontrola wdrożeniowa: 0 problemów (jedno sprawdzenie wyciszone świadomie). |
+| **5. Uwierzytelnianie i uprawnienia** | Fałszywe tokeny odrzucane, jednakowa odpowiedź dla złego hasła i nieistniejącego konta, ale brak blokady konta, hasło min. 8 znaków, brak dziennika. | Odrzucane także tokeny podpisane kluczem Django i algorytmem HS512; blokada konta po 5 błędach (tak samo dla nieistniejących nazw); hasło min. 10 znaków i sprawdzane względem nazwy; dziennik zdarzeń bez haseł. |
+
+Zależności sprawdzone narzędziem `pip-audit`: **brak znanych podatności** (wynik z ostatniego przebiegu, po dodaniu `argon2-cffi`).
+
+**Czego to NIE obejmuje** (świadomie, patrz też „Znane ograniczenia”):
+
+- brak uwierzytelniania dwuskładnikowego, CAPTCHA i weryfikacji e-mail (nie ma e-maila),
+- brak nagłówka `Content-Security-Policy` na API (odpowiedzi JSON nie są wykonywane przez przeglądarkę),
+- liczniki limitów i blokady leżą w pamięci procesu, więc przy kilku procesach potrzebny jest współdzielony cache,
+- połączenie z bazą nie jest jeszcze wymuszone przez TLS (lokalnie niepotrzebne; przy zdalnej bazie trzeba ustawić `sslmode`),
+- backup, szyfrowanie dysku bazy i zarządzanie sekretami to zadania hostingu i wdrożenia, których tu nie da się sprawdzić.
+
+### Rozwój długoterminowy
+
+Wszystkie poniższe to zmiany konfiguracji albo wdrożenia, a nie przepisywanie kodu:
+
+| Temat | Dziś | Docelowo |
+|---|---|---|
+| parametry Argon2 | domyślne z Django (100 MiB, 8 wątków) | dobrać do hosta tak, żeby jedno hashowanie trwało ok. 0,25 do 0,5 s i mieściło się w pamięci przy liczbie procesów; stare hashe działają dalej i same się aktualizują |
+| liczniki limitów i blokady | pamięć procesu | Redis (wbudowany w Django backend cache, kod się nie zmienia, zmienia się tylko `CACHES`); tymczasowo `DatabaseCache` |
+| połączenie z bazą | bez wymuszonego TLS | `sslmode=require` lub `verify-full` przy bazie zdalnej |
+| kopie zapasowe | brak | automatyczne, z regularnym sprawdzaniem odtworzenia (kopia, której nie przetestowano, nie jest kopią) |
+| sekrety | plik `.env` lokalnie | menedżer sekretów hostingu, okresowa zmiana kluczy (zmiana `JWT_SIGNING_KEY` unieważnia tokeny, co przy życiu 10 min / 7 dni jest akceptowalne) |
+| dziennik bezpieczeństwa | standardowe wyjście | wysyłka do usługi logów z alertem na nagły wzrost 401, 403 i 429 |
+| zależności i testy | ręczne uruchomienie | CI (np. GitHub Actions): testy, `check --deploy` i `pip-audit` przy każdym pushu, plus automatyczne aktualizacje zależności |
+
 ### Limity zapytań (rate limiting)
 
 Limity są liczone na adres IP (niezalogowani) albo na konto (zalogowani). Przekroczenie daje **429** z nagłówkiem `Retry-After` (za ile sekund wrócić).
