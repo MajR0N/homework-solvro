@@ -90,13 +90,13 @@ List filters: `name` (substring), `category`, `alcoholic`, `sort`, `page`, `perP
 | Frontend hosting | **Vercel** (decided in grilling, D20). Netlify and others rejected. |
 | Component library (item 6) | **shadcn/ui everywhere** (decided in grilling, D16). Not built yet. |
 
-## 6. Backend (Django) — not started
+## 6. Backend (Django) — done
 
-The design is decided in the grilling session; see section 11. `backend/README.md` currently holds the task text as a placeholder.
+The design came from the grilling session (section 11) and was extended later (sections 14-17). It is documented in `backend/README.md` (run it, schema diagram, endpoints, roles, tests, known limits). Status: **Django + DRF + PostgreSQL, full CRUD, filters, Swagger, accounts with four roles, CMS, reviews, views and popularity labels, 206 tests.** It runs locally and is **not deployed**; the frontend does not use it yet.
 
-## 7. UI/UX — last
+## 7. UI/UX — in progress
 
-Choose one of three variants (sticker 7×7 cm, launch graphic 1080×1080 + 1080×1350, or landing-page design) using the official Solvro logo/colors from the repo's `assets/` folder (Space Grotesk font allowed). Planned after frontend and backend; will be taught step by step like the rest.
+**In progress.** Variant 3 (a landing-page design), delivered as HTML in `uiux/`. So far: the colour palette page (`palette.html`, `tokens.css`) and the font choice. Decisions are in section 13; the open items are listed at its end.
 
 ## 8. Security note
 
@@ -112,11 +112,11 @@ Choose one of three variants (sticker 7×7 cm, launch graphic 1080×1080 + 1080�
 | `e766cb6` | README: URL filters, English-content note, limitations |
 | `c641ece` | TanStack Query devtools |
 
-Nothing has been pushed (remote: `origin`, `github.com/MajR0N/homework-solvro`).
+The remote is `origin` (`github.com/MajR0N/homework-solvro`). Later work (the UI/UX palette, the whole backend, the README changes) is one commit per step: see `git log --oneline`. Whether it has been pushed is not recorded here; check `git status`.
 
 ## 10. What's next
 
-See section 11 (decisions) and section 12 (order of work).
+See section 17 for what is finished and what remains, section 14 for the frontend restyle, and section 12 for the order of work with its current status.
 
 ## 11. Grilling results — decisions D1–D26
 
@@ -169,7 +169,7 @@ A question-by-question interview (one question at a time, each with a recommenda
 | D15 | Backend tests | **`pytest` + `pytest-django`** on real PostgreSQL. First: permission matrix, review constraints, filter/pagination validation, import idempotency, upload confirm rejecting a non-image. |
 | D25/D26 | Deadline | **31 October 2026.** Claude warned (once) that the full plan is very large for ~5 days and proposed a cut line; **the user decided to attempt everything.** |
 
-### Still open (defaults will be used unless changed)
+### Still open at the time (resolved later, see section 16)
 - Which UI/UX variant (sticker / launch graphic / landing page) — last, as agreed.
 - Local development: PostgreSQL is installed locally, so no `docker-compose.yml` unless needed.
 - Rate limiting on login/register (DRF throttling) — default: yes, small.
@@ -177,19 +177,21 @@ A question-by-question interview (one question at a time, each with a recommenda
 
 ## 12. Order of work (every step leaves something working)
 
-1. Deploy the frontend to Vercel as it is (Solvro API only).
-2. Backend core: Django + DRF + Postgres, models, import command, indexes, read endpoints.
-3. CRUD, pagination, validation, filtering/sorting, Swagger, `pytest` tests, README with schema picture.
-4. **Check-in at the end of day 2:** review what is done; user decides whether to continue or cut.
-5. JWT, roles, permissions, author copies, reviews.
-6. **Check-in at the end of day 3.**
-7. Deploy the backend (Cloud Run + Neon).
-8. Frontend: shadcn restyle, source switch + adapter, secure Next.js path, unit conversion.
-9. Frontend: login/register/forms, profile pages.
-10. Signed uploads to Google Cloud Storage (riskiest, so late).
-11. UI/UX task.
+Status as of 29 October 2026 in brackets.
 
-**If time runs short, cut from the bottom:** UI/UX, then uploads, then profile pages and forms, then reviews. The backend core plus JWT is a complete submission on its own.
+1. Deploy the frontend to Vercel as it is (Solvro API only). **[done: https://homework-solvro.vercel.app/]**
+2. Backend core: Django + DRF + Postgres, models, import command, indexes, read endpoints. **[done]**
+3. CRUD, pagination, validation, filtering/sorting, Swagger, `pytest` tests, README with schema picture. **[done]**
+4. **Check-in at the end of day 2:** review what is done; user decides whether to continue or cut. **[held: decided to finish the whole backend first, then UI/UX]**
+5. JWT, roles, permissions, author copies, reviews. **[done, and extended: four roles, the CMS, the verified badge, views counting and popularity labels; sections 15-16]**
+6. **Check-in at the end of day 3.** **[skipped]**
+7. Deploy the backend (Cloud Run + Neon). **[not done: the user decided not to deploy for now]**
+8. Frontend: shadcn restyle, source switch + adapter, secure Next.js path, unit conversion. **[not started; the restyle is decided in section 14]**
+9. Frontend: login/register/forms, profile pages. **[not started]**
+10. Signed uploads to Google Cloud Storage (riskiest, so late). **[not started]**
+11. UI/UX task. **[in progress: palette and font decision; section 13]**
+
+**If time runs short, cut from the bottom:** UI/UX, then uploads, then profile pages and forms, then reviews. The backend core plus JWT is a complete submission on its own. (The user later chose to finish the backend before UI/UX, so the real order differs from this list.)
 The check-ins are Claude's proposal for a safety net; the user can ignore them.
 
 ## 13. UI/UX — decisions so far (variant 3: landing page)
@@ -249,11 +251,11 @@ Scope the user added after the backend core (step 3) was finished. Order of buil
 - Shared IPs (school, office) count as one visitor.
 - No email verification, so a script can still create accounts slowly (sign-up is throttled).
 
-### Still open
-- Where the role is stored (custom user model in a new `accounts` app is recommended).
-- Defaults that stand unless the user objects: no email field; access token 10 min, refresh 7 days with rotation and blacklist; 10/min throttle on login and register; author stored as a link plus a name copy.
-- Whether authors may rate their own cocktail (proposed: no).
-- Which roles the owner may hand out (proposed: any below owner; there is only the account made with `createsuperuser`).
+### Questions that were open here, and how they ended
+- Where the role is stored: a custom user model, decision A8.
+- Defaults for no email, token lifetimes, throttle and author storage: stood, decision A11 (the author is a link plus a name copy; the copied user number from D23 was not built).
+- May authors rate their own cocktail: no (403), built.
+- Which roles may the owner hand out: any role below owner, built (an owner can only come from `createsuperuser`).
 
 ### Added during the accounts discussion (decided)
 | # | Decision |
@@ -263,11 +265,8 @@ Scope the user added after the backend core (step 3) was finished. Order of buil
 | A10 | **Review moderation:** the review's author edits and deletes their own; admin, staff and owner delete any (they do not edit other people's text). **Any logged-in user can report** a review for an admin to look at. The cocktail's author does **not** delete reviews on their cocktail (they could remove bad ratings), they can only report. |
 | A11 | Defaults that stand (no objection): no email field; access 10 min, refresh 7 days with rotation and blacklist; 10 per minute per IP on login and register. |
 
-Built: step 5a (accounts, JWT, 71 tests). Not built yet: author fields and permissions (5b), CMS rules per role, reviews, views and trending.
 
-Built: step 5b (authors, permissions, `?author=` filter; 99 tests). Not built yet: CMS rules per role (the Django admin, restricted by role and rank), reviews with moderation and reports, views and trending.
 
-Built: the CMS (Django admin restricted by role and rank; 137 tests). Not built yet: reviews with moderation and reports, views and trending, the verified badge, the schema screenshot.
 
 ### Popular, trending, most popular — final definition (decided)
 Computed on every request from unique visitor-days (no stored state). Thresholds live in settings so they can be tuned (demo values).
@@ -280,9 +279,7 @@ Computed on every request from unique visitor-days (no stored state). Thresholds
 
 One `status` is shown, in order: trending, most popular, popular. Known approximation: no memory of "was trending for 14 days" (an exact clock would need stored state and a daily job).
 
-Built: reviews, reports and rating numbers (176 tests); the verified badge. Not built yet: views counting, the three labels and their sorts, the schema picture, the final pass.
 
-Built: views counting with anti-abuse (level 1), the `status` label, sorts `trending`/`popular`/`top_rated` and `?status=` (206 tests). Not built yet: the schema picture and the final pass.
 
 ## 17. Backend — finished (29 October 2026)
 
@@ -291,3 +288,18 @@ Backend core, CRUD, filters, Swagger, accounts and roles, authors and permission
 All three README files are now in Polish and the task text was removed from `backend/README.md`.
 
 Still to do: the UI/UX homework, the frontend restyle (F1-F8), the source switch and the adapter that connects the frontend to this backend, and the login screens.
+
+### How section 11 changed in practice
+
+| Decision | What happened |
+|---|---|
+| D5, D14, D21, D22 (JWT, reviews, ingredient permissions, author label) | built in the backend (sections 15-16, 4 roles instead of 2) |
+| D23 (deleted users) | built differently: the author link is emptied and the name copy stays; the copied user number and the profile page were not built; reviews of a deleted user are shown as "deleted user" (A9) |
+| D15 (tests) | built: `pytest` + `pytest-django` on real PostgreSQL |
+| D18, D19, D24 (HttpOnly cookies and the secure Next.js path) | only the JWT part (lifetimes, rotation, blacklist) is built; the cookies and the Next.js server path are not |
+| D1, D2, D8 (switchable frontend, adapter) | not started |
+| D6, D16, D17 (full frontend UI, shadcn, forms) | not started; the look is decided in section 14 |
+| D7, D13 (backend deployment on Cloud Run + Neon) | not done; the user decided not to deploy for now |
+| D11, D12 (image upload to Google Cloud Storage) | not started |
+| D4, D9, D10 (import with Solvro ids, category table, trigram index) | built |
+| D3 (measure as free text, unit conversion in the frontend) | the text is stored; the frontend conversion is not built |
