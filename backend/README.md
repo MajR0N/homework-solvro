@@ -41,6 +41,7 @@ Zmienne w pliku `.env` (wszystkie sekrety zostają poza gitem):
 | `JWT_SIGNING_KEY` | **wymagana**, osobny od `SECRET_KEY` klucz do podpisywania tokenów, co najmniej 32 znaki (krótszy zatrzymuje start serwera) |
 | `DB_PASSWORD` | **wymagana**, hasło użytkownika PostgreSQL |
 | `DEBUG` | `true` tylko lokalnie; domyślnie wyłączone |
+| `PRODUCTION` | `true` na serwerze produkcyjnym: włącza HTTPS, HSTS i bezpieczne ciasteczka oraz odmawia startu przy niebezpiecznej konfiguracji (patrz „Lista kontrolna przed wdrożeniem”) |
 | `DB_NAME`, `DB_USER`, `DB_HOST`, `DB_PORT` | domyślnie `cocktails`, `postgres`, `localhost`, `5432` |
 | `ALLOWED_HOSTS` | adresy po przecinku, domyślnie `localhost,127.0.0.1` |
 | `CORS_ALLOWED_ORIGINS` | adresy frontendu, którym przeglądarka pozwoli czytać API (po przecinku), domyślnie `http://localhost:3000,http://127.0.0.1:3000`; dotyczy tylko `/api/` |
@@ -59,6 +60,7 @@ Import można uruchamiać wielokrotnie: zachowuje id z API Solvro, niczego nie d
 | `psycopg` | sterownik PostgreSQL dla Django |
 | `python-dotenv` | wczytuje sekrety z pliku `.env` (poza gitem) |
 | `djangorestframework-simplejwt` | logowanie tokenami JWT (access + refresh, lista unieważnionych tokenów) |
+| `argon2-cffi` | hashowanie haseł algorytmem Argon2id (zamiast słabszego domyślnego PBKDF2) |
 | `django-cors-headers` | pozwala stronie frontendu z innego adresu czytać to API (CORS), tylko z wymienionych adresów |
 | `drf-spectacular` | generuje dokumentację OpenAPI i stronę Swagger (`/api/docs/`) |
 | `pytest`, `pytest-django` | testy automatyczne na prawdziwym PostgreSQL |
@@ -391,10 +393,35 @@ Do wiedzenia:
 
 - **Blokada konta:** po 5 nieudanych logowaniach dla jednej nazwy użytkownika (z dowolnego adresu IP, w oknie 15 minut od pierwszego błędu) kolejne próby dostają **429** z `Retry-After: 900`, nawet z poprawnym hasłem. Udane logowanie zeruje licznik, a próby w trakcie blokady jej nie przedłużają. Blokada działa tak samo dla nazw, które nie istnieją, więc nie zdradza, które konta są prawdziwe, a wielkość liter w nazwie nie pozwala obejść licznika. Limit 10 prób na minutę na IP (patrz wyżej) tego nie zastępuje: botnet może zgadywać hasło jednego konta z wielu adresów.
 - **Cena blokady:** ktoś może celowo zablokować cudze konto na 15 minut, wpisując 5 razy złe hasło. Tak działa każda blokada, a jej brak zostawia zgadywanie haseł bez ograniczeń.
-- **Hasła:** od 10 do 128 znaków; odrzucane są hasła z listy popularnych, same cyfry i hasła zbyt podobne do nazwy użytkownika. Maksimum chroni przed marnowaniem czasu na hashowanie gigantycznych tekstów. W bazie jest tylko hash (PBKDF2, 1,5 mln iteracji), nigdy hasło.
+- **Hasła:** od 10 do 128 znaków; odrzucane są hasła z listy popularnych, same cyfry i hasła zbyt podobne do nazwy użytkownika. Maksimum chroni przed marnowaniem czasu na hashowanie gigantycznych tekstów. W bazie jest tylko hash (Argon2id, patrz „Szyfrowanie i ochrona danych”), nigdy samo hasło.
 - **Tokeny JWT:** podpisywane osobnym kluczem `JWT_SIGNING_KEY` (nie `SECRET_KEY` Django), algorytm HS256 przypięty na stałe. Token z innym algorytmem (`none`, `HS512`), z podmienioną treścią albo podpisany `SECRET_KEY` jest odrzucany (401). Token dostępu żyje 10 minut, odświeżający 7 dni; przy każdym odświeżeniu dostajesz nowy, a stary przestaje działać, wylogowanie unieważnia bieżący.
 - Odpowiedź na logowanie jest taka sama dla złego hasła i nieistniejącego użytkownika.
 - **Dziennik zdarzeń** (logger `security`, standardowe wyjście): nieudane, zablokowane i udane logowania, odmowy dostępu (403) i przekroczone limity (429), z adresem IP i numerem konta. **Nigdy nie zawiera haseł ani wpisanych nazw**, bo ludzie czasem wklejają hasło w pole nazwy. Komunikaty w dzienniku nie mają polskich znaków, żeby nie psuły się w narzędziach z innym kodowaniem.
+
+### Szyfrowanie i ochrona danych
+
+Aplikacja **nie zbiera danych osobowych**: nie ma e-maila, imienia, telefonu ani adresu. Konto to nazwa użytkownika (publiczna) i hasło. Dlatego nie ma co szyfrować pole po polu, a ochrona skupia się na tym, co faktycznie jest wrażliwe:
+
+| Dane | Jak są chronione |
+|---|---|
+| **hasła** | wyłącznie hash **Argon2id** (100 MiB pamięci, 2 przebiegi, 8 wątków, losowa sól na każde hasło). Algorytm celowo zużywa dużo pamięci, więc łamanie kartami graficznymi jest bardzo drogie. Hashe PBKDF2 sprzed zmiany nadal działają i same zamieniają się na Argon2 przy następnym logowaniu. Zwykłe hasło nigdzie nie jest zapisywane ani logowane. |
+| **tokeny JWT** | podpisane osobnym kluczem (`JWT_SIGNING_KEY`), **ale nie szyfrowane**: każdy może przeczytać ich treść, dlatego jest w niej tylko numer konta. Token dostępu żyje 10 minut. |
+| **adresy IP odwiedzających** | nigdy nie są zapisywane; do liczenia wyświetleń służy skrót HMAC z sekretu, dnia, koktajlu i sieci IP, którego nie da się cofnąć |
+| **dane w drodze** | HTTPS włączany trybem `PRODUCTION=true`: przekierowanie z HTTP, nagłówek HSTS na rok, ciasteczka tylko przez HTTPS |
+| **dane w bazie (w spoczynku)** | nie ma tam danych osobowych, a treści (koktajle, opinie) są publiczne z założenia. Szyfrowanie samych dysków bazy jest zadaniem hostingu bazy danych (zarządzane bazy robią to domyślnie) i nie jest tu udawane aplikacyjnie. |
+
+Gdyby w przyszłości dodać e-mail do kont, trzeba byłoby szyfrować to pole (np. biblioteką `cryptography`) i trzymać obok skrót HMAC do wyszukiwania po adresie, a także dodać weryfikację adresu i reset hasła. Alternatywą jest logowanie wyłącznie przez OAuth (wtedy nie przechowujemy haseł).
+
+### Lista kontrolna przed wdrożeniem
+
+Backend działa na razie lokalnie. Przed publikacją:
+
+1. Ustaw zmienne: `PRODUCTION=true`, `DEBUG=false`, `SECRET_KEY` i `JWT_SIGNING_KEY` (dwa różne, losowe, długie), `ALLOWED_HOSTS` (adres API), `CORS_ALLOWED_ORIGINS` (adres frontendu po `https://`), dane bazy, oraz `NUM_PROXIES` (zwykle `1` za jednym proxy hostingu). Przy `PRODUCTION=true` serwer **nie wystartuje**, jeśli `DEBUG` jest włączony albo `ALLOWED_HOSTS` / `CORS_ALLOWED_ORIGINS` nie są ustawione jawnie.
+2. Sprawdź konfigurację: `DEBUG=false PRODUCTION=true ... python manage.py check --deploy` ma zakończyć się bez ostrzeżeń (jedno sprawdzenie, HSTS preload, jest wyciszone świadomie: wpis na listę przeglądarek jest praktycznie nieodwracalny).
+3. Przełącz liczniki limitów na współdzielony cache (np. wbudowany `DatabaseCache`), bo liczniki w pamięci procesu przy kilku procesach się mnożą. To dotyczy limitów zapytań i blokady konta.
+4. Zapewnij hostowi co najmniej ok. 512 MB pamięci: jedno logowanie lub rejestracja zużywa chwilowo ok. 100 MiB (Argon2).
+5. Przeskanuj zależności pod kątem znanych podatności, w osobnym środowisku, żeby nie dodawać narzędzia do projektu: `python -m venv audit`, zainstaluj w nim `pip-audit` i uruchom `pip-audit -r requirements.txt --no-deps --disable-pip`. Ostatni wynik: brak znanych podatności.
+6. Ustaw kopie zapasowe i szyfrowanie dysku bazy po stronie hostingu bazy.
 
 ### Wstrzykiwanie SQL i zabezpieczenie wejścia
 
@@ -422,7 +449,7 @@ Do wiedzenia:
 ## Testy
 
 ```bash
-python -m pytest              # 272 testy, kilka sekund, bez internetu
+python -m pytest              # 284 testy, kilka sekund, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
@@ -441,6 +468,7 @@ Testy były też sprawdzane „od drugiej strony”: kod był celowo psuty w kil
 
 - **Równoległa edycja:** wysłana lista `ingredients` zastępuje całą starą. Gdy dwie osoby edytują ten sam koktajl jednocześnie, wygrywa ostatni zapis (bez blokady optymistycznej). Ryzyko jest małe, bo edytować może tylko autor lub admin. „Książkowym” rozwiązaniem byłoby pole `updated_at` i nagłówek `If-Match` (odpowiedź 412 przy nieaktualnej wersji).
 - **Brak weryfikacji e-mail** (w ogóle nie ma e-maila), więc skrypt może powoli zakładać wiele kont. Rejestracja jest ograniczona limitem 10 prób na minutę z jednego IP.
+- **Argon2 zużywa ok. 100 MiB pamięci na jedno hashowanie**, więc bardzo małe hosty mogą mieć z nim problem; limit 10 logowań na minutę na IP ogranicza liczbę równoległych hashowań.
 - **Limity w pamięci procesu:** patrz „Limity zapytań” wyżej; na produkcji potrzebny jest współdzielony cache. To dotyczy też liczników blokady konta.
 - **Blokada konta** pozwala celowo zablokować cudze konto na 15 minut (patrz „Uwierzytelnianie i hasła”).
 - **Wyświetlenia z wielu adresów IP** (botnet, rotujące VPN-y): każdy adres dodaje jedno wyświetlenie dziennie. Realna obrona to CAPTCHA albo proof-of-work (np. Cloudflare Turnstile), poza zakresem. Wspólny adres (szkoła, biuro) liczy się jako jeden odwiedzający, więc raczej zaniżamy niż zawyżamy.

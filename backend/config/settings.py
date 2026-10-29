@@ -101,7 +101,42 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_URLS_REGEX = r'^/api/.*$'
 
+# Ile serwerów pośredniczących stoi przed Django (0 lokalnie). Od tego zależy, skąd bierzemy adres IP klienta
+# (limity, liczenie wyświetleń) i czy wolno ufać nagłówkowi o HTTPS. Na hostingu trzeba ustawić poprawnie.
+NUM_PROXIES = int(os.environ.get('NUM_PROXIES', '0'))
+
+# Tryb produkcyjny: jedna zmienna PRODUCTION=true włącza wszystko, co jest potrzebne za HTTPS, i odmawia startu,
+# gdy konfiguracja jest niebezpieczna (DEBUG włączony albo adresy zostawione na domyślnych, lokalnych).
+PRODUCTION = os.environ.get('PRODUCTION', 'false') == 'true'
+if PRODUCTION:
+    missing = [name for name in ('ALLOWED_HOSTS', 'CORS_ALLOWED_ORIGINS') if name not in os.environ]
+    if DEBUG or missing:
+        raise ImproperlyConfigured(
+            'PRODUCTION=true wymaga DEBUG=false oraz jawnie ustawionych zmiennych: ALLOWED_HOSTS, CORS_ALLOWED_ORIGINS'
+            + (f' (brakuje: {", ".join(missing)})' if missing else '')
+        )
+    SECURE_SSL_REDIRECT = True  # http:// przekierowuje na https://
+    SECURE_HSTS_SECONDS = 365 * 24 * 3600  # przeglądarka przez rok sama łączy się tylko przez HTTPS
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SESSION_COOKIE_SECURE = True  # ciasteczka panelu /admin/ tylko przez HTTPS
+    CSRF_COOKIE_SECURE = True
+    if NUM_PROXIES > 0:
+        # Hosting kończy TLS i mówi nam o tym tym nagłówkiem. Ufamy mu tylko, gdy faktycznie stoi przed nami proxy;
+        # bez proxy klient mógłby go sam wysłać i udawać HTTPS.
+        SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# HSTS "preload" (wpis na listę wbudowaną w przeglądarki) jest praktycznie nieodwracalny, więc go świadomie nie włączamy.
+SILENCED_SYSTEM_CHECKS = ['security.W021']
+
 AUTH_USER_MODEL = 'accounts.User'
+
+
+# Hashowanie haseł: Argon2 (odporny na łamanie kartami graficznymi, bo zużywa dużo pamięci). Stare hashe PBKDF2 nadal
+# działają i same zamieniają się na Argon2 przy kolejnym logowaniu użytkownika.
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+]
 
 
 # Password validation
@@ -166,7 +201,7 @@ REST_FRAMEWORK = {
     },
     # Ile serwerów pośredniczących stoi przed Django (0 lokalnie). Na hostingu trzeba ustawić poprawnie,
     # inaczej limity per IP liczą adres pośrednika albo dają się obejść podrobionym nagłówkiem.
-    'NUM_PROXIES': int(os.environ.get('NUM_PROXIES', '0')),
+    'NUM_PROXIES': NUM_PROXIES,
 }
 
 # Progi etykiet popularności (wartości demo, można zmienić zmiennymi środowiskowymi bez ruszania kodu)
@@ -220,10 +255,3 @@ LOGGING = {
 STATIC_URL = 'static/'
 
 
-# Email
-
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
