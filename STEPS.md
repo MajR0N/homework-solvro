@@ -220,3 +220,11 @@ Separate from the `uiux/` homework (section 13). It is the "shadcn restyle" from
 | F6 | Cards | Restyle plus: a solid-background **badge** "Z alkoholem" / "Bezalkoholowy" on the photo (opposite the heart), category as plain text, fixed photo ratio, subtle hover. Caveat: Solvro's alcohol flags are sometimes wrong and the badge makes that more visible. |
 | F7 | Detail page | **Two columns on desktop** (photo and tags sticky left; ingredients, then instructions, right), one column on phones. oz to ml conversion (D3) stays its own later step. |
 | F8 | When? | **Backend core first**, then the UI/UX font step, then the restyle (about 4 small commits: shadcn + tokens + font, top bar, cards, detail), then JWT and the rest. This moves the restyle ahead of section 12 step 5. |
+
+## 15. Backend step 3 — decisions made while building (29 October 2026)
+
+- **B1. Writes are open for now** (no login) — the user's decision, because nothing is deployed yet. **Must be closed (JWT, step 5) before any deploy.** Also noted in `backend/README.md`.
+- **B2. Pagination** is required by the task for cocktails **and ingredients**; categories (9 rows) are not paginated.
+- **B3. Filter rules:** bad values return 400 (not silently ignored, unlike Solvro's `sort`); `?id=` (empty) means none; `?ingredient=mint,lime` means contains all; sorting has an `id` tiebreaker so pages are stable.
+- **B4. Writes:** category by **name**, ingredients as `{ingredient: id, measure}`, a sent list **replaces** the old one, everything in one transaction.
+- Data quirk found: 72 of 885 ingredient entries in the Solvro data have no `measure` field (stored as empty text).

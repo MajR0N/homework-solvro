@@ -4,7 +4,12 @@ from rest_framework.pagination import PageNumberPagination
 
 from .filters import CocktailFilter
 from .models import Category, Cocktail
-from .serializers import CategorySerializer, CocktailDetailSerializer, CocktailListSerializer
+from .serializers import (
+    CategorySerializer,
+    CocktailDetailSerializer,
+    CocktailListSerializer,
+    CocktailWriteSerializer,
+)
 
 
 class Pagination(PageNumberPagination):
@@ -13,8 +18,8 @@ class Pagination(PageNumberPagination):
     max_page_size = 100  # górny limit, żeby nikt nie poprosił o całą bazę naraz
 
 
-class CocktailViewSet(viewsets.ReadOnlyModelViewSet):
-    """Lista (GET /cocktails/) i szczegóły (GET /cocktails/{id}/). Na razie tylko odczyt."""
+class CocktailViewSet(viewsets.ModelViewSet):
+    """CRUD koktajli. Zapis jest na razie dostępny dla każdego (autoryzacja w kolejnym kroku)."""
 
     pagination_class = Pagination
     filter_backends = [DjangoFilterBackend]
@@ -28,7 +33,11 @@ class CocktailViewSet(viewsets.ReadOnlyModelViewSet):
         return qs
 
     def get_serializer_class(self):
-        return CocktailDetailSerializer if self.action == "retrieve" else CocktailListSerializer
+        if self.action == "list":
+            return CocktailListSerializer
+        if self.action == "retrieve":
+            return CocktailDetailSerializer
+        return CocktailWriteSerializer
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):

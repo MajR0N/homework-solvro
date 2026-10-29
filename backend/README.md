@@ -119,4 +119,25 @@ Parametry listy koktajli (łączą się ze sobą i z paginacją; zła wartość 
 
 Przykład z zadania („bezalkoholowe koktajle z miętą”): `GET /api/v1/cocktails/?alcoholic=false&ingredient=mint`.
 
-Zapis (POST/PUT/DELETE) odpowiada 405, bo dodamy go w kolejnym kroku.
+### Zapis koktajli
+
+| Metoda i adres | Działanie | Odpowiedź |
+|---|---|---|
+| `POST /api/v1/cocktails/` | utwórz | 201 + pełny koktajl |
+| `PUT /api/v1/cocktails/{id}/` | zastąp (wymagane `name`, `category`) | 200 |
+| `PATCH /api/v1/cocktails/{id}/` | zmień wybrane pola | 200 |
+| `DELETE /api/v1/cocktails/{id}/` | usuń (razem z jego składnikami) | 204 |
+
+```json
+{
+  "name": "Test", "category": "Cocktail", "glass": "Tumbler", "alcoholic": false,
+  "instructions": "Stir.", "image_url": "",
+  "ingredients": [{"ingredient": 312, "measure": "2 oz"}, {"ingredient": 337}]
+}
+```
+
+- `category` to **nazwa** istniejącej kategorii; nieznana nazwa = 400 (kategoria nie powstaje „przy okazji”).
+- `ingredients`: lista `{ingredient: id, measure}`; nieznane id lub ten sam składnik dwa razy = 400. Wysłana lista **zastępuje** starą, pominięta zostawia ją bez zmian.
+- Nazwa jest przycinana z białych znaków, niepusta, do 200 znaków; `image_url` musi być poprawnym adresem.
+- Koktajl i jego składniki zapisują się w jednej transakcji.
+- **Uwaga:** zapis jest na razie otwarty dla każdego. Przed publikacją backendu trzeba go zamknąć (logowanie i uprawnienia to osobny krok).
