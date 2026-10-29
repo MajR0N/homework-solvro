@@ -16,6 +16,13 @@ const SORTS = [
   { value: "+category", label: "Kategoria" },
 ];
 
+// Dodatkowe sortowania znane tylko własnemu backendowi (liczone z wyświetleń i ocen)
+const OWN_SORTS = [
+  { value: "-popular", label: "Najpopularniejsze" },
+  { value: "-trending", label: "Na topie" },
+  { value: "-top_rated", label: "Najlepiej oceniane" },
+];
+
 const field = "w-full rounded-lg border border-foreground/25 bg-background px-3 py-2";
 const button = "rounded-lg border px-4 py-2 hover:bg-foreground/10 disabled:opacity-40";
 
@@ -31,7 +38,11 @@ function Cocktails() {
   const category = sp.get("category") ?? "";
   const a = sp.get("alcohol");
   const alcoholic: Filters["alcoholic"] = a === "true" || a === "false" ? a : "";
-  const sort = SORTS.find((s) => s.value === sp.get("sort"))?.value ?? "+name";
+  const sorts = source === "own" ? [...SORTS, ...OWN_SORTS] : SORTS;
+  const sort = sorts.find((s) => s.value === sp.get("sort"))?.value ?? "+name";
+  // filtry dostępne tylko we własnym backendzie; przy Solvro ignorujemy je, nawet jeśli są w adresie
+  const verified = source === "own" && sp.get("verified") === "1";
+  const ingredient = source === "own" ? (sp.get("ing") ?? "") : "";
   const page = Math.max(1, parseInt(sp.get("page") ?? "", 10) || 1);
   const onlyFav = sp.get("fav") === "1";
 
@@ -51,12 +62,15 @@ function Cocktails() {
   const [text, setText] = useState(name);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
+  const [ingText, setIngText] = useState(sp.get("ing") ?? "");
+  const ingTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(ingTimer.current), []);
 
   // Bez id[] API zwraca WSZYSTKIE koktajle, więc przy pustej liście nie wolno pytać.
   const noFavs = onlyFav && favs.length === 0;
 
   // ponytail: id[] trafia do URL-a zapytania, więc setki ulubionych = długi URL; wtedy filtrowanie po stronie klienta
-  const filters: Filters = { name, category, alcoholic, sort, page, ids: onlyFav ? favs : undefined };
+  const filters: Filters = { name, category, alcoholic, sort, page, ids: onlyFav ? favs : undefined, verified, ingredient };
   const { data, isPending, isError, isPlaceholderData, refetch } = useQuery({
     queryKey: ["cocktails", source, filters], // zmiana filtrów albo źródła = nowy klucz = nowe zapytanie
     queryFn: () => listCocktails(filters, source),
@@ -114,17 +128,46 @@ function Cocktails() {
         <label className="block text-sm">
           Sortuj
           <select value={sort} onChange={(e) => update({ sort: e.target.value })} className={field}>
-            {SORTS.map((s) => (
+            {sorts.map((s) => (
               <option key={s.value} value={s.value}>
                 {s.label}
               </option>
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-2 text-sm sm:col-span-2 lg:col-span-4">
-          <input type="checkbox" checked={onlyFav} onChange={(e) => update({ fav: e.target.checked ? "1" : "" })} />
-          Tylko ulubione ({favs.length})
-        </label>
+        {source === "own" && (
+          <label className="block text-sm">
+            Składnik
+            <input
+              type="search"
+              value={ingText}
+              onChange={(e) => {
+                const v = e.target.value;
+                setIngText(v);
+                clearTimeout(ingTimer.current);
+                ingTimer.current = setTimeout(() => update({ ing: v.trim() }), 300);
+              }}
+              placeholder="np. mint, lime"
+              aria-describedby="ing-hint"
+              className={field}
+            />
+            <span id="ing-hint" className="mt-1 block text-xs text-foreground/70">
+              Nazwy po angielsku; po przecinku: koktajl musi mieć wszystkie.
+            </span>
+          </label>
+        )}
+        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm sm:col-span-2 lg:col-span-4">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={onlyFav} onChange={(e) => update({ fav: e.target.checked ? "1" : "" })} />
+            Tylko ulubione ({favs.length})
+          </label>
+          {source === "own" && (
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={verified} onChange={(e) => update({ verified: e.target.checked ? "1" : "" })} />
+              Tylko zweryfikowane
+            </label>
+          )}
+        </div>
       </form>
 
       {noFavs ? (

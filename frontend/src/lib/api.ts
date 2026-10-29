@@ -5,6 +5,8 @@ const PER_PAGE = 12;
 
 // Typy poniżej to kształt, którego używa interfejs (taki jak w API Solvro). Odpowiedzi własnego backendu
 // są do niego tłumaczone w tym pliku (adapter), więc strony i komponenty nie wiedzą, skąd są dane.
+export type Status = "trending" | "popular" | "most_popular";
+
 export type Cocktail = {
   id: number;
   name: string;
@@ -13,6 +15,11 @@ export type Cocktail = {
   instructions: string;
   imageUrl: string | null;
   alcoholic: boolean;
+  // tylko własny backend (Solvro tego nie zna), więc pola są opcjonalne
+  verified?: boolean;
+  status?: Status | null;
+  ratingAvg?: number | null;
+  ratingCount?: number;
 };
 export type Ingredient = {
   id: number;
@@ -24,6 +31,7 @@ export type Ingredient = {
   imageUrl: string | null;
   measure: string | null;
 };
+export type Review = { id: number; rating: number; text: string; author: string | null; createdAt: string };
 export type Page<T> = { data: T[]; meta: { total: number; lastPage: number } };
 
 // status pozwala odróżnić "nie ma takiego koktajlu" (4xx) od awarii serwera (5xx)
@@ -52,6 +60,8 @@ export type Filters = {
   sort: string;
   page: number;
   ids?: number[]; // favorites view
+  verified?: boolean; // tylko własny backend
+  ingredient?: string; // tylko własny backend: fragmenty nazw składników po przecinku
 };
 
 // ---------- własny backend (Django): kształt odpowiedzi i tłumaczenie na typy interfejsu ----------
@@ -75,7 +85,12 @@ type OwnCocktail = {
   image_url: string;
   instructions?: string; // na liście go nie ma, tylko w szczegółach
   ingredients?: OwnIngredient[];
+  verified?: boolean;
+  status?: Status | null;
+  rating_avg?: number | null;
+  rating_count?: number;
 };
+type OwnReview = { id: number; rating: number; text: string; author_username: string | null; created_at: string };
 
 // next/image przyjmuje tylko hosty z next.config.ts. Własne koktajle mogą mieć dowolny adres zdjęcia, więc
 // zdjęcia spoza hosta Solvro pomijamy (placeholder). Docelowo to zastąpi wgrywanie plików.
@@ -96,6 +111,10 @@ const fromOwn = (c: OwnCocktail): Cocktail => ({
   alcoholic: c.alcoholic,
   instructions: c.instructions ?? "",
   imageUrl: allowedImage(c.image_url),
+  verified: c.verified ?? false,
+  status: c.status ?? null,
+  ratingAvg: c.rating_avg ?? null,
+  ratingCount: c.rating_count ?? 0,
 });
 
 const ingredientFromOwn = (i: OwnIngredient): Ingredient => ({
@@ -119,6 +138,8 @@ export async function listCocktails(f: Filters, source: Source): Promise<Page<Co
     if (f.category) p.set("category", f.category);
     if (f.alcoholic) p.set("alcoholic", f.alcoholic);
     if (f.ids) p.set("id", f.ids.join(",")); // puste id= to u nas "brak wyników", nie "wszystkie"
+    if (f.verified) p.set("verified", "true");
+    if (f.ingredient) p.set("ingredient", f.ingredient);
     const r = await get<{ count: number; results: OwnCocktail[] }>(source, "/cocktails/", p);
     return { data: r.results.map(fromOwn), meta: { total: r.count, lastPage: Math.max(1, Math.ceil(r.count / PER_PAGE)) } };
   }
@@ -141,6 +162,15 @@ export async function getCocktail(id: string, source: Source): Promise<Cocktail 
 export async function getCategories(source: Source): Promise<string[]> {
   if (source === "own") return (await get<{ name: string }[]>(source, "/categories/")).map((c) => c.name);
   return get<{ data: string[] }>(source, "/cocktails/categories").then((r) => r.data);
+}
+
+// Opinie o koktajlu (tylko własny backend). author = null oznacza konto, które zostało usunięte.
+export async function listReviews(id: string): Promise<{ total: number; reviews: Review[] }> {
+  const r = await get<{ count: number; results: OwnReview[] }>("own", `/cocktails/${id}/reviews/`);
+  return {
+    total: r.count,
+    reviews: r.results.map((x) => ({ id: x.id, rating: x.rating, text: x.text, author: x.author_username, createdAt: x.created_at })),
+  };
 }
 
 // Zgłasza wyświetlenie szczegółów (tylko własny backend). Błąd jest ignorowany: licznik nie może psuć strony.

@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Badges, { Stars } from "@/components/Badges";
 import FavoriteButton from "@/components/FavoriteButton";
-import { countView, getCocktail, HttpError } from "@/lib/api";
+import { countView, getCocktail, HttpError, listReviews } from "@/lib/api";
 import { pl } from "@/lib/pl";
 import { useSource } from "@/lib/source";
 
@@ -32,6 +33,9 @@ export default function CocktailPage() {
     // 4xx = błędny adres, ponowne próby nic nie dadzą
     retry: (count, e) => !(e instanceof HttpError && e.status < 500) && count < 2,
   });
+
+  // opinie ma tylko własny backend
+  const reviews = useQuery({ queryKey: ["reviews", source, id], queryFn: () => listReviews(id), enabled: source === "own" && !!data });
 
   // własny backend liczy wyświetlenia szczegółów; Solvro nie ma takiej funkcji
   useEffect(() => {
@@ -87,6 +91,9 @@ export default function CocktailPage() {
               </li>
             ))}
           </ul>
+          <div className="mt-3">
+            <Badges cocktail={data} />
+          </div>
 
           <h2 className="mt-6 text-xl font-semibold">Przygotowanie</h2>
           <p className="mt-2 leading-relaxed">{data.instructions}</p>
@@ -117,6 +124,40 @@ export default function CocktailPage() {
           </li>
         ))}
       </ul>
+
+      {source === "own" && (
+        <section className="mt-10" aria-labelledby="opinie">
+          <h2 id="opinie" className="mb-3 text-xl font-semibold">
+            Opinie{reviews.data ? ` (${reviews.data.total})` : ""}
+          </h2>
+          {reviews.isError ? (
+            <p role="alert">Nie udało się pobrać opinii.</p>
+          ) : reviews.isPending ? (
+            <p className="text-foreground/70">Ładowanie opinii…</p>
+          ) : reviews.data.reviews.length === 0 ? (
+            <p className="text-foreground/70">Nikt jeszcze nie ocenił tego koktajlu.</p>
+          ) : (
+            <ul className="space-y-3">
+              {reviews.data.reviews.map((r) => (
+                <li key={r.id} className="rounded-xl border border-foreground/15 p-3">
+                  <div className="flex flex-wrap items-center gap-x-3 text-sm">
+                    <Stars rating={r.rating} />
+                    {/* author = null: konto zostało usunięte, ale opinia i jej ocena zostają */}
+                    <span className={r.author ? "font-medium" : "italic text-foreground/70"}>{r.author ?? "usunięty użytkownik"}</span>
+                    <time dateTime={r.createdAt} className="text-foreground/70">
+                      {new Date(r.createdAt).toLocaleDateString("pl-PL")}
+                    </time>
+                  </div>
+                  {r.text && <p className="mt-2 whitespace-pre-line">{r.text}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-4 text-sm text-foreground/70">
+            Opinie dodaje się na razie przez API po zalogowaniu (Swagger); formularza w interfejsie jeszcze nie ma.
+          </p>
+        </section>
+      )}
     </main>
   );
 }

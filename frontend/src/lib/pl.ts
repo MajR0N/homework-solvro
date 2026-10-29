@@ -48,3 +48,6 @@ const PL: Record<string, string> = {
 
 // brak tłumaczenia (np. nowa wartość w API) = zostaje oryginał
 export const pl = (s: string) => PL[s] ?? s;
+
+// Etykiety popularności z własnego backendu (pole "status")
+export const STATUS_PL = { trending: "Na topie", popular: "Popularny", most_popular: "Najpopularniejszy" } as const;

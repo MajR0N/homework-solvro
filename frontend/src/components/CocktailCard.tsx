@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Cocktail } from "@/lib/api";
 import { pl } from "@/lib/pl";
+import Badges from "./Badges";
 import FavoriteButton from "./FavoriteButton";
 
 export default function CocktailCard({ cocktail }: { cocktail: Cocktail }) {
@@ -28,6 +29,9 @@ export default function CocktailCard({ cocktail }: { cocktail: Cocktail }) {
           <p className="mt-1 text-sm text-foreground/70">
             {`${pl(cocktail.category)} · ${cocktail.alcoholic ? "Z alkoholem" : "Bezalkoholowy"}`}
           </p>
+          <div className="mt-2">
+            <Badges cocktail={cocktail} />
+          </div>
         </div>
       </Link>
       <FavoriteButton id={cocktail.id} name={cocktail.name} className="absolute right-2 top-2" />

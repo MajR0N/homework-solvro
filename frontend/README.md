@@ -11,6 +11,7 @@ Next.js (App Router) · TypeScript · Tailwind CSS · TanStack Query.
 - ulubione zapisywane w `localStorage` + widok „Tylko ulubione”
 - szczegóły koktajlu ze składnikami i ilościami
 - przełącznik źródła danych: API Solvro albo własny backend w Django (po włączeniu, patrz niżej)
+- przy źródle „Własny backend”: znaczki na kartach i w szczegółach (zweryfikowany, etykieta popularności „Na topie” / „Popularny” / „Najpopularniejszy”, średnia ocena), dodatkowe sortowania (najpopularniejsze, na topie, najlepiej oceniane), filtry „Tylko zweryfikowane” i „Składnik” oraz lista opinii na stronie szczegółów (konto usunięte pokazuje się jako „usunięty użytkownik”)
 - responsywny układ, obsługa klawiatury i czytników ekranu, stany ładowania / błędu / braku wyników
 
 ## Uruchomienie
@@ -40,13 +41,15 @@ Dane są kopią danych Solvro (te same id), więc ulubione działają na obu źr
 - `src/app/page.tsx` — lista, wyszukiwanie, filtry, paginacja
 - `src/app/cocktails/[id]/page.tsx` — szczegóły koktajlu
 - `src/lib/pl.ts` — polskie nazwy kategorii i szklanek
-- `src/components/` — `CocktailCard`, `FavoriteButton`, `SourceSwitch`
+- `src/components/` — `CocktailCard`, `FavoriteButton`, `SourceSwitch`, `Badges` (znaczki i gwiazdki)
 
 ## Znane ograniczenia
 - **Własny backend nie jest wdrożony**, więc na wersji online (Vercel) działa tylko Solvro. Gdy backend jest wyłączony, a wybrano go jako źródło, strona pokazuje zwykły komunikat o błędzie pobierania.
 - Zdjęcia z własnego backendu pokazujemy tylko z adresów `https://cocktails.solvro.pl` (inne hosty `next/image` odrzuca, a pozwolenie na wszystkie otworzyłoby optymalizator dla obcych). Własne koktajle z innym adresem zdjęcia dostają puste miejsce.
 - Własny backend ma 9 kategorii (tylko te w użyciu), a Solvro 10 (jedna pusta). Kolejność nazw z interpunkcją (spacja i myślnik) może się minimalnie różnić, bo bazy mają inne reguły sortowania. W obrębie jednej kategorii Solvro nie gwarantuje żadnej kolejności, nasz backend sortuje alfabetycznie.
-- Nowe pola backendu (oceny, znaczek „zweryfikowany”, etykiety popularności) i logowanie nie mają jeszcze miejsca w interfejsie.
+- Logowanie oraz dodawanie opinii i koktajli nie mają jeszcze formularzy w interfejsie (backend to obsługuje: Swagger i panel CMS). Opinie na razie można czytać, nie pisać.
+- Dopóki nikt nie doda opinii ani nie otworzy koktajli, oceny i etykiety popularności są puste, więc znaczki widać tylko przy „zweryfikowany”.
+- Nie ma automatycznych testów frontendu. Adapter był sprawdzony skryptem na prawdziwych API, a wygląd i obsługa klawiaturą nie były sprawdzane w przeglądarce.
 - Treści przepisów (nazwy, instrukcje, opisy składników) pochodzą z API w języku angielskim i nie są tłumaczone; przetłumaczone są tylko kategorie i rodzaje szklanek.
 - Dla nieistniejącego id strona szczegółów zwraca HTTP 200 z komunikatem (renderowanie po stronie klienta).
 - Widok „Tylko ulubione” wysyła wszystkie ulubione id w URL-u zapytania do API — przy setkach ulubionych URL będzie długi.
