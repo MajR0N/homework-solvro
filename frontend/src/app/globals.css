@@ -11,7 +11,7 @@
   --ring: #6583c8; /* obwódka fokusu, 3,7:1 na białym */
   --warm: #c2185b; /* jedyny ciepły akcent: serduszko i "Na topie"; 5,9:1 z białym */
   --on-warm: #ffffff;
-  /* Szkło (odwrócone względem strony): w motywie jasnym granatowe, w ciemnym jasnoniebieskie. */
+  /* Ciemne szkło w obu motywach (biały tekst, jedno białe logo). Na jasnej stronie jest granatowe, na ciemnej jaśniejsze (#274276), żeby było je widać. */
   --glass: rgb(32 53 96 / 0.85);
   --glass-solid: #415378; /* najgorszy przypadek szkła i zamiennik, gdy przeglądarka nie umie rozmycia: biały tekst 7,7:1 */
   --on-glass: #ffffff;
@@ -28,9 +28,8 @@
     --ring: #80b3ff;
     --warm: #ff7aa8; /* 7,1:1 na tle strony */
     --on-warm: #0f1a30;
-    --glass: rgb(217 232 255 / 0.85);
-    --glass-solid: #bbc9e0; /* najgorszy przypadek: granatowy tekst 7,2:1 */
-    --on-glass: #203560;
+    --glass: rgb(39 66 118 / 0.85);
+    --glass-solid: #475e8a; /* najgorszy przypadek (szkło na białym zdjęciu): biały tekst 6,5:1 */
     --glow-a: rgb(39 66 118 / 0.6);
     --glow-b: rgb(101 131 200 / 0.2);
   }
@@ -56,15 +55,20 @@ body {
 }
 
 /* Szklany panel. Bez obsługi rozmycia dostaje pełny kolor, który ma ten sam kontrast co najgorszy przypadek szkła. */
-.glass {
-  background: var(--glass-solid);
-  color: var(--on-glass);
-}
-@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+/* w warstwie components, żeby klasy Tailwind (np. border-x-0) mogły ją nadpisać */
+@layer components {
   .glass {
-    background: var(--glass);
-    -webkit-backdrop-filter: blur(18px) saturate(1.4);
-    backdrop-filter: blur(18px) saturate(1.4);
+    background: var(--glass-solid);
+    color: var(--on-glass);
+    border: 1px solid rgb(255 255 255 / 0.2);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+  }
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .glass {
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(18px) saturate(1.4);
+      backdrop-filter: blur(18px) saturate(1.4);
+    }
   }
 }
 

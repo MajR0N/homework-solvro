@@ -358,3 +358,9 @@ The owner allowed me to open Solvro's brand files (`assets/` in the Solvro repos
 
 **Deviations from earlier decisions:** shadcn/ui (D16, F4) is not used for now (no new dependencies, little time); the filters stay native selects. **Still to do:** step 2 (cards, filters, detail page restyle), then the UI/UX homework on the same tokens.
 
+## 23. Restyle step 2a — dark glass and cards (30 October 2026)
+
+Owner asked to restyle the cards and the top bar so that dark glass can be used. **Change from section 22:** the glass is no longer inverted; it is dark navy in both themes (white text, one white logo, the colour logo is no longer used in the app). On the dark page the glass is #274276 at 85% so it still stands out; worst-case contrast of white text over it (on a white photo) is 6.5:1, and that value is also the fallback colour for browsers without blur. Cards: the photo fills the card (4:5, same as the loading skeleton) and the name, category and badges sit on a glass panel; hover lifts the card. Outlined badges use `border-current` so they work both on the page and on glass. `.glass` moved into `@layer components` so Tailwind classes can override it.
+
+**Checked:** tsc, lint, build; screenshots in light and dark at 1280 px. **Not checked:** the phone width with real cards (the screenshot only showed loading placeholders), badges on cards with the own backend, keyboard use. **Next:** filters and detail page on the same glass, then the UI/UX homework.
+

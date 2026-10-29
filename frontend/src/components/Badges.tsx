@@ -35,7 +35,7 @@ export default function Badges({ cocktail }: { cocktail: Cocktail }) {
         <li className={`${pill} ${status === "trending" ? "bg-warm text-on-warm" : "bg-primary text-on-primary"}`}>{STATUS_PL[status]}</li>
       )}
       {verified && (
-        <li className={`${pill} border border-foreground/40`}>
+        <li className={`${pill} border border-current/40`}>
           <svg viewBox="0 0 24 24" className="size-3.5" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M5 13l4 4L19 7" />
           </svg>
@@ -43,7 +43,7 @@ export default function Badges({ cocktail }: { cocktail: Cocktail }) {
         </li>
       )}
       {rated && (
-        <li className={`${pill} border border-foreground/40`}>
+        <li className={`${pill} border border-current/40`}>
           <Star filled />
           <span aria-label={`Średnia ocena ${ratingAvg} na 5, liczba opinii ${ratingCount}`}>
             {ratingAvg.toFixed(1).replace(".", ",")} ({ratingCount})

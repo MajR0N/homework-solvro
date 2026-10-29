@@ -25,7 +25,7 @@ npm run build   # build produkcyjny
 
 Wygląd opiera się na identyfikacji Solvro: kolory z oficjalnej palety (#FFF, #D9E8FF, #80B3FF, #6583C8, #274276, #203560), oficjalne logo KN Solvro **bez zmian** (kopie plików w `public/solvro/`, to samo co w repozytorium Solvro) i krój **Space Grotesk**, który zalecają materiały Solvro (ładowany przez `next/font`, więc z własnej domeny).
 
-- **Własny pomysł: szkło.** Pasek u góry to szklany panel, odwrócony względem strony: granatowy w motywie jasnym (z białym logo), jasnoniebieski w ciemnym (z kolorowym logo). Jest wspólny dla wszystkich stron i zawiera logo, wyszukiwarkę, przycisk „Ulubione” i wybór źródła danych.
+- **Własny pomysł: ciemne szkło.** Pasek u góry i opisy na kartach to półprzezroczyste, rozmyte panele w granacie Solvro, z białym tekstem i białym logo w obu motywach (w ciemnym motywie szkło jest jaśniejsze, #274276, żeby odcinało się od strony). Pasek jest wspólny dla wszystkich stron i zawiera logo, wyszukiwarkę, przycisk „Ulubione” i wybór źródła danych. Karta to zdjęcie na całą wysokość z opisem na szkle.
 - **Motyw jasny i ciemny** wynika z ustawienia systemu. Kolory są zmiennymi CSS w `src/app/globals.css`, a każda para tekst i tło ma policzony kontrast WCAG: tekst co najmniej 4,5:1, elementy graficzne co najmniej 3:1 (komentarze w pliku podają wartości, także dla najgorszego przypadku szkła).
 - **Jeden ciepły akcent**, używany oszczędnie: serduszko ulubionych i etykieta „Na topie”. Nigdy nie jest jedynym nośnikiem informacji (jest też ikona, tekst i `aria-pressed`).
 - Dostępność: link „Przejdź do treści”, widoczny fokus klawiatury, etykiety dla czytników ekranu, szanowanie ustawienia ograniczenia animacji.

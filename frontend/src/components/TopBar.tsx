@@ -10,7 +10,7 @@ import SourceSwitch from "./SourceSwitch";
 const HEART = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
 
 // Wspólny pasek na wszystkich stronach: logo, wyszukiwarka, ulubione i (jeśli włączony) wybór źródła danych.
-// To szklany panel: odwrócony względem strony (granatowy w motywie jasnym, jasnoniebieski w ciemnym).
+// To panel z ciemnego szkła (w obu motywach).
 export default function TopBar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -32,12 +32,11 @@ export default function TopBar() {
   };
 
   return (
-    <header className="glass sticky top-0 z-30 border-b border-current/15">
+    <header className="glass sticky top-0 z-30 border-x-0 border-t-0">
       <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
         <Link href="/" aria-label="Solvro, strona główna" className="shrink-0 rounded-md sm:order-1">
-          {/* oficjalne logo bez zmian: białe na granatowym szkle, kolorowe na jasnym */}
-          <Image src="/solvro/KN_Solvro_White.svg" alt="" width={131} height={28} unoptimized className="block dark:hidden" />
-          <Image src="/solvro/KN_Solvro_Color.svg" alt="" width={131} height={28} unoptimized className="hidden dark:block" />
+          {/* oficjalne logo bez zmian: białe na ciemnym szkle */}
+          <Image src="/solvro/KN_Solvro_White.svg" alt="" width={131} height={28} unoptimized className="block" />
         </Link>
 
         <button
