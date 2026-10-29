@@ -72,6 +72,7 @@ python manage.py runserver        # http://127.0.0.1:8000
 | `django-filter` | filtrowanie list przez parametry URL-a (`?category=...`) |
 | `psycopg` | sterownik PostgreSQL dla Django |
 | `python-dotenv` | wczytuje sekrety z pliku `.env` (poza gitem) |
+| `drf-spectacular` | generuje dokumentację OpenAPI i stronę Swagger (`/api/docs/`) |
 
 ## Indeksy
 
@@ -158,3 +159,9 @@ Walidacja: `name` wymagane, do 200 znaków; `percentage` od 0 do 100; `image_url
 ### Znane ograniczenie: równoległa edycja
 
 Wysłana lista `ingredients` zastępuje całą starą. Gdy dwie osoby edytują ten sam koktajl jednocześnie, wygrywa ostatni zapis (bez blokady optymistycznej). Ryzyko jest małe, bo po dodaniu autorów edytować będzie mógł tylko autor lub administrator. Rozwiązaniem „książkowym” byłoby pole `updated_at` i nagłówek `If-Match` (odpowiedź 412 przy nieaktualnej wersji).
+
+## Dokumentacja API (Swagger / OpenAPI)
+
+Po uruchomieniu serwera: <http://127.0.0.1:8000/api/docs/> (interaktywna, z przyciskiem „Try it out”) oraz surowy schemat OpenAPI pod `/api/schema/`. Generuje ją `drf-spectacular` z modeli, serializerów i filtrów; opisy parametrów pochodzą z `help_text` w `filters.py`. Strona Swaggera ładuje swój kod z CDN, więc wymaga internetu.
+
+Sprawdzenie schematu: `python manage.py spectacular --validate --fail-on-warn`.

@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.postgres',
     'rest_framework',
+    'drf_spectacular',
     'django_filters',
     'cocktails',
 ]
@@ -110,6 +111,20 @@ TIME_ZONE = 'Europe/Warsaw'
 USE_I18N = True
 
 USE_TZ = True
+
+
+# Dokumentacja API (OpenAPI / Swagger)
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Koktajle API',
+    'DESCRIPTION': 'REST API koktajli i składników (zadanie rekrutacyjne Solvro).',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,  # sam Swagger nie dokleja linku do surowego schematu
+}
 
 
 # Static files (CSS, JavaScript, Images)

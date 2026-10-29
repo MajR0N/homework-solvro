@@ -10,7 +10,11 @@ class IdInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
 
 def alcoholic_filter():
     # BooleanFilter po cichu ignoruje nieznane wartości (?alcoholic=maybe), więc wybieramy z listy: reszta to 400
-    return django_filters.TypedChoiceFilter(choices=[("true", "true"), ("false", "false")], coerce=lambda v: v == "true")
+    return django_filters.TypedChoiceFilter(
+        choices=[("true", "true"), ("false", "false")],
+        coerce=lambda v: v == "true",
+        help_text="Tylko true lub false; inna wartość daje 400.",
+    )
 
 
 class StableOrderFilterSet(django_filters.FilterSet):
@@ -21,11 +25,11 @@ class StableOrderFilterSet(django_filters.FilterSet):
 
 
 class IngredientFilter(StableOrderFilterSet):
-    search = django_filters.CharFilter(field_name="name", lookup_expr="icontains")
-    type = django_filters.CharFilter(field_name="type")
+    search = django_filters.CharFilter(field_name="name", lookup_expr="icontains", help_text="Fragment nazwy, bez rozróżniania wielkości liter.")
+    type = django_filters.CharFilter(field_name="type", help_text="Dokładny typ składnika, np. Fruit.")
     alcoholic = alcoholic_filter()
     # Niedozwolona wartość (np. ?ordering=type) daje 400, a nie po cichu ignorowane sortowanie.
-    ordering = django_filters.OrderingFilter(fields=("name", "id"))
+    ordering = django_filters.OrderingFilter(fields=("name", "id"), help_text="Sortowanie; minus oznacza malejąco. Przy remisie decyduje id.")
 
     class Meta:
         model = Ingredient
@@ -33,13 +37,13 @@ class IngredientFilter(StableOrderFilterSet):
 
 
 class CocktailFilter(StableOrderFilterSet):
-    search = django_filters.CharFilter(field_name="name", lookup_expr="icontains")
-    category = django_filters.CharFilter(field_name="category__name")  # po nazwie, nie po id
-    glass = django_filters.CharFilter(field_name="glass")
+    search = django_filters.CharFilter(field_name="name", lookup_expr="icontains", help_text="Fragment nazwy, bez rozróżniania wielkości liter.")
+    category = django_filters.CharFilter(field_name="category__name", help_text="Dokładna nazwa kategorii, np. Shot.")  # po nazwie, nie po id
+    glass = django_filters.CharFilter(field_name="glass", help_text="Dokładna nazwa szklanki, np. Jar.")
     alcoholic = alcoholic_filter()
-    ingredient = django_filters.CharFilter(method="filter_ingredient")
-    id = IdInFilter(field_name="id", lookup_expr="in")
-    ordering = django_filters.OrderingFilter(fields=("name", "id"))
+    ingredient = django_filters.CharFilter(method="filter_ingredient", help_text="Fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie, np. mint,lime.")
+    id = IdInFilter(field_name="id", lookup_expr="in", help_text="Tylko te koktajle (id po przecinku); puste ?id= daje brak wyników.")
+    ordering = django_filters.OrderingFilter(fields=("name", "id"), help_text="Sortowanie; minus oznacza malejąco. Przy remisie decyduje id.")
 
     class Meta:
         model = Cocktail

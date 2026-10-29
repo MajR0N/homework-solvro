@@ -1,5 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import ProtectedError
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
@@ -15,6 +16,12 @@ from .serializers import (
 )
 
 
+# Odpowiedź po zapisie ma kształt szczegółów (z ingredients[]), a nie ciała żądania; bez tego Swagger pokazałby złą
+@extend_schema_view(
+    create=extend_schema(responses={201: CocktailDetailSerializer}),
+    update=extend_schema(responses=CocktailDetailSerializer),
+    partial_update=extend_schema(responses=CocktailDetailSerializer),
+)
 class CocktailViewSet(viewsets.ModelViewSet):
     """CRUD koktajli. Zapis jest na razie dostępny dla każdego (autoryzacja w kolejnym kroku)."""
 
@@ -45,6 +52,11 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
 
+@extend_schema_view(
+    destroy=extend_schema(
+        responses={204: None, 409: OpenApiResponse(description="Składnik jest użyty w koktajlu, więc nie można go usunąć.")}
+    )
+)
 class IngredientViewSet(viewsets.ModelViewSet):
     """CRUD składników. Zapis jest na razie dostępny dla każdego (autoryzacja w kolejnym kroku)."""
 
