@@ -73,6 +73,7 @@ def data(db):
     mojito = make_cocktail("Mojito", cocktail_cat, [(lime, "1"), (lime_juice, "2 tsp"), (mint, "3"), (rum, "2 oz")], True)
     virgin = make_cocktail("Virgin Mojito", cocktail_cat, [(lime, "1"), (mint, "3")], False)
     shot = make_cocktail("Lemon Shot", shot_cat, [(lime, "")], True)
+    Cocktail.objects.filter(id__in=[mojito.id, shot.id]).update(verified=True)
     return SimpleNamespace(
         cocktail_cat=cocktail_cat, shot_cat=shot_cat, lime=lime, lime_juice=lime_juice, mint=mint, rum=rum,
         unused=unused, mojito=mojito, virgin=virgin, shot=shot,

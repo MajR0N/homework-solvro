@@ -28,7 +28,7 @@ class CocktailListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cocktail
-        fields = ["id", "name", "category", "glass", "alcoholic", "image_url", "author", "author_name"]
+        fields = ["id", "name", "category", "glass", "alcoholic", "image_url", "verified", "author", "author_name"]
 
 
 class CocktailDetailSerializer(CocktailListSerializer):

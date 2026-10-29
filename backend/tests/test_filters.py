@@ -46,7 +46,7 @@ def test_empty_id_means_none_not_all(api, data):
     assert api.get(URL, {"id": ""}).json()["count"] == 0
 
 
-@pytest.mark.parametrize("query", [{"alcoholic": "maybe"}, {"alcoholic": "True"}, {"ordering": "glass"}, {"id": "1,abc"}])
+@pytest.mark.parametrize("query", [{"verified": "maybe"}, {"alcoholic": "maybe"}, {"alcoholic": "True"}, {"ordering": "glass"}, {"id": "1,abc"}])
 def test_bad_filter_values_return_400(api, data, query):
     assert api.get(URL, query).status_code == 400
 
@@ -84,3 +84,11 @@ def test_pagination_defaults_and_cap(api, data):
 def test_categories_are_a_plain_list(api, data):
     body = api.get("/api/v1/categories/").json()
     assert [c["name"] for c in body] == ["Cocktail", "Shot"]
+
+
+def test_verified_filter_and_sorting(api, data):
+    assert names(api.get(URL, {"verified": "true"})) == ["Lemon Shot", "Mojito"]
+    assert names(api.get(URL, {"verified": "false"})) == ["Virgin Mojito"]
+    assert names(api.get(URL, {"ordering": "-verified"}))[0] != "Virgin Mojito"  # zweryfikowane najpierw
+    assert names(api.get(URL, {"ordering": "verified"}))[0] == "Virgin Mojito"
+    assert api.get(URL, {"verified": "yes"}).status_code == 400

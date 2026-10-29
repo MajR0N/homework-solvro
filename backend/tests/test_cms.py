@@ -127,3 +127,14 @@ def test_deleting_an_ingredient_in_use_is_blocked_by_the_cms(cms, data):
     response = cms("owner").post(f"/admin/cocktails/ingredient/{data.lime.id}/delete/", {"post": "yes"})
     assert response.status_code == 200  # strona z informacją, że nie można usunąć
     assert Ingredient.objects.filter(id=data.lime.id).exists()
+
+
+def test_cms_actions_mark_and_unmark_cocktails_as_verified(cms, data):
+    client = cms("admin")
+    url = "/admin/cocktails/cocktail/"
+    client.post(url, {"action": "mark_verified", "_selected_action": [data.virgin.id]})
+    data.virgin.refresh_from_db()
+    assert data.virgin.verified
+    client.post(url, {"action": "mark_unverified", "_selected_action": [data.virgin.id, data.mojito.id]})
+    data.virgin.refresh_from_db(); data.mojito.refresh_from_db()
+    assert not data.virgin.verified and not data.mojito.verified

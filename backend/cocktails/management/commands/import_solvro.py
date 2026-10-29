@@ -41,16 +41,17 @@ class Command(BaseCommand):
 
             for d in details:
                 category, _ = Category.objects.get_or_create(name=d["category"])
+                fields = {
+                    "name": d["name"],
+                    "instructions": d["instructions"] or "",
+                    "glass": d["glass"] or "",
+                    "alcoholic": d["alcoholic"],
+                    "image_url": d["imageUrl"] or "",
+                    "category": category,
+                }
+                # verified tylko przy tworzeniu: ponowny import nie cofa decyzji admina z CMS
                 cocktail, _ = Cocktail.objects.update_or_create(
-                    id=d["id"],
-                    defaults={
-                        "name": d["name"],
-                        "instructions": d["instructions"] or "",
-                        "glass": d["glass"] or "",
-                        "alcoholic": d["alcoholic"],
-                        "image_url": d["imageUrl"] or "",
-                        "category": category,
-                    },
+                    id=d["id"], defaults=fields, create_defaults={**fields, "verified": True}
                 )
                 # powiązania zawsze odtwarzamy od zera, żeby ponowny import nie zostawiał starych wierszy
                 cocktail.links.all().delete()

@@ -35,6 +35,8 @@ class Cocktail(models.Model):
     glass = models.CharField(max_length=100, blank=True, db_index=True)  # zwykły tekst, bez osobnej tabeli
     alcoholic = models.BooleanField(default=False)
     image_url = models.URLField(max_length=500, blank=True)
+    # Znaczek ustawiany ręcznie w CMS (przez API nie da się go zmienić). Dane z importu Solvro startują jako zweryfikowane.
+    verified = models.BooleanField(default=False)
     # PROTECT: nie da się usunąć kategorii, która ma koktajle
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="cocktails")
     ingredients = models.ManyToManyField(Ingredient, through="CocktailIngredient", related_name="cocktails")

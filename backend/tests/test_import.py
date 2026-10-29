@@ -51,6 +51,14 @@ def test_import_twice_changes_nothing_and_restores_edits(db, fake_api):
     assert Cocktail.objects.get(id=11000).name == "Mojito"
 
 
+def test_imported_cocktails_are_verified_but_reimport_keeps_an_admins_decision(db, fake_api):
+    call_command("import_solvro")
+    assert Cocktail.objects.filter(verified=True).count() == 2
+    Cocktail.objects.filter(id=11000).update(verified=False)  # admin zdjął znaczek w CMS
+    call_command("import_solvro")
+    assert Cocktail.objects.get(id=11000).verified is False
+
+
 def test_new_rows_after_import_get_ids_above_imported_ones(db, fake_api):
     call_command("import_solvro")
     category = Category.objects.first()

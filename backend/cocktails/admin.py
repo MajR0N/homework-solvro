@@ -39,7 +39,16 @@ class CocktailIngredientInline(RoleAdminMixin, admin.TabularInline):
 
 @admin.register(Cocktail)
 class CocktailAdmin(RoleAdminMixin, AuthorOnAddMixin, admin.ModelAdmin):
-    list_display = ("name", "category", "alcoholic", "author_name")
-    list_filter = ("category", "alcoholic")
+    list_display = ("name", "category", "alcoholic", "verified", "author_name")
+    list_filter = ("verified", "category", "alcoholic")
     search_fields = ("name",)
     inlines = [CocktailIngredientInline]
+    actions = ["mark_verified", "mark_unverified"]
+
+    @admin.action(description="Mark selected cocktails as verified")
+    def mark_verified(self, request, queryset):
+        self.message_user(request, f"Verified: {queryset.update(verified=True)}")
+
+    @admin.action(description="Remove the verified mark from selected cocktails")
+    def mark_unverified(self, request, queryset):
+        self.message_user(request, f"Unverified: {queryset.update(verified=False)}")

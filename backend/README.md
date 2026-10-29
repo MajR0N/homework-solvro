@@ -115,11 +115,12 @@ Parametry listy koktajli (łączą się ze sobą i z paginacją; zła wartość 
 | `search` | `?search=marg` | fragment nazwy, bez rozróżniania wielkości liter |
 | `category` | `?category=Shot` | dokładna nazwa kategorii |
 | `glass` | `?glass=Jar` | dokładna nazwa szklanki |
+| `verified` | `?verified=true` | tylko zweryfikowane (lub `false`) |
 | `author` | `?author=anna` | koktajle dodane przez to konto (bez rozróżniania wielkości liter) |
 | `alcoholic` | `?alcoholic=true` | tylko `true` lub `false` |
 | `ingredient` | `?ingredient=mint,lime` | fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie |
 | `id` | `?id=11000,11007` | tylko te koktajle (ulubione); samo `?id=` = brak wyników |
-| `ordering` | `?ordering=-name` | `name`, `-name`, `id`, `-id`; przy remisie decyduje `id` |
+| `ordering` | `?ordering=-name` | `name`, `id`, `verified` (minus = malejąco; `-verified` daje zweryfikowane na początku); przy remisie decyduje `id` |
 
 Przykład z zadania („bezalkoholowe koktajle z miętą”): `GET /api/v1/cocktails/?alcoholic=false&ingredient=mint`.
 
@@ -172,7 +173,7 @@ Sprawdzenie schematu: `python manage.py spectacular --validate --fail-on-warn`.
 ## Testy
 
 ```bash
-python -m pytest              # 137 testów, ok. 2 s, bez internetu
+python -m pytest              # 142 testy, ok. 2 s, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
@@ -229,3 +230,7 @@ Panel administracyjny Django, ograniczony rolami. Wchodzą do niego tylko `admin
 | wpis dodany w panelu | dostaje autora z zalogowanego konta, tak jak przez API |
 
 Rangi: user < admin < staff < owner. Nikt nie może edytować własnego konta w panelu ani innego ownera, żeby nie dało się wszystkich zablokować.
+
+## Znaczek „zweryfikowany”
+
+Koktajl ma pole `verified`. To znaczek i filtr, nie bramka: **nic nie jest ukrywane**. Ustawia go ręcznie admin wzwyż w CMS (akcje „Mark selected cocktails as verified” i „Remove the verified mark”). Przez API nie da się go zmienić (nawet właścicielowi), więc autor nie może sam sobie go nadać. Dane z importu Solvro startują jako zweryfikowane, a ponowny import nie cofa decyzji admina.

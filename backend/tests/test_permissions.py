@@ -87,3 +87,12 @@ def test_deleted_account_keeps_its_content_with_a_name_copy(make_user, as_user, 
     assert body["author"] is None and body["author_name"] == "anna"
     assert as_user(make_user("bob2")).patch(url, {"name": "x"}, format="json").status_code == 403  # nie jest już czyjeś
     assert as_user(make_user("adam", role="admin")).patch(url, {"name": "x"}, format="json").status_code == 200
+
+
+def test_nobody_can_verify_through_the_api(make_user, as_user, data):
+    anna = as_user(make_user("anna"))
+    new = anna.post(COCKTAILS, {"name": "Mine", "category": "Cocktail", "verified": True}, format="json").json()
+    assert new["verified"] is False
+    assert anna.patch(f"{COCKTAILS}{new['id']}/", {"verified": True}, format="json").json()["verified"] is False
+    admin = as_user(make_user("adam", role="owner"))  # nawet właściciel: znaczek ustawia się w CMS, nie w API
+    assert admin.patch(f"{COCKTAILS}{new['id']}/", {"verified": True}, format="json").json()["verified"] is False
