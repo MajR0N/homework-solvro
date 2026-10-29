@@ -3,6 +3,8 @@
 This repo is my homework for the recruitment to the **KN Solvro** student club.
 The task (<https://github.com/Solvro/rekrutacja>) has a cocktail theme: a place to store and browse cocktail recipes (ingredients with amounts + instructions).
 
+**Live frontend:** <https://homework-solvro.vercel.app/>
+
 ## What is in here
 
 | Folder | What it is | Status |
@@ -36,7 +38,3 @@ I can explain the majority of this project.
 - `frontend/README.md` — how to run the frontend (in Polish).
 - `backend/README.md` — currently the backend task description.
 - `CLAUDE.md` — rules for the AI assistant that helps me learn while building this.
-
-## Deadline
-
-31 October 2026.
