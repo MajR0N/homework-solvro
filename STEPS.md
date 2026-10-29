@@ -228,3 +228,29 @@ Separate from the `uiux/` homework (section 13). It is the "shadcn restyle" from
 - **B3. Filter rules:** bad values return 400 (not silently ignored, unlike Solvro's `sort`); `?id=` (empty) means none; `?ingredient=mint,lime` means contains all; sorting has an `id` tiebreaker so pages are stable.
 - **B4. Writes:** category by **name**, ingredients as `{ingredient: id, measure}`, a sent list **replaces** the old one, everything in one transaction.
 - Data quirk found: 72 of 885 ingredient entries in the Solvro data have no `measure` field (stored as empty text).
+
+## 16. Accounts, roles, CMS, ratings, views — design (29 October 2026)
+
+Scope the user added after the backend core (step 3) was finished. Order of building: accounts and authors, then roles and CMS, then reviews, then views and trending. If time runs out, cut from the end.
+
+### Decided
+| # | Decision |
+|---|---|
+| A1 | **Four stored roles: user < admin < staff < owner.** "Author" is not a role: it is a per-object rule (the user who created a cocktail, ingredient or review may edit and delete it). A person can only manage accounts **below** their own rank and only hand out roles below their own rank. Admin: reviews and edits all content and ordinary users. Staff: also manages admins. Owner: manages everyone. |
+| A2 | **The CMS is Django's built-in admin** (`/admin/`), restricted by role. Ordinary users cannot enter. No custom CMS in Next.js. |
+| A3 | **"Verified" is a hand-set badge and filter** (`?verified=true`, a sort option). Nothing is hidden from the public. Admins set it in the CMS. Imported cocktails start verified. |
+| A4 | **Popular, trending and top-rated are computed** from views and ratings, on request (no stored scores). Popular = all-time unique visitor-days. Trending = unique visitor-days in the last 7 days. Top rated = weighted average (pulls cocktails with few reviews toward the overall mean). The API exposes the numbers and sorting by each. |
+| A5 | **A view is counted by an explicit call** `POST /api/v1/cocktails/{id}/views/` (not inside GET: a GET must not change data, and Next.js prefetching would count views nobody made). |
+| A6 | **Views anti-abuse, level 1:** visitor = IP only (never cookies, never user-agent); IPv6 by `/64`; one counted view per visitor per cocktail per day (unique row); the IP is never stored, only a daily-salted HMAC; per-IP throttle on the endpoint; authors' own views are ignored; the answer is always 204; the proxy count (`NUM_PROXIES`) must be configured at deploy. |
+| A7 | **Reviews** (D14): rating 1-5, optional text, one per user per cocktail, logged-in only. |
+
+### Known limits (to state in the README)
+- Many different IPs (botnet, rotating VPN) still add one view each per day. Real fix: CAPTCHA / proof-of-work (e.g. Cloudflare Turnstile), not planned.
+- Shared IPs (school, office) count as one visitor.
+- No email verification, so a script can still create accounts slowly (sign-up is throttled).
+
+### Still open
+- Where the role is stored (custom user model in a new `accounts` app is recommended).
+- Defaults that stand unless the user objects: no email field; access token 10 min, refresh 7 days with rotation and blacklist; 10/min throttle on login and register; author stored as a link plus a name copy.
+- Whether authors may rate their own cocktail (proposed: no).
+- Which roles the owner may hand out (proposed: any below owner; there is only the account made with `createsuperuser`).
