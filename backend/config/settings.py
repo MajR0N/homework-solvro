@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
+    'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',  # lista unieważnionych tokenów (wylogowanie)
     'drf_spectacular',
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # przed CommonMiddleware, żeby dodać nagłówki CORS do odpowiedzi
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -86,6 +88,15 @@ DATABASES = {
     }
 }
 
+
+# CORS: przeglądarka pozwoli stronie frontendu czytać to API tylko z wymienionych adresów (nie ma "*").
+# Tylko /api/: panel /admin/ nie jest dla innych stron. Logowanie idzie nagłówkiem Authorization, a nie ciasteczkiem.
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
+    if origin.strip()
+]
+CORS_URLS_REGEX = r'^/api/.*$'
 
 AUTH_USER_MODEL = 'accounts.User'
 

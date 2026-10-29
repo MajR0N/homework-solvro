@@ -92,3 +92,8 @@ def test_verified_filter_and_sorting(api, data):
     assert names(api.get(URL, {"ordering": "-verified"}))[0] != "Virgin Mojito"  # zweryfikowane najpierw
     assert names(api.get(URL, {"ordering": "verified"}))[0] == "Virgin Mojito"
     assert api.get(URL, {"verified": "yes"}).status_code == 400
+
+
+def test_sort_by_category_name(api, data):
+    assert names(api.get(URL, {"ordering": "category"}))[-1] == "Lemon Shot"  # Cocktail < Shot
+    assert names(api.get(URL, {"ordering": "-category"}))[0] == "Lemon Shot"

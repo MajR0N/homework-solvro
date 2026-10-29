@@ -42,6 +42,7 @@ Zmienne w pliku `.env` (wszystkie sekrety zostają poza gitem):
 | `DEBUG` | `true` tylko lokalnie; domyślnie wyłączone |
 | `DB_NAME`, `DB_USER`, `DB_HOST`, `DB_PORT` | domyślnie `cocktails`, `postgres`, `localhost`, `5432` |
 | `ALLOWED_HOSTS` | adresy po przecinku, domyślnie `localhost,127.0.0.1` |
+| `CORS_ALLOWED_ORIGINS` | adresy frontendu, którym przeglądarka pozwoli czytać API (po przecinku), domyślnie `http://localhost:3000,http://127.0.0.1:3000`; dotyczy tylko `/api/` |
 | `NUM_PROXIES` | ile serwerów pośredniczących stoi przed Django (domyślnie 0); ważne dla limitów i liczenia wyświetleń po IP |
 | `TRENDING_MIN_VIEWS`, `POPULAR_MIN_VIEWS`, `MOST_POPULAR_MIN_VIEWS` | progi etykiet popularności (domyślnie 10 / 20 / 100) |
 
@@ -57,6 +58,7 @@ Import można uruchamiać wielokrotnie: zachowuje id z API Solvro, niczego nie d
 | `psycopg` | sterownik PostgreSQL dla Django |
 | `python-dotenv` | wczytuje sekrety z pliku `.env` (poza gitem) |
 | `djangorestframework-simplejwt` | logowanie tokenami JWT (access + refresh, lista unieważnionych tokenów) |
+| `django-cors-headers` | pozwala stronie frontendu z innego adresu czytać to API (CORS), tylko z wymienionych adresów |
 | `drf-spectacular` | generuje dokumentację OpenAPI i stronę Swagger (`/api/docs/`) |
 | `pytest`, `pytest-django` | testy automatyczne na prawdziwym PostgreSQL |
 
@@ -230,7 +232,7 @@ Lista (`GET /cocktails/`) zwraca po 20 na stronę w formacie `{count, next, prev
 | `ingredient` | `?ingredient=mint,lime` | fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie |
 | `id` | `?id=11000,11007` | tylko te koktajle (ulubione); samo `?id=` = brak wyników |
 | `status` | `?status=trending` | etykieta popularności: `trending`, `popular`, `most_popular` |
-| `ordering` | `?ordering=-popular` | `name`, `id`, `verified`, `trending`, `popular`, `top_rated` (minus = malejąco); przy remisie decyduje `id` |
+| `ordering` | `?ordering=-popular` | `name`, `id`, `verified`, `category`, `trending`, `popular`, `top_rated` (minus = malejąco); przy remisie decyduje `id` |
 
 Przykład „bezalkoholowe koktajle z miętą”: `GET /api/v1/cocktails/?alcoholic=false&ingredient=mint`.
 
@@ -363,7 +365,7 @@ Pokazywana jest jedna etykieta, w kolejności: `trending`, `most_popular`, `popu
 ## Testy
 
 ```bash
-python -m pytest              # 206 testów, kilka sekund, bez internetu
+python -m pytest              # 215 testów, kilka sekund, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 

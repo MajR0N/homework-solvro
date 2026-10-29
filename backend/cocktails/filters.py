@@ -53,10 +53,10 @@ class CocktailFilter(StableOrderFilterSet):
         # (pole w bazie, nazwa w adresie): trending = przyrost wyświetleń (ostatnie 7 dni minus 7 dni wcześniej),
         # popular = wyświetlenia z 30 dni, top_rated = średnia ważona ocen
         fields=(
-            ("name", "name"), ("id", "id"), ("verified", "verified"),
+            ("name", "name"), ("id", "id"), ("verified", "verified"), ("category__name", "category"),
             ("trend", "trending"), ("views_30d", "popular"), ("top_rated_score", "top_rated"),
         ),
-        help_text="Sortowanie: name, id, verified, trending, popular, top_rated; minus oznacza malejąco. Przy remisie decyduje id.",
+        help_text="Sortowanie: name, id, verified, category, trending, popular, top_rated; minus oznacza malejąco. Przy remisie decyduje id.",
     )
 
     class Meta:
