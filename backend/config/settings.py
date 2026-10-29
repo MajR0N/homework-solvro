@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'accounts.middleware.AdminLoginLimit',
     'corsheaders.middleware.CorsMiddleware',  # przed CommonMiddleware, żeby dodać nagłówki CORS do odpowiedzi
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -130,12 +131,30 @@ USE_I18N = True
 USE_TZ = True
 
 
+# Próby logowania do panelu /admin/ na minutę z jednego adresu IP
+ADMIN_LOGIN_ATTEMPTS_PER_MINUTE = 10
+
+
 # Dokumentacja API (OpenAPI / Swagger)
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework_simplejwt.authentication.JWTAuthentication'],
-    'DEFAULT_THROTTLE_RATES': {'auth': '10/min', 'views': '30/min'},
+    # Limity na adres IP (niezalogowani) albo konto (zalogowani). Liczniki siedzą w pamięci procesu, więc
+    # przy kilku procesach serwera limity się mnożą: na produkcji trzeba współdzielonego cache (patrz README).
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        'config.throttles.WriteRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '120/min',
+        'user': '300/min',
+        'write': '30/min',  # każdy zapis: dodawanie, zmiana, usuwanie (koktajle, składniki, opinie, zgłoszenia)
+        'auth': '10/min',  # logowanie i rejestracja
+        'refresh': '30/min',  # odświeżanie i unieważnianie tokenu
+        'views': '30/min',  # liczenie wyświetleń
+    },
     # Ile serwerów pośredniczących stoi przed Django (0 lokalnie). Na hostingu trzeba ustawić poprawnie,
     # inaczej limity per IP liczą adres pośrednika albo dają się obejść podrobionym nagłówkiem.
     'NUM_PROXIES': int(os.environ.get('NUM_PROXIES', '0')),

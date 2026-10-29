@@ -11,7 +11,7 @@ REST API koktajli i składników. Django + Django REST Framework + PostgreSQL. D
 - panel CMS (`/admin/`) z uprawnieniami zależnymi od roli
 - dokumentacja Swagger/OpenAPI, diagram bazy danych, 200+ testów automatycznych
 
-**Spis treści:** [Szybki start](#szybki-start) · [Pakiety](#pakiety) · [Schemat bazy danych](#schemat-bazy-danych) · [API](#api) · [Konta, role i uprawnienia](#konta-role-i-uprawnienia) · [CMS](#cms-panel-admin) · [Opinie](#opinie-i-oceny) · [Wyświetlenia i etykiety](#wyświetlenia-i-etykiety-popularności) · [Testy](#testy) · [Znane ograniczenia](#znane-ograniczenia)
+**Spis treści:** [Szybki start](#szybki-start) · [Pakiety](#pakiety) · [Schemat bazy danych](#schemat-bazy-danych) · [API](#api) · [Konta, role i uprawnienia](#konta-role-i-uprawnienia) · [CMS](#cms-panel-admin) · [Opinie](#opinie-i-oceny) · [Wyświetlenia i etykiety](#wyświetlenia-i-etykiety-popularności) · [Bezpieczeństwo](#bezpieczeństwo) · [Testy](#testy) · [Znane ograniczenia](#znane-ograniczenia)
 
 ## Szybki start
 
@@ -362,10 +362,34 @@ Pokazywana jest jedna etykieta, w kolejności: `trending`, `most_popular`, `popu
 
 **Sortowanie:** `-trending` (przyrost: ostatnie 7 dni minus 7 dni wcześniej), `-popular` (wyświetlenia z 30 dni), `-top_rated` (średnia ważona: koktajl z mniej niż 5 opiniami jest ściągany w stronę średniej wszystkich ocen, więc jedna piątka nie wygrywa z dwudziestoma ocenami po 4,8).
 
+## Bezpieczeństwo
+
+### Limity zapytań (rate limiting)
+
+Limity są liczone na adres IP (niezalogowani) albo na konto (zalogowani). Przekroczenie daje **429** z nagłówkiem `Retry-After` (za ile sekund wrócić).
+
+| Co | Limit | Zakres |
+|---|---|---|
+| wszystkie żądania niezalogowanych | 120 na minutę | adres IP |
+| wszystkie żądania zalogowanych | 300 na minutę | konto |
+| **zapisy** (POST, PUT, PATCH, DELETE: koktajle, składniki, opinie, zgłoszenia) | 30 na minutę | konto; jeden licznik na wszystkie endpointy |
+| rejestracja i logowanie | 10 na minutę | adres IP |
+| odświeżanie i unieważnianie tokenu | 30 na minutę | adres IP |
+| liczenie wyświetleń | 30 na minutę | adres IP |
+| logowanie do panelu `/admin/` | 10 prób na minutę | adres IP (własny middleware, bo panel jest poza DRF) |
+
+Wartości są w `settings.py`. Test przypina rzeczywiste liczby, żeby nikt nie poluzował limitów przypadkiem.
+
+Do wiedzenia:
+
+- Adres IP bierzemy z `REMOTE_ADDR`; nagłówek `X-Forwarded-For` jest ignorowany, dopóki `NUM_PROXIES` wynosi 0 (test sprawdza, że podrobiony nagłówek nie omija limitu).
+- DRF sprawdza uprawnienia **przed** limitami, więc żądania bez logowania odrzucone kodem 401 nie są liczone. Nic się wtedy nie zapisuje, a odczyty bez logowania są limitowane normalnie.
+- Liczniki leżą w pamięci procesu serwera. Przy jednym procesie (lokalnie) działa to dokładnie, ale przy kilku procesach lub serwerach limity się mnożą. Na produkcji trzeba współdzielonego cache (np. wbudowany `DatabaseCache`, bez nowych pakietów).
+
 ## Testy
 
 ```bash
-python -m pytest              # 216 testów, kilka sekund, bez internetu
+python -m pytest              # 224 testy, kilka sekund, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
@@ -384,6 +408,7 @@ Testy były też sprawdzane „od drugiej strony”: kod był celowo psuty w kil
 
 - **Równoległa edycja:** wysłana lista `ingredients` zastępuje całą starą. Gdy dwie osoby edytują ten sam koktajl jednocześnie, wygrywa ostatni zapis (bez blokady optymistycznej). Ryzyko jest małe, bo edytować może tylko autor lub admin. „Książkowym” rozwiązaniem byłoby pole `updated_at` i nagłówek `If-Match` (odpowiedź 412 przy nieaktualnej wersji).
 - **Brak weryfikacji e-mail** (w ogóle nie ma e-maila), więc skrypt może powoli zakładać wiele kont. Rejestracja jest ograniczona limitem 10 prób na minutę z jednego IP.
+- **Limity w pamięci procesu:** patrz „Limity zapytań” wyżej; na produkcji potrzebny jest współdzielony cache.
 - **Wyświetlenia z wielu adresów IP** (botnet, rotujące VPN-y): każdy adres dodaje jedno wyświetlenie dziennie. Realna obrona to CAPTCHA albo proof-of-work (np. Cloudflare Turnstile), poza zakresem. Wspólny adres (szkoła, biuro) liczy się jako jeden odwiedzający, więc raczej zaniżamy niż zawyżamy.
 - **Etykiety bez „pamięci”:** `trending` jest liczone z bieżących liczb, więc koktajl nie wie, że był trendujący od 14 dni. Dokładny zegar wymagałby zapisanego stanu i codziennego zadania. Progi 10 / 20 / 100 to wartości demo.
 - **Wydajność etykiet:** liczby są liczone przy każdym zapytaniu o listę (kilka podzapytań na koktajl). Dla 220 koktajli to bez znaczenia; przy dużo większej bazie trzeba by je zapisywać (cache lub tabela zbiorcza). Tabela wyświetleń rośnie; wpisy starsze niż 30 dni nie są potrzebne do etykiet i można je kasować.
