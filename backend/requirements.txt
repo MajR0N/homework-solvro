@@ -6,3 +6,4 @@ python-dotenv==1.2.4
 drf-spectacular==0.30.0
 pytest==9.2.0
 pytest-django==4.14.0
+djangorestframework-simplejwt==5.5.1

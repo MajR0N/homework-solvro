@@ -6,6 +6,7 @@ Docs: https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -35,8 +36,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.postgres',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',  # lista unieważnionych tokenów (wylogowanie)
     'drf_spectacular',
     'django_filters',
+    'accounts',
     'cocktails',
 ]
 
@@ -84,6 +87,9 @@ DATABASES = {
 }
 
 
+AUTH_USER_MODEL = 'accounts.User'
+
+
 # Password validation
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -117,6 +123,18 @@ USE_TZ = True
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework_simplejwt.authentication.JWTAuthentication'],
+    'DEFAULT_THROTTLE_RATES': {'auth': '10/min'},
+    # Ile serwerów pośredniczących stoi przed Django (0 lokalnie). Na hostingu trzeba ustawić poprawnie,
+    # inaczej limity per IP liczą adres pośrednika albo dają się obejść podrobionym nagłówkiem.
+    'NUM_PROXIES': int(os.environ.get('NUM_PROXIES', '0')),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,  # każde odświeżenie daje nowy refresh token...
+    'BLACKLIST_AFTER_ROTATION': True,  # ...a stary przestaje działać
 }
 
 SPECTACULAR_SETTINGS = {

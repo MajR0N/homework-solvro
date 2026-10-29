@@ -1,9 +1,15 @@
 from types import SimpleNamespace
 
 import pytest
+from django.core.cache import cache
 from rest_framework.test import APIClient
 
 from cocktails.models import Category, Cocktail, CocktailIngredient, Ingredient
+
+
+@pytest.fixture(autouse=True)
+def clear_throttle_counters():
+    cache.clear()  # liczniki limitów żyją w pamięci i inaczej przenosiłyby się między testami
 
 
 @pytest.fixture

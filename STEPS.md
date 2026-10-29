@@ -254,3 +254,13 @@ Scope the user added after the backend core (step 3) was finished. Order of buil
 - Defaults that stand unless the user objects: no email field; access token 10 min, refresh 7 days with rotation and blacklist; 10/min throttle on login and register; author stored as a link plus a name copy.
 - Whether authors may rate their own cocktail (proposed: no).
 - Which roles the owner may hand out (proposed: any below owner; there is only the account made with `createsuperuser`).
+
+### Added during the accounts discussion (decided)
+| # | Decision |
+|---|---|
+| A8 | **Role stored in a custom user model** (`accounts.User.role`), chosen over a profile table and over Django groups: one role per user, always set, and the Django flags are derived from it in one place. Requires a fresh local database once. |
+| A9 | **Reviews survive user deletion:** the author link is emptied and the review is shown as "deleted user" (rating still counts). So "has an author" is enforced by the API and a test, not by NOT NULL. |
+| A10 | **Review moderation:** the review's author edits and deletes their own; admin, staff and owner delete any (they do not edit other people's text). **Any logged-in user can report** a review for an admin to look at. The cocktail's author does **not** delete reviews on their cocktail (they could remove bad ratings), they can only report. |
+| A11 | Defaults that stand (no objection): no email field; access 10 min, refresh 7 days with rotation and blacklist; 10 per minute per IP on login and register. |
+
+Built: step 5a (accounts, JWT, 71 tests). Not built yet: author fields and permissions (5b), CMS rules per role, reviews, views and trending.

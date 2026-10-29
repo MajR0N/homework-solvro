@@ -72,6 +72,7 @@ python manage.py runserver        # http://127.0.0.1:8000
 | `django-filter` | filtrowanie list przez parametry URL-a (`?category=...`) |
 | `psycopg` | sterownik PostgreSQL dla Django |
 | `python-dotenv` | wczytuje sekrety z pliku `.env` (poza gitem) |
+| `djangorestframework-simplejwt` | logowanie tokenami JWT (access + refresh, lista unieważnionych tokenów) |
 | `drf-spectacular` | generuje dokumentację OpenAPI i stronę Swagger (`/api/docs/`) |
 | `pytest`, `pytest-django` | testy automatyczne na prawdziwym PostgreSQL |
 
@@ -170,7 +171,7 @@ Sprawdzenie schematu: `python manage.py spectacular --validate --fail-on-warn`.
 ## Testy
 
 ```bash
-python -m pytest              # 48 testów, ok. 2 s, bez internetu
+python -m pytest              # 71 testów, ok. 2 s, bez internetu
 python -m pytest -m network   # dodatkowo test na prawdziwym API Solvro (ok. 12 s, wymaga internetu)
 ```
 
@@ -182,3 +183,21 @@ Import jest sprawdzany dwojako, z różnych powodów:
 |---|---|---|
 | na atrapie API | **naszą logikę**: te same id co w Solvro, ponowny import nic nie zmienia, licznik id, składnik bez `measure`, brak połowicznych danych przy błędzie | zawsze |
 | na prawdziwym API | **świat zewnętrzny**: dane Solvro nadal mają kształt, jakiego oczekuje import | tylko na życzenie (`-m network`) |
+
+## Konta i logowanie
+
+Własny model użytkownika (`accounts.User`) z polem `role`: **user < admin < staff < owner**. Flagi Django (`is_staff` = wejście do panelu `/admin/`, `is_superuser` = tylko owner) są zawsze wyliczane z roli przy zapisie, więc nie mogą się z nią rozjechać. Konto z `createsuperuser` jest ownerem. Rejestracja zawsze tworzy zwykłego użytkownika; roli nie da się podać w żądaniu.
+
+| Metoda i adres | Działanie |
+|---|---|
+| `POST /api/v1/auth/register/` | `username` + `password` (hasło sprawdzane regułami Django; nazwy bez rozróżniania wielkości liter są unikalne) |
+| `POST /api/v1/auth/login/` | zwraca `access` (ważny 10 minut) i `refresh` (7 dni) |
+| `POST /api/v1/auth/refresh/` | nowy `access` i **nowy** `refresh`; stary przestaje działać |
+| `POST /api/v1/auth/logout/` | unieważnia `refresh` |
+| `GET /api/v1/auth/me/` | `id`, `username`, `role` (wymaga nagłówka `Authorization: Bearer <access>`) |
+
+Rejestracja i logowanie mają wspólny limit 10 prób na minutę z jednego IP. Limit liczy adres z `REMOTE_ADDR`; za serwerem pośredniczącym (np. Cloud Run) trzeba ustawić zmienną `NUM_PROXIES`, inaczej limit będzie liczony po adresie pośrednika.
+
+Brak pola e-mail (mniej danych osobowych). Weryfikacji e-mail też nie ma, więc skrypt może powoli zakładać wiele kont; to znane ograniczenie.
+
+**Zmiana modelu użytkownika wymaga świeżej bazy:** po pobraniu tej zmiany na istniejącej bazie `migrate` zgłosi niespójną historię migracji. Lokalnie: `DROP DATABASE cocktails; CREATE DATABASE cocktails;`, potem `migrate` i `import_solvro`.
