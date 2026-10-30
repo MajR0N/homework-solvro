@@ -19,9 +19,14 @@ export default function MyRecipesPage() {
   const rating = (r: MyRecipe) => (r.ratingAvg != null && (r.ratingCount ?? 0) > 0 ? `${decimal(r.ratingAvg)} (${r.ratingCount})` : "brak opinii");
   const mark = (r: MyRecipe) => (r.verified ? "Zweryfikowany" : "Bez znaczka");
   const del = (r: MyRecipe) => (
-    <button type="button" onClick={() => setToDelete(r)} aria-label={`Usuń ${r.name}`} className={dangerButton}>
-      Usuń
-    </button>
+    <span className="inline-flex gap-2">
+      <Link href={`/recipes/${r.id}/edit`} aria-label={`Edytuj ${r.name}`} className="rounded-full border border-foreground/30 px-4 py-1.5 text-sm hover:bg-foreground/10">
+        Edytuj
+      </Link>
+      <button type="button" onClick={() => setToDelete(r)} aria-label={`Usuń ${r.name}`} className={dangerButton}>
+        Usuń
+      </button>
+    </span>
   );
 
   return (

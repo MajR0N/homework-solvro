@@ -1,13 +1,16 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Badges, { Stars } from "@/components/Badges";
 import FavoriteButton from "@/components/FavoriteButton";
 import { countView, getCocktail, HttpError, listReviews } from "@/lib/api";
+import { useSession } from "@/lib/auth";
 import { isDemoId } from "@/lib/demo/fixtures";
 import { pl } from "@/lib/pl";
+import { rank } from "@/lib/roles";
 import { useSource } from "@/lib/source";
 
 const button = "rounded-full border border-foreground/30 px-5 py-2 hover:bg-foreground/10";
@@ -29,6 +32,7 @@ function Back() {
 export default function CocktailPage() {
   const { id } = useParams<{ id: string }>();
   const source = useSource();
+  const { session, demo } = useSession();
   const { data, isPending, error, refetch } = useQuery({
     queryKey: ["cocktail", source, id],
     queryFn: () => getCocktail(id, source),
@@ -97,7 +101,15 @@ export default function CocktailPage() {
               <h1 id="tytul" className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
                 {data.name}
               </h1>
-              <FavoriteButton id={data.id} name={data.name} className="shrink-0" />
+              <div className="flex shrink-0 items-center gap-2">
+                {/* edytować może autor i administrator wzwyż (backend i tak to sprawdza); przepis demo tylko w trybie demo */}
+                {session && (demo ? isDemoId(id) : source === "own" && (data.authorName === session.username || rank(session.role) >= rank("admin"))) && (
+                  <Link href={`/recipes/${data.id}/edit`} className="rounded-full border border-white/50 px-4 py-2 text-sm hover:bg-white/15">
+                    Edytuj
+                  </Link>
+                )}
+                <FavoriteButton id={data.id} name={data.name} />
+              </div>
             </div>
             <div className="mt-3 empty:hidden">
               <Badges cocktail={data} />

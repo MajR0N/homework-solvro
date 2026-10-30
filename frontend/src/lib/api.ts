@@ -190,6 +190,14 @@ export async function getCocktail(id: string, source: Source): Promise<Cocktail 
   return get<{ data: Cocktail & { ingredients: Ingredient[] } }>(source, `/cocktails/${id}`).then((r) => r.data);
 }
 
+// Składniki pasujące do fragmentu nazwy (lista podpowiedzi w edytorze przepisu; tylko własny backend)
+export type IngredientOption = { id: number; name: string; alcoholic: boolean };
+export async function searchIngredients(q: string): Promise<IngredientOption[]> {
+  const p = new URLSearchParams({ search: q, page_size: "8", ordering: "name" });
+  const r = await get<{ results: { id: number; name: string; alcoholic: boolean }[] }>("own", "/ingredients/", p);
+  return r.results.map((i) => ({ id: i.id, name: i.name, alcoholic: i.alcoholic }));
+}
+
 // Rodzaje szklanek występujące w bazie (filtr; tylko własny backend)
 export async function getGlasses(): Promise<string[]> {
   return get<string[]>("own", "/glasses/");
