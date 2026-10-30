@@ -102,6 +102,23 @@ Układ jak strona koktajlu (propozycja C z `design-proposals/recipe.html`): szkl
 - **Zdjęcie** to adres `https`; podgląd i obraz w aplikacji działają tylko dla hosta `cocktails.solvro.pl` (ograniczenie `next/image`, patrz „Znane ograniczenia”), inne adresy zapisują się, ale pokazują puste miejsce.
 - W trybie demo wszystko działa na `localStorage` (listy kategorii, szklanek i składników są stałe, nowe składniki zapamiętuje przeglądarka); w prawdziwym trybie zapis idzie przez proxy z ciasteczkiem, a po zapisie źródło danych przełącza się na własny backend.
 
+### Panel administratora (`/admin/...`)
+
+Dla ról admin, staff i owner (link „Panel” na górnym pasku i „Panel administratora” na koncie). Układ z górnym paskiem nawigacji (wariant z `design-proposals/admin-topbar.html`), cztery ekrany łączące pięć propozycji z `design-proposals/admin.html`:
+
+| Adres | Co robi |
+|---|---|
+| `/admin` | pulpit: liczby, „Do zrobienia” (zgłoszone opinie, przepisy bez znaczka, koktajle bez zdjęcia), wyświetlenia z 7 dni, najpopularniejszy koktajl, nowi użytkownicy |
+| `/admin/cocktails` | tabela albo galeria; szukanie po nazwie i autorze, filtry (bez znaczka, zweryfikowane, bez zdjęcia, import lub użytkownicy), sortowanie, strony, zaznaczanie i **masowe nadawanie i zdejmowanie znaczka**, usuwanie z potwierdzeniem, „Edytuj” (ten sam edytor co dla autorów) |
+| `/admin/moderation` | kolejka: zgłoszone opinie (usuń opinię albo odrzuć zgłoszenia) i nowe przepisy użytkowników (zweryfikuj, edytuj, usuń); skróty **J** i **K** przechodzą po kolejce |
+| `/admin/users` | konta z liczbami i zgłoszeniami, **zmiana roli listą, która pokazuje tylko role możliwe do nadania**; konto własne, równe i wyższe są zablokowane z napisem dlaczego; obok tabela „Kto co może” z podświetloną moją rolą |
+
+W edytorze przepisu administrator wzwyż ma dodatkowo przełącznik „Znaczek zweryfikowany” (idzie osobnym wywołaniem `POST /admin/cocktails/verify/`, bo zwykły zapis koktajlu go nie przyjmuje) i widzi autora cudzego przepisu.
+
+**Reguły ról** (`src/lib/roles.ts`: `canManage`, `grantableRoles`) są lustrem `backend/accounts/policy.py`: interfejs nie pokazuje tego, czego i tak nie wolno, ale rozstrzyga backend (403). Test `src/lib/admin/demo.test.ts` sprawdza wszystkie 3 × 4 × 4 kombinacje aktor, konto i nowa rola tak samo jak testy backendu.
+
+**Tryb demo.** Panel działa w całości bez backendu: `src/lib/admin/demo.ts` to czyste funkcje, które liczą to samo, co API (katalog z importu i przepisów użytkowników, kolejka zgłoszeń, konta, role, pulpit), a dane leżą w `localStorage` (`demo-admin` i `demo-data`; „Przywróć dane” w banerze je resetuje). Rolę demo ustawia się w banerze (user, admin, staff, owner), więc można obejrzeć uprawnienia każdej roli. W demo „Edytuj” działa tylko dla przepisów demo (import Solvro da się edytować tylko z prawdziwym backendem).
+
 ## Struktura
 - `src/app/globals.css` — kolory marki i wyprowadzone z nich zmienne (jasny i ciemny motyw), szkło, fokus
 - `src/lib/params.ts` — budowanie adresu listy po zmianie filtra (wspólne dla strony i paska)
@@ -112,6 +129,7 @@ Układ jak strona koktajlu (propozycja C z `design-proposals/recipe.html`): szkl
 - `src/app/api/` — trasy `auth/login`, `auth/logout`, `auth/session` i ogólne `proxy/[...path]`
 - `src/lib/demo/` — tryb demo: `mode.ts` (włączenie i rola), `store.ts` (magazyn w `localStorage` z wartością początkową i resetem)
 - `src/lib/data/` — dane konta: `account.ts` (hooki), `mappers.ts` (backend na typy interfejsu), `proxy.ts` (wywołania przez proxy), `types.ts`
+- `src/lib/admin/` — panel administratora: `demo.ts` (dane i reguły trybu demo, z testami), `hooks.ts` (hooki: demo albo API), `mappers.ts`, `store.ts`, `types.ts`; `src/app/admin/` — ekrany
 - `src/lib/recipe/` — model formularza przepisu (`form.ts`), szkice (`draft.ts`), ostrzeżenie przed wyjściem (`useLeaveGuard.ts`); `src/components/recipe/` — edytor i pole składnika
 - `src/lib/format.ts` — odmiana po polsku, liczby, daty, inicjały
 - `src/app/account/`, `src/components/account/`, `src/components/BottomDock.tsx` — strona konta i dolna nawigacja
