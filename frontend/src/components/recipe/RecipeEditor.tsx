@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useState } from "react";
 import { ConfirmDialog, Skeleton, button, panel, primaryButton } from "@/components/account/ui";
+import { useVerify } from "@/lib/admin/hooks";
 import { HttpError, allowedImage } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { useCategories, useGlasses, useRecipeToEdit, useSaveRecipe } from "@/lib/data/recipe";
@@ -12,7 +13,7 @@ import { pl } from "@/lib/pl";
 import { clearDraft, draftKey, loadDraft, saveDraft } from "@/lib/recipe/draft";
 import { type FormErrors, type IngredientRow, type RecipeForm, LIMITS, emptyForm, fromRecipe, hasErrors, isDirty, isEmpty, newRow, serverErrors, validate } from "@/lib/recipe/form";
 import { useLeaveGuard } from "@/lib/recipe/useLeaveGuard";
-import { rank } from "@/lib/roles";
+import { isAdminLevel, rank } from "@/lib/roles";
 import { ownAvailable, setSource } from "@/lib/source";
 import IngredientPicker from "./IngredientPicker";
 
@@ -98,15 +99,20 @@ export default function RecipeEditor({ id }: { id: number | null }) {
   const owner = demo.on ? "demo" : session.username;
   const authorName = id != null && recipe.data?.authorName && recipe.data.authorName !== session.username ? recipe.data.authorName : null;
   // key: po zmianie przepisu albo danych startowych formularz startuje od nowa
-  return <EditorForm key={`${owner}:${id}`} id={id} initial={initial} owner={owner} authorName={authorName} demo={demo.on} />;
+  return <EditorForm key={`${owner}:${id}`} id={id} initial={initial} owner={owner} authorName={authorName} demo={demo.on} canVerify={isAdminLevel(session.role)} initialVerified={recipe.data?.verified ?? false} />;
 }
 
-function EditorForm({ id, initial, owner, authorName, demo }: { id: number | null; initial: RecipeForm; owner: string; authorName: string | null; demo: boolean }) {
+function EditorForm({ id, initial, owner, authorName, demo, canVerify, initialVerified }: { id: number | null; initial: RecipeForm; owner: string; authorName: string | null; demo: boolean; canVerify: boolean; initialVerified: boolean }) {
   const router = useRouter();
   const key = draftKey(owner, id);
   const categories = useCategories();
   const glasses = useGlasses();
-  const save = useSaveRecipe(id);
+  // Po utworzeniu przepisu zapamiętujemy jego id: gdyby dalszy krok (znaczek) się nie udał, kolejny zapis zmieni ten przepis,
+  // a nie doda drugi taki sam.
+  const [createdId, setCreatedId] = useState<number | null>(null);
+  const save = useSaveRecipe(id ?? createdId);
+  const verify = useVerify();
+  const [verified, setVerified] = useState(initialVerified); // tylko dla administratora wzwyż; backend nie przyjmuje znaczka w zwykłym zapisie
   const uid = useId();
 
   // Szkic z poprzedniej sesji: przywracamy go tylko wtedy, gdy realnie różni się od danych startowych
@@ -121,7 +127,7 @@ function EditorForm({ id, initial, owner, authorName, demo }: { id: number | nul
   const [saved, setSaved] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
 
-  const dirty = isDirty(form, initial);
+  const dirty = isDirty(form, initial) || (canVerify && verified !== initialVerified);
   const guard = useLeaveGuard(dirty && !saved);
   const clientErrors = useMemo(() => (submitted ? validate(form) : {}), [submitted, form]);
   const errors = hasErrors(clientErrors) ? clientErrors : server;
@@ -164,12 +170,16 @@ function EditorForm({ id, initial, owner, authorName, demo }: { id: number | nul
     if (hasErrors(v)) return focusFirst(v);
     try {
       const savedId = await save.mutateAsync(form);
+      setCreatedId(savedId);
+      // znaczek idzie osobnym, administratorskim wywołaniem i tylko gdy się zmienił
+      if (canVerify && verified !== initialVerified) await verify.mutateAsync({ ids: [savedId], verified });
       setSaved(true); // wyłącza ostrzeżenie o wyjściu
       clearDraft(localStorage, key);
       if (!demo) setSource("own"); // strona szczegółów ma pokazać przepis z własnego backendu, nie z API Solvro
       router.push(`/cocktails/${savedId}`);
     } catch (err) {
       const e = err instanceof HttpError ? serverErrors(err.status, err.body) : { general: "Nie udało się zapisać. Sprawdź połączenie i spróbuj ponownie." };
+      if (createdId != null || save.isSuccess) e.general = "Przepis zapisano, ale nie udało się zmienić znaczka. Spróbuj jeszcze raz.";
       setServer(e);
       focusFirst(e);
     }
@@ -305,6 +315,12 @@ function EditorForm({ id, initial, owner, authorName, demo }: { id: number | nul
               <input type="checkbox" checked={form.alcoholic} onChange={(e) => change({ alcoholic: e.target.checked })} className="size-4 accent-[#80b3ff]" />
               Zawiera alkohol
             </label>
+            {canVerify && (
+              <label className="flex items-center gap-2.5 text-sm font-medium">
+                <input type="checkbox" checked={verified} onChange={(e) => setVerified(e.target.checked)} className="size-4 accent-[#80b3ff]" />
+                Znaczek „zweryfikowany” (tylko administrator)
+              </label>
+            )}
           </div>
         </section>
 
@@ -375,8 +391,8 @@ function EditorForm({ id, initial, owner, authorName, demo }: { id: number | nul
           <button type="button" onClick={() => (dirty ? setConfirmCancel(true) : router.push("/account/recipes"))} className="rounded-full border border-white/55 px-5 py-2 hover:bg-white/15">
             Anuluj
           </button>
-          <button type="submit" disabled={save.isPending} className="rounded-full bg-white px-5 py-2 font-bold text-[#203560] hover:opacity-90 disabled:opacity-60">
-            {save.isPending ? "Zapisywanie…" : id == null ? "Opublikuj" : "Zapisz zmiany"}
+          <button type="submit" disabled={save.isPending || verify.isPending} className="rounded-full bg-white px-5 py-2 font-bold text-[#203560] hover:opacity-90 disabled:opacity-60">
+            {save.isPending || verify.isPending ? "Zapisywanie…" : id == null && createdId == null ? "Opublikuj" : "Zapisz zmiany"}
           </button>
         </div>
       </form>

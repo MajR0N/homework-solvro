@@ -8,7 +8,7 @@ import { useSession } from "@/lib/auth";
 import { useFavorites } from "@/lib/favorites";
 import { decimal, fmt, initials } from "@/lib/format";
 import { ownAvailable } from "@/lib/source";
-import { ROLE_PL, isRole } from "@/lib/roles";
+import { ROLE_PL, isAdminLevel, isRole } from "@/lib/roles";
 
 // Wspólny układ konta: baner z liczbami (propozycja A), a pod nim sekcje jako zakładki na wąskim ekranie albo menu boczne
 // na szerokim (propozycja B). Każda sekcja ma własny adres, więc można do niej linkować, a "wstecz" działa.
@@ -73,8 +73,13 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
         </span>
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-bold tracking-tight sm:text-3xl">{session.username}</h1>
-          <p className="mt-1">
+          <p className="mt-1 flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-white/60 px-2.5 py-0.5 text-sm">{isRole(session.role) ? ROLE_PL[session.role] : session.role}</span>
+            {isAdminLevel(session.role) && (
+              <Link href="/admin" className="rounded-full bg-white px-3 py-0.5 text-sm font-semibold text-[#203560] hover:opacity-90">
+                Panel administratora
+              </Link>
+            )}
           </p>
         </div>
         <dl className="col-span-2 grid grid-cols-2 gap-4 border-t border-white/20 pt-4 sm:grid-cols-4">

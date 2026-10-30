@@ -33,7 +33,7 @@ export function Skeleton({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded-xl bg-foreground/10 ${className}`} aria-hidden="true" />;
 }
 
-// Wyświetlenia z 30 dni. Słupki to zwykłe elementy (bez biblioteki wykresów); całość ma opis dla czytników ekranu.
+// Wyświetlenia dzień po dniu (30 dni na koncie, 7 na pulpicie administratora). Słupki to zwykłe elementy (bez biblioteki wykresów).
 export function ViewsChart({ days }: { days: MyStats["viewsByDay"] }) {
   const max = Math.max(...days.map((d) => d.views), 0);
   const total = days.reduce((s, d) => s + d.views, 0);
@@ -41,14 +41,14 @@ export function ViewsChart({ days }: { days: MyStats["viewsByDay"] }) {
     <div>
       <div
         role="img"
-        aria-label={total ? `Wykres słupkowy: wyświetlenia z ostatnich 30 dni, razem ${total}, najwięcej ${max} w jednym dniu` : "Brak wyświetleń w ostatnich 30 dniach"}
+        aria-label={total ? `Wykres słupkowy: wyświetlenia z ostatnich ${days.length} dni, razem ${total}, najwięcej ${max} w jednym dniu` : `Brak wyświetleń w ostatnich ${days.length} dniach`}
         className="flex h-24 items-end gap-[3px]"
       >
         {days.map((d) => (
           <span key={d.day} title={`${d.day}: ${d.views}`} className="min-h-[2px] flex-1 rounded-t-sm bg-primary" style={{ height: `${max ? Math.max(2, (d.views / max) * 100) : 2}%` }} />
         ))}
       </div>
-      <p className="mt-1 text-xs text-foreground/70">Razem {fmt(total)} z ostatnich 30 dni</p>
+      <p className="mt-1 text-xs text-foreground/70">Razem {fmt(total)} z ostatnich {days.length} dni</p>
     </div>
   );
 }

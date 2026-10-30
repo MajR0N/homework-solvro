@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useLogout, useSession } from "@/lib/auth";
+import { isAdminLevel } from "@/lib/roles";
 import { useFavorites } from "@/lib/favorites";
 import DemoToggle from "./DemoToggle";
 import { patchParams } from "@/lib/params";
@@ -70,6 +71,11 @@ export default function TopBar() {
                 <span className="hidden max-w-32 truncate text-sm md:inline sm:order-5" title={`${session.username} (${session.role})`}>
                   {session.username}
                 </span>
+                {isAdminLevel(session.role) && (
+                  <Link href="/admin" className="rounded-full border border-current/35 px-4 py-2 text-sm sm:order-5">
+                    Panel
+                  </Link>
+                )}
                 <button type="button" onClick={logout} className="rounded-full border border-current/35 px-4 py-2 text-sm sm:order-6">
                   {demo ? "Wyłącz demo" : "Wyloguj"}
                 </button>
