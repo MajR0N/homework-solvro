@@ -1,10 +1,12 @@
 "use client";
-import { useDemo, DEMO_USER } from "@/lib/demo/mode";
+import { useResetDemo } from "@/lib/data/account";
+import { DEMO_USER, useDemo } from "@/lib/demo/mode";
 import { ROLES, type Role } from "@/lib/roles";
 
 // Widoczny, dopóki działa tryb demo: nikt nie może wziąć przykładowych danych za prawdziwe.
 export default function DemoBanner() {
   const demo = useDemo();
+  const reset = useResetDemo();
   if (!demo.on) return null;
   return (
     <div role="status" className="mx-auto mt-3 w-full max-w-7xl px-4">
@@ -26,6 +28,9 @@ export default function DemoBanner() {
             ))}
           </select>
         </label>
+        <button type="button" onClick={reset} className="rounded-full border border-foreground/30 px-4 py-1.5">
+          Przywróć dane
+        </button>
         <button type="button" onClick={() => demo.setOn(false)} className="rounded-full border border-foreground/30 px-4 py-1.5">
           Wyłącz demo
         </button>

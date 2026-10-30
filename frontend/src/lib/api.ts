@@ -1,3 +1,5 @@
+import { demoData } from "./demo/data";
+import { isDemoId } from "./demo/fixtures";
 import { OWN_BASE, type Source } from "./source";
 
 const SOLVRO = "https://cocktails.solvro.pl/api/v1";
@@ -20,6 +22,7 @@ export type Cocktail = {
   status?: Status | null;
   ratingAvg?: number | null;
   ratingCount?: number;
+  views30d?: number; // wyświetlenia z 30 dni (tylko własny backend)
 };
 export type Ingredient = {
   id: number;
@@ -89,12 +92,13 @@ type OwnCocktail = {
   status?: Status | null;
   rating_avg?: number | null;
   rating_count?: number;
+  views_30d?: number;
 };
 type OwnReview = { id: number; rating: number; text: string; author_username: string | null; created_at: string };
 
 // next/image przyjmuje tylko hosty z next.config.ts. Własne koktajle mogą mieć dowolny adres zdjęcia, więc
 // zdjęcia spoza hosta Solvro pomijamy (placeholder). Docelowo to zastąpi wgrywanie plików.
-function allowedImage(url: string): string | null {
+export function allowedImage(url: string): string | null {
   try {
     const u = new URL(url);
     return u.protocol === "https:" && u.hostname === "cocktails.solvro.pl" ? url : null;
@@ -115,6 +119,7 @@ const fromOwn = (c: OwnCocktail): Cocktail => ({
   status: c.status ?? null,
   ratingAvg: c.rating_avg ?? null,
   ratingCount: c.rating_count ?? 0,
+  views30d: c.views_30d ?? 0,
 });
 
 const ingredientFromOwn = (i: OwnIngredient): Ingredient => ({
@@ -152,6 +157,12 @@ export async function listCocktails(f: Filters, source: Source): Promise<Page<Co
 }
 
 export async function getCocktail(id: string, source: Source): Promise<Cocktail & { ingredients: Ingredient[] }> {
+  if (isDemoId(id)) {
+    // przepis z trybu demo: leży w localStorage, nie w żadnym API
+    const found = demoData.get().recipes.find((r) => r.id === Number(id));
+    if (!found) throw new HttpError(404);
+    return found;
+  }
   if (source === "own") {
     const c = await get<OwnCocktail>(source, `/cocktails/${id}/`);
     return { ...fromOwn(c), ingredients: (c.ingredients ?? []).map(ingredientFromOwn) };
@@ -162,6 +173,13 @@ export async function getCocktail(id: string, source: Source): Promise<Cocktail 
 export async function getCategories(source: Source): Promise<string[]> {
   if (source === "own") return (await get<{ name: string }[]>(source, "/categories/")).map((c) => c.name);
   return get<{ data: string[] }>(source, "/cocktails/categories").then((r) => r.data);
+}
+
+// Koktajle dodane przez jedno konto (panel autora). Odczyt jest publiczny, więc idzie wprost, bez proxy.
+export async function listMyRecipes(username: string): Promise<(Cocktail & { views30d: number })[]> {
+  const p = new URLSearchParams({ author: username, page_size: "100", ordering: "-popular" });
+  const r = await get<{ results: OwnCocktail[] }>("own", "/cocktails/", p);
+  return r.results.map((c) => ({ ...fromOwn(c), views30d: c.views_30d ?? 0 }));
 }
 
 // Opinie o koktajlu (tylko własny backend). author = null oznacza konto, które zostało usunięte.

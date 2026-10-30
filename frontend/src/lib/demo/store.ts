@@ -5,6 +5,10 @@ import { useSyncExternalStore } from "react";
 // podawany z zewnątrz), więc da się go sprawdzić testem.
 type Backend = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
+// Po stronie serwera nie ma localStorage; tam i tak zawsze zwracany jest seed, więc zapis jest tylko zaślepką.
+const noStorage: Backend = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+export const browserStorage = (): Backend => (typeof localStorage === "undefined" ? noStorage : localStorage);
+
 export type Store<T> = {
   get(): T;
   set(next: T): void;

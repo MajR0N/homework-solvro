@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import Badges, { Stars } from "@/components/Badges";
 import FavoriteButton from "@/components/FavoriteButton";
 import { countView, getCocktail, HttpError, listReviews } from "@/lib/api";
+import { isDemoId } from "@/lib/demo/fixtures";
 import { pl } from "@/lib/pl";
 import { useSource } from "@/lib/source";
 
@@ -36,11 +37,11 @@ export default function CocktailPage() {
   });
 
   // opinie ma tylko własny backend
-  const reviews = useQuery({ queryKey: ["reviews", source, id], queryFn: () => listReviews(id), enabled: source === "own" && !!data });
+  const reviews = useQuery({ queryKey: ["reviews", source, id], queryFn: () => listReviews(id), enabled: source === "own" && !isDemoId(id) && !!data });
 
   // własny backend liczy wyświetlenia szczegółów; Solvro nie ma takiej funkcji
   useEffect(() => {
-    if (source === "own") countView(id);
+    if (source === "own" && !isDemoId(id)) countView(id);
   }, [id, source]);
 
   if (error) {

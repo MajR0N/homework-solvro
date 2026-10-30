@@ -1,20 +1,18 @@
 import { isRole, type Role } from "../roles";
-import { createStore, useStore } from "./store";
+import { DEMO_USER } from "./fixtures";
+import { browserStorage, createStore, useStore } from "./store";
 
 // Tryb demo: aplikacja udaje zalogowaną osobę z przykładowymi danymi (bez backendu i bez logowania), a zmiany zapisują się
 // tylko w tej przeglądarce. Przydaje się do pokazu: konto, edytor i panel admina działają tak samo jak z prawdziwym backendem.
 // Strony nie wiedzą, w którym trybie są: wybiera to warstwa danych (hooki), nie komponenty.
-export const DEMO_USER = "kasia_mixuje";
+export { DEMO_USER };
 
 export type DemoState = { on: boolean; role: Role };
 
 const isDemoState = (x: unknown): x is DemoState => typeof (x as DemoState)?.on === "boolean" && isRole((x as DemoState)?.role);
 
-// Po stronie serwera nie ma localStorage; tam i tak zawsze zwracany jest seed (wyłączone demo), więc zapis jest tylko zaślepką.
-const noStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
-
 export const demoStore = createStore<DemoState>(
-  () => (typeof localStorage === "undefined" ? noStorage : localStorage),
+  browserStorage,
   "demo",
   () => ({ on: false, role: "user" }),
   isDemoState,
