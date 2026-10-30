@@ -14,6 +14,6 @@ export async function proxyJson<T>(path: string, init: { method?: string; body?:
     body: hasBody ? JSON.stringify(init.body) : undefined,
     cache: "no-store",
   });
-  if (!res.ok) throw new HttpError(res.status);
+  if (!res.ok) throw new HttpError(res.status, await res.json().catch(() => undefined));
   return res.status === 204 ? null : ((await res.json()) as T);
 }

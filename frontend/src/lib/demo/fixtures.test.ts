@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEMO_USER, activityOf, dailySeries, distribute, isDemoId, myReviewsOf, seedDemoData, statsOf, withoutRecipe, withoutReview } from "./fixtures";
+import { DEMO_USER, type RecipeInput, activityOf, dailySeries, demoIngredientId, distribute, isDemoId, myReviewsOf, seedDemoData, statsOf, withRecipeSaved, withoutRecipe, withoutReview } from "./fixtures";
 
 const NOW = new Date(2026, 9, 30, 12, 0, 0); // 30 października 2026
 const seed = () => seedDemoData(NOW);
@@ -81,5 +81,35 @@ describe("zmiany", () => {
     const empty = { recipes: [], reviews: [] };
     expect(statsOf(empty, NOW)).toMatchObject({ recipes: 0, viewsTotal: 0, ratingAvg: null, ratingCount: 0, reviewsWritten: 0 });
     expect(statsOf(empty, NOW).viewsByDay.every((d) => d.views === 0)).toBe(true);
+  });
+});
+
+describe("zapis przepisu w trybie demo", () => {
+  const input: RecipeInput = { name: "Nowy drink", category: "Shot", glass: "Shot glass", alcoholic: false, imageUrl: "", instructions: "Wymieszaj.", ingredients: [{ id: -5, name: "Mint", measure: "3 listki" }] };
+  it("nowy przepis dostaje kolejne duże id, zero statystyk i brak znaczka", () => {
+    const { data, id } = withRecipeSaved(seed(), input, null, NOW);
+    expect(id).toBe(900_005);
+    expect(isDemoId(id)).toBe(true);
+    const created = data.recipes.find((r) => r.id === id)!;
+    expect(created).toMatchObject({ name: "Nowy drink", verified: false, views30d: 0, ratingCount: 0, imageUrl: null, createdAt: NOW.toISOString() });
+    expect(created.ingredients[0]).toMatchObject({ name: "Mint", measure: "3 listki" });
+    expect(statsOf(data, NOW)).toMatchObject({ recipes: 5, viewsTotal: 1284 });
+  });
+  it("edycja zmienia pola, ale zostawia wyświetlenia, oceny i znaczek", () => {
+    const before = seed();
+    const { data, id } = withRecipeSaved(before, { ...input, name: "Zmieniony Mojito", imageUrl: "https://cocktails.solvro.pl/x.png" }, 900_001, NOW);
+    expect(id).toBe(900_001);
+    const after = data.recipes.find((r) => r.id === 900_001)!;
+    expect(after).toMatchObject({ name: "Zmieniony Mojito", verified: true, views30d: 612, ratingAvg: 4.6, imageUrl: "https://cocktails.solvro.pl/x.png" });
+    expect(data.recipes).toHaveLength(4);
+    expect(before.recipes[0].name).toBe("Wiśniowy Mojito"); // oryginał nietknięty
+  });
+  it("edycja nieistniejącego przepisu to błąd, a nie cichy nowy wpis", () => {
+    expect(() => withRecipeSaved(seed(), input, 123456, NOW)).toThrow();
+  });
+  it("id składnika w demo jest stałe, ujemne i nie zależy od wielkości liter", () => {
+    expect(demoIngredientId("Mint")).toBe(demoIngredientId("  mint "));
+    expect(demoIngredientId("Mint")).toBeLessThan(0);
+    expect(demoIngredientId("Mint")).not.toBe(demoIngredientId("Rum"));
   });
 });

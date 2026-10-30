@@ -120,3 +120,46 @@ export const withoutRecipe = (d: DemoData, id: number): DemoData => ({
 });
 
 export const withoutReview = (d: DemoData, id: number): DemoData => ({ ...d, reviews: d.reviews.filter((r) => r.id !== id) });
+
+// ---------- edytor w trybie demo: listy wyboru i zapis przepisu ----------
+
+// Rzeczy, które w prawdziwym backendzie przychodzą z /categories/, /glasses/ i /ingredients/
+export const DEMO_CATEGORIES = ["Cocktail", "Ordinary Drink", "Punch / Party Drink", "Shot", "Shake", "Soft Drink"];
+export const DEMO_GLASSES = ["Highball glass", "Old-fashioned glass", "Cocktail glass", "Collins glass", "Shot glass", "Copper Mug"];
+export const DEMO_INGREDIENTS = [
+  "Light rum", "Dark rum", "Gin", "Vodka", "Tequila", "Whiskey", "Bourbon", "Campari", "Sweet vermouth", "Dry vermouth", "Triple sec", "Amaretto",
+  "Coffee liqueur", "Angostura bitters", "Lime juice", "Lemon juice", "Grapefruit juice", "Orange juice", "Cranberry juice", "Sugar syrup", "Sugar",
+  "Mint", "Lime", "Lemon", "Orange", "Cherry", "Egg white", "Cream", "Soda water", "Ginger beer", "Tonic water", "Cola",
+];
+
+/** Id składnika w trybie demo: ten sam tekst zawsze daje to samo (ujemne) id, żeby nie zderzyło się z prawdziwymi. */
+export function demoIngredientId(name: string): number {
+  let h = 0;
+  for (const ch of name.trim().toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) % 1_000_003;
+  return -(h + 1000);
+}
+
+export type RecipeInput = {
+  name: string;
+  category: string;
+  glass: string;
+  alcoholic: boolean;
+  imageUrl: string;
+  instructions: string;
+  ingredients: { id: number; name: string; measure: string }[];
+};
+
+/** Dodaje nowy przepis (`id` = null) albo zmienia istniejący. Statystyki istniejącego zostają, nowy zaczyna od zera. */
+export function withRecipeSaved(d: DemoData, input: RecipeInput, id: number | null, now: Date): { data: DemoData; id: number } {
+  const ingredients: Ingredient[] = input.ingredients.map((i) => ({ id: i.id, name: i.name, alcohol: false, type: null, percentage: null, imageUrl: null, measure: i.measure || null }));
+  const fields = { name: input.name, category: input.category, glass: input.glass, alcoholic: input.alcoholic, instructions: input.instructions, imageUrl: input.imageUrl || null, ingredients };
+  if (id != null) {
+    if (!d.recipes.some((r) => r.id === id)) throw new Error("Brak takiego przepisu");
+    return { id, data: { ...d, recipes: d.recipes.map((r) => (r.id === id ? { ...r, ...fields } : r)) } };
+  }
+  const newId = Math.max(DEMO_ID_MIN, ...d.recipes.map((r) => r.id)) + 1;
+  const created: DemoRecipe = {
+    ...fields, id: newId, verified: false, status: null, ratingAvg: null, ratingCount: 0, views30d: 0, viewsTotal: 0, daily: Array(30).fill(0), createdAt: now.toISOString(),
+  };
+  return { id: newId, data: { ...d, recipes: [...d.recipes, created] } };
+}

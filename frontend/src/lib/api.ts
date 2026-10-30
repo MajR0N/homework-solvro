@@ -23,6 +23,7 @@ export type Cocktail = {
   ratingAvg?: number | null;
   ratingCount?: number;
   views30d?: number; // wyświetlenia z 30 dni (tylko własny backend)
+  authorName?: string; // kto dodał koktajl; puste = import z Solvro (tylko własny backend)
 };
 export type Ingredient = {
   id: number;
@@ -39,7 +40,10 @@ export type Page<T> = { data: T[]; meta: { total: number; lastPage: number } };
 
 // status pozwala odróżnić "nie ma takiego koktajlu" (4xx) od awarii serwera (5xx)
 export class HttpError extends Error {
-  constructor(public status: number) {
+  constructor(
+    public status: number,
+    public body?: unknown,
+  ) {
     super(`API ${status}`);
   }
 }
@@ -97,6 +101,7 @@ type OwnCocktail = {
   rating_avg?: number | null;
   rating_count?: number;
   views_30d?: number;
+  author_name?: string;
 };
 type OwnReview = { id: number; rating: number; text: string; author_username: string | null; created_at: string };
 
@@ -124,6 +129,7 @@ const fromOwn = (c: OwnCocktail): Cocktail => ({
   ratingAvg: c.rating_avg ?? null,
   ratingCount: c.rating_count ?? 0,
   views30d: c.views_30d ?? 0,
+  authorName: c.author_name ?? "",
 });
 
 const ingredientFromOwn = (i: OwnIngredient): Ingredient => ({
