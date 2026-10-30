@@ -467,3 +467,11 @@ Simplifications: add/edit uses a short dialog (name, category, image); the full 
 
 Checked: CDP script in headless Edge at 1500 px and 390 px (search, filters, favourites, add/edit validation, delete down to empty states, review delete, dock navigation, no horizontal scroll on the phone). No console errors. Not checked: light theme, screen reader, real phone. No app code changed, so tsc/lint/build/pytest were not run.
 
+## 34. UI/UX homework skipped, `uiux/` removed (30 October 2026)
+
+The owner decided to skip the separate UI/UX task. `uiux/` (`palette.html`, `tokens.css`: black and white with a pink and gold accent) was deleted with `git rm`; it is still in git history (last commit before this one) if it is ever needed. Sections 13 to 14 and the "Next: the UI/UX homework" remarks above are therefore historical.
+
+"Migrate the tokens and palette to the designs": the pink/gold palette had already been dropped in section 22 (owner approved; pink fails contrast on navy), and the designs and the app use the Solvro blues, so the owner confirmed to keep those. What was saved: `frontend/design-proposals/palette.html`, a palette and token reference for both themes with a live contrast check (18 of 18 pairs pass WCAG AA, computed in the browser from the token values). `CLAUDE.md` and the root `README.md` no longer point to `uiux/`.
+
+**Next (owner's request):** build the accepted prototypes into the Next.js app in phases, each one grilled first: (1) account page, phone dock, richer filters; (2) recipe editor C with real create/edit calls; (3) admin panel with the top bar (needs new backend endpoints: users and roles, report queue, stats).
+

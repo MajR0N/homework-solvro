@@ -18,6 +18,7 @@ Wystarczy otworzyć plik w przeglądarce (dwuklik). Potrzebne jest połączenie 
 | [`admin-sidebar.html`](admin-sidebar.html) i [`admin-topbar.html`](admin-topbar.html) | działający prototyp panelu administratora: ten sam kod, dwa układy (menu boczne i menu górne) | połączenie pięciu propozycji z `admin.html` w jedną całość |
 | [`app.html`](app.html) | działający prototyp strony głównej i konta użytkownika w jednym układzie | połączenie pięciu propozycji z `profile.html`, z dolną nawigacją z propozycji E także na stronie głównej |
 | [`proposals.css`](proposals.css) | wspólne style makiet | kopia kolorów i kształtów z `src/app/globals.css` |
+| [`palette.html`](palette.html) | paleta kolorów i tokeny (jasny i ciemny motyw) z żywym sprawdzeniem kontrastu | zastępuje stronę palety z usuniętego folderu `uiux/` |
 | [`proposals.js`](proposals.js) | wspólny skrypt makiet | ikony, przykładowe karty i pasek (używa go `filters.html`) |
 
 ## Trzy pomysły na każdy z nich

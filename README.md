@@ -11,7 +11,6 @@ Zadanie (<https://github.com/Solvro/rekrutacja>) ma motyw koktajli: miejsce do p
 |---|---|---|
 | `frontend/` | Strona do przeglądania koktajli: lista, wyszukiwanie, filtry, ulubione, szczegóły. Next.js, TypeScript, Tailwind CSS, TanStack Query. | Działa i jest wdrożona na Vercelu. Domyślnie czyta publiczne API Solvro, a przełącznik „Źródło danych” pozwala wybrać mój własny backend. |
 | `backend/` | Własne REST API koktajli i składników. Django, Django REST Framework, PostgreSQL. Konta i role, opinie, CMS, etykiety popularności, Swagger, testy. | Gotowe, przetestowane i **wdrożone** na Vercelu (baza Neon). Opis w [`backend/README.md`](backend/README.md). |
-| `uiux/` | Zadanie UI/UX: projekt landing page'a. Wszystko jest w HTML (paleta, czcionki, komponenty), więc da się to otworzyć w przeglądarce. | W trakcie. |
 
 ## Pomysł
 

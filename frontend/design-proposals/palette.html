@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paleta kolorów: tokeny makiet i aplikacji</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
+  <style>
+    /* Tokeny skopiowane z proposals.css i src/app/globals.css (jasny i ciemny motyw obok siebie, bez zależności od ustawienia systemu).
+       Gdy zmieniasz kolor w aplikacji, zmień go też tu: kontrast poniżej jest liczony z tych wartości. */
+    .mode[data-theme="light"] { --bg: #ffffff; --fg: #203560; --muted: rgb(32 53 96 / 0.72); --line: rgb(32 53 96 / 0.18); --edge: rgb(32 53 96 / 0.55); --primary: #274276; --on-primary: #ffffff; --warm: #c2185b; --on-warm: #ffffff; --glass: rgb(32 53 96 / 0.85); --glass-solid: #415378; --ok: #1f7a4d; --bad: #b3261e; }
+    .mode[data-theme="dark"] { --bg: #0f1a30; --fg: #ffffff; --muted: rgb(255 255 255 / 0.72); --line: rgb(255 255 255 / 0.2); --edge: rgb(255 255 255 / 0.55); --primary: #80b3ff; --on-primary: #0f1a30; --warm: #ff7aa8; --on-warm: #0f1a30; --glass: rgb(39 66 118 / 0.85); --glass-solid: #475e8a; --ok: #6fd6a0; --bad: #ff8a80; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 1rem; background: #e4e7ee; color: #203560; font-family: "Space Grotesk", system-ui, sans-serif; line-height: 1.5; }
+    .wrap { max-width: 80rem; margin: 0 auto; }
+    h1 { font-size: clamp(1.75rem, 5vw, 2.75rem); letter-spacing: -0.02em; margin: 1.5rem 0 0.5rem; }
+    .lead, .rules { max-width: 62ch; }
+    .lead { font-size: 1.125rem; }
+    #summary { font-weight: 600; margin: 0 0 1.5rem; }
+    .modes { display: grid; gap: 1rem; }
+    @media (min-width: 62rem) { .modes { grid-template-columns: 1fr 1fr; } }
+    .mode { background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 1.5rem; padding: 1.5rem; min-width: 0; }
+    .mode h2 { font-size: 1.5rem; margin: 0 0 0.25rem; }
+    .mode h3 { font-size: 1rem; margin: 2rem 0 0.75rem; }
+    .sub { color: var(--muted); margin: 0 0 1rem; }
+    .swatches { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); }
+    .sw { border: 1px solid var(--line); border-radius: 1rem; padding: 0.6rem; }
+    .chip { height: 2.75rem; border-radius: 0.6rem; border: 1px solid var(--line); }
+    .sw b { display: block; margin-top: 0.5rem; font-size: 0.875rem; }
+    .sw span { display: block; font-size: 0.8125rem; color: var(--muted); }
+    .sw code { font-size: 0.8125rem; }
+    .brand { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .brand i { display: grid; place-items: end start; width: 6.5rem; height: 3.5rem; padding: 0.35rem 0.5rem; border-radius: 0.75rem; border: 1px solid var(--line); font-style: normal; font-size: 0.75rem; font-weight: 600; }
+    .stage { min-height: 11rem; border-radius: 1rem; padding: 1.25rem; display: grid; align-items: end; background: radial-gradient(circle at 25% 30%, #80b3ff 0, transparent 55%), var(--bg); }
+    .pane { background: var(--glass); color: #fff; border: 1px solid rgb(255 255 255 / 0.2); border-radius: 1.25rem; padding: 1rem; -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); }
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .pane { background: var(--glass-solid); } }
+    .pane p { margin: 0; font-size: 0.875rem; }
+    .pane h4 { margin: 0.1rem 0 0.25rem; font-size: 1.25rem; }
+    .pane .row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+    .btn { background: var(--primary); color: var(--on-primary); border: 0; border-radius: 999px; padding: 0.6rem 1rem; font: inherit; font-size: 0.875rem; font-weight: 600; }
+    .pill { background: var(--warm); color: var(--on-warm); border-radius: 999px; padding: 0.1rem 0.6rem; font-size: 0.75rem; font-weight: 600; }
+    .scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    caption { text-align: left; color: var(--muted); padding-bottom: 0.5rem; }
+    th, td { text-align: left; padding: 0.5rem 0.6rem 0.5rem 0; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .aa { display: inline-block; min-width: 2.75rem; text-align: center; padding: 0.1rem 0.5rem; border-radius: 0.5rem; font-weight: 700; }
+    .ok { font-weight: 600; }
+    .fail { font-weight: 700; text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Paleta kolorów</h1>
+    <p class="lead">Kolory marki Solvro to sześć odcieni niebieskiego (#FFFFFF, #D9E8FF, #80B3FF, #6583C8, #274276, #203560). Pozostałe wartości są z nich wyprowadzone: głębszy granat dla ciemnej strony, jedno ciepłe wyróżnienie (serduszko i "Na topie") oraz szkło, które jest granatowe w obu motywach.</p>
+    <ul class="rules">
+      <li>Jeden ciepły akcent, używany oszczędnie i nigdy sam (zawsze z tekstem lub ikoną).</li>
+      <li>Kontrast WCAG AA: 4,5:1 dla tekstu, 3:1 dla obwódek pól i elementów graficznych. Szkło sprawdzamy w najgorszym przypadku, czyli na jasnym zdjęciu (kolor zastępczy <code>--glass-solid</code>).</li>
+      <li>Jasny albo ciemny motyw wynika z ustawienia systemu. Strona pokazuje oba naraz.</li>
+      <li>Wcześniejszy pomysł (czerń i biel z różowym akcentem i złotem) został odrzucony: różowy ma za niski kontrast na granacie. Decyzja jest w <code>STEPS.md</code>, sekcja 22.</li>
+    </ul>
+    <p id="summary" aria-live="polite"></p>
+  </header>
+  <main class="modes"></main>
+</div>
+<script>
+// ponytail: strona rysuje się skryptem z tokenów w CSS powyżej; bez JS widać tylko nagłówek.
+const BRAND = ["#FFFFFF", "#D9E8FF", "#80B3FF", "#6583C8", "#274276", "#203560"];
+const SWATCHES = [
+  ["bg", "Tło strony", "Podstawa ekranu"], ["fg", "Tekst", "Nagłówki i treść"], ["muted", "Tekst pomocniczy", "Opisy, podpisy"], ["line", "Linia", "Cienkie obramowania"],
+  ["edge", "Obwódka pola", "Pola formularzy (3:1)"], ["primary", "Przycisk główny", "Wypełnienie przycisku"], ["on-primary", "Tekst na przycisku", "Podpis przycisku"], ["warm", "Ciepły akcent", "Serduszko, Na topie"],
+  ["on-warm", "Tekst na akcencie", "Podpis znaczka"], ["glass", "Szkło", "Panele i górny pasek"], ["glass-solid", "Szkło (najgorszy przypadek)", "Zamiennik bez rozmycia"], ["ok", "Sukces", "Zweryfikowany, zapisano"], ["bad", "Błąd", "Walidacja, usuwanie"],
+];
+// [kolor, tło, minimum, opis]; "glass-solid" to szkło w najgorszym przypadku (na jasnym zdjęciu), a biały tekst na nim
+const CHECKS = [
+  ["fg", "bg", 4.5, "Tekst na tle strony"], ["muted", "bg", 4.5, "Tekst pomocniczy na tle strony"], ["edge", "bg", 3, "Obwódka pola formularza"],
+  ["on-primary", "primary", 4.5, "Tekst na przycisku głównym"], ["warm", "bg", 4.5, "Ciepły akcent na tle strony"], ["on-warm", "warm", 4.5, "Tekst na ciepłym znaczku"],
+  ["#ffffff", "glass-solid", 4.5, "Biały tekst na szkle (najgorszy przypadek)"], ["ok", "bg", 4.5, "Zielony status na tle strony"], ["bad", "bg", 4.5, "Czerwony błąd na tle strony"],
+];
+const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+const rgba = (css) => { ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = css; ctx.fillRect(0, 0, 1, 1); const d = ctx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255]; };
+const over = (f, b) => [0, 1, 2].map((i) => Math.round(f[i] * f[3] + b[i] * (1 - f[3])));
+const lum = (c) => { const [r, g, b] = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+const hex = (c) => "#" + c.map((v) => v.toString(16).padStart(2, "0")).join("").toUpperCase();
+let passed = 0, total = 0;
+function build(theme, title, sub) {
+  const el = document.createElement("section");
+  el.className = "mode"; el.dataset.theme = theme;
+  document.querySelector(".modes").append(el);
+  const css = (t) => (t.startsWith("#") ? t : getComputedStyle(el).getPropertyValue("--" + t).trim());
+  const page = rgba(css("bg")), eff = (t) => over(rgba(css(t)), page);
+  const swatches = SWATCHES.map(([t, name, role]) => { const a = rgba(css(t))[3]; return `<div class="sw"><div class="chip" style="background:var(--${t})"></div><b>${name}</b><span>${role}</span><code>--${t}</code><span>${hex(eff(t))}${a < 1 ? `, krycie ${Math.round(a * 100)}%` : ""}</span></div>`; }).join("");
+  const rows = CHECKS.map(([fg, bg, min, label]) => {
+    const bgc = eff(bg), fgc = over(rgba(css(fg)), bgc), r = ratio(fgc, bgc), ok = r >= min;
+    total++; if (ok) passed++;
+    return `<tr><td>${label}</td><td><span class="aa" style="color:${hex(fgc)};background:${hex(bgc)}">Aa</span></td><td class="n">${r.toFixed(2)} : 1</td><td class="n ${ok ? "ok" : "fail"}">${ok ? "spełnia" : "za niski"} (min ${min})</td></tr>`;
+  }).join("");
+  el.innerHTML = `<h2>${title}</h2><p class="sub">${sub}</p>
+    <h3>Kolory marki</h3><div class="brand">${BRAND.map((c) => `<i style="background:${c};color:${lum(rgba(c)) > 0.3 ? "#203560" : "#fff"}">${c}</i>`).join("")}</div>
+    <h3>Tokeny</h3><div class="swatches">${swatches}</div>
+    <h3>Szkło na tle strony</h3><div class="stage"><div class="pane"><p>Cocktail glass, z alkoholem <span class="pill">Na topie</span></p><h4>Margarita</h4><p>Tequila, triple sec, sok z limonki.</p><div class="row"><button class="btn" type="button">Zobacz przepis</button><span>4,6 z 5</span></div></div></div>
+    <h3>Kontrast</h3><div class="scroll"><table><caption>Policzone w przeglądarce z tokenów powyżej</caption><thead><tr><th scope="col">Para</th><th scope="col">Przykład</th><th scope="col">Kontrast</th><th scope="col">Wynik</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+build("light", "Motyw jasny", "Biała strona, granatowe szkło, granatowy przycisk.");
+build("dark", "Motyw ciemny", "Granatowa strona, jaśniejsze granatowe szkło, jasnoniebieski przycisk.");
+document.getElementById("summary").textContent = `Wynik kontrastu: ${passed} z ${total} par spełnia WCAG AA.`;
+</script>
+</body>
+</html>
