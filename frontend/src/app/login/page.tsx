@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { HttpError } from "@/lib/api";
-import { login } from "@/lib/auth";
+import { useLogin } from "@/lib/auth";
 import { ownAvailable } from "@/lib/source";
 
 const field = "mt-1 w-full rounded-full border border-foreground/25 bg-foreground/5 px-4 py-2 hover:bg-foreground/10";
@@ -15,6 +15,7 @@ function message(e: unknown): string {
 
 export default function LoginPage() {
   const router = useRouter();
+  const login = useLogin();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -40,7 +41,7 @@ export default function LoginPage() {
       ) : (
         <>
           <p className="mb-6 text-foreground/70">Konto w własnym backendzie (nie w API Solvro).</p>
-          <form onSubmit={submit} className="space-y-4">
+          <form onSubmit={submit} method="post" className="space-y-4">
             <label className="block text-sm font-medium">
               Nazwa użytkownika
               <input name="username" required autoComplete="username" autoCapitalize="none" spellCheck={false} className={field} />

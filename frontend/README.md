@@ -43,11 +43,37 @@ NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:8000/api/v1
 
 Dane są kopią danych Solvro (te same id), więc ulubione działają na obu źródłach. Adres frontendu musi być na liście `CORS_ALLOWED_ORIGINS` backendu (domyślnie `localhost:3000` i `127.0.0.1:3000`). Po otwarciu szczegółów koktajlu frontend zgłasza wyświetlenie backendowi, który sam odrzuca powtórzenia.
 
+### Logowanie (ciasteczka httpOnly przez serwer Next.js)
+
+Tokeny JWT **nie trafiają do JavaScriptu w przeglądarce**: są w ciasteczkach `httpOnly` ustawianych przez trasy serwera Next.js, więc złośliwy skrypt (XSS) nie może ich ukraść. Przeglądarka rozmawia tylko z naszym serwerem:
+
+| Trasa | Działanie |
+|---|---|
+| `POST /api/auth/login` | login i hasło do backendu, tokeny do ciasteczek, w odpowiedzi tylko nazwa i rola |
+| `POST /api/auth/logout` | unieważnia refresh w backendzie i czyści ciasteczka |
+| `GET /api/auth/session` | kto jest zalogowany (zawsze 200, brak sesji to `{"user": null}`); odświeża tokeny, gdy access wygasł |
+| `/api/proxy/<ścieżka>` | wywołania wymagające logowania (zapisy, „moje” dane): serwer dokłada token i przekazuje do backendu; punkty `auth/login`, `refresh`, `logout`, `register` są zablokowane (zwracałyby tokeny) |
+
+Zabezpieczenia: ciasteczka mają `httpOnly`, `SameSite=Lax`, `Secure` na produkcji i ścieżkę `/api`; żądania zmieniające dane muszą mieć nagłówek `Origin` naszej własnej strony (ochrona przed CSRF); ścieżki proxy to tylko litery, cyfry, `-` i `_` (bez `..`, więc proxy nie da się skierować na cudzy serwer). Odświeżanie tokenów robi serwer: jednorazowy refresh jest współdzielony przez równoległe żądania. Backend widzi prawdziwy adres klienta dzięki nagłówkom `X-Client-IP` i `X-Proxy-Secret` (patrz `PROXY_SECRET` w `backend/README.md`), więc limity logowania działają na ludzi, a nie na serwer Next.js.
+
+Zmienne środowiskowe (pliki `.env*` są poza gitem):
+
+| Zmienna | Gdzie | Znaczenie |
+|---|---|---|
+| `NEXT_PUBLIC_BACKEND_URL` | przeglądarka i serwer | adres API, np. `http://127.0.0.1:8000/api/v1` (publiczne odczyty idą stąd wprost z przeglądarki) |
+| `BACKEND_URL` | tylko serwer | adres API dla tras `/api/...`; gdy brak, serwer używa `NEXT_PUBLIC_BACKEND_URL` |
+| `PROXY_SECRET` | tylko serwer | ten sam sekret co w backendzie (min. 32 znaki). Bez niego proxy nie przekazuje adresu klienta i backend widzi adres serwera Next.js |
+
+Znane ograniczenia: po wylogowaniu token access (ważny 10 minut) działa do wygaśnięcia, bo JWT nie da się odwołać; odświeżanie jest współdzielone tylko w obrębie jednej instancji serwera (na Vercelu dwa równoległe żądania na dwóch instancjach mogą się jeszcze ścigać, wtedy trzeba zalogować się ponownie).
+
 ## Struktura
 - `src/app/globals.css` — kolory marki i wyprowadzone z nich zmienne (jasny i ciemny motyw), szkło, fokus
 - `src/lib/params.ts` — budowanie adresu listy po zmianie filtra (wspólne dla strony i paska)
 - `src/lib/api.ts` — typy i funkcje pobierające dane; **adapter**: odpowiedzi własnego backendu są tłumaczone na te same typy, których używa interfejs (nazwy parametrów, strony, pola)
 - `src/lib/source.ts` — wybór źródła danych (`localStorage` + `useSyncExternalStore`, tak jak ulubione)
+- `src/lib/auth.ts` — sesja: pyta serwer, kto jest zalogowany (tokenów w przeglądarce nie ma)
+- `src/lib/server/` — kod tylko dla serwera: rozmowa z backendem, odświeżanie tokenów, czyste funkcje proxy (`proxy-utils.ts` ma testy: `npm test`)
+- `src/app/api/` — trasy `auth/login`, `auth/logout`, `auth/session` i ogólne `proxy/[...path]`
 - `src/lib/favorites.ts` — ulubione (`localStorage` + `useSyncExternalStore`)
 - `src/app/page.tsx` — lista, wyszukiwanie, filtry, paginacja
 - `src/app/cocktails/[id]/page.tsx` — szczegóły koktajlu

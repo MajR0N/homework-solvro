@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clientIp, sameOrigin, targetUrl } from "./proxy-utils";
+import { clientIp, proxyAllowed, sameOrigin, targetUrl } from "./proxy-utils";
 
 const BASE = "https://api.example.com/api/v1";
 
@@ -40,5 +40,18 @@ describe("sameOrigin", () => {
     expect(sameOrigin(new Headers({ host: "app.example.com" }))).toBe(false);
     expect(sameOrigin(new Headers({ origin: "null", host: "app.example.com" }))).toBe(false);
     expect(sameOrigin(new Headers({ origin: "https://app.example.com.evil.example", host: "app.example.com" }))).toBe(false);
+  });
+});
+
+describe("proxyAllowed", () => {
+  it("przepuszcza zwykłe zasoby i auth/me", () => {
+    expect(proxyAllowed(["cocktails"])).toBe(true);
+    expect(proxyAllowed(["cocktails", "5", "reviews"])).toBe(true);
+    expect(proxyAllowed(["auth", "me"])).toBe(true);
+    expect(proxyAllowed(["auth", "me", "reviews"])).toBe(true);
+  });
+  it("blokuje punkty, które zwracają tokeny", () => {
+    for (const p of ["login", "refresh", "logout", "register"]) expect(proxyAllowed(["auth", p]), p).toBe(false);
+    expect(proxyAllowed(["auth"])).toBe(false);
   });
 });

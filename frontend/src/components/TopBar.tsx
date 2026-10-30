@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { logout, useSession } from "@/lib/auth";
+import { useLogout, useSession } from "@/lib/auth";
 import { useFavorites } from "@/lib/favorites";
 import { patchParams } from "@/lib/params";
 import { ownAvailable } from "@/lib/source";
@@ -18,7 +18,8 @@ export default function TopBar() {
   const pathname = usePathname();
   const sp = useSearchParams();
   const favs = useFavorites();
-  const session = useSession();
+  const { session, loading } = useSession();
+  const logout = useLogout();
   const onList = pathname === "/";
   const onlyFav = onList && sp.get("fav") === "1";
 
@@ -59,6 +60,7 @@ export default function TopBar() {
 
           {/* konto istnieje tylko we własnym backendzie */}
           {ownAvailable &&
+            !loading &&
             (session ? (
               <>
                 <span className="hidden max-w-32 truncate text-sm md:inline sm:order-5" title={`${session.username} (${session.role})`}>

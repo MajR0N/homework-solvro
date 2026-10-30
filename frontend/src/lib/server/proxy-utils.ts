@@ -33,4 +33,13 @@ export function sameOrigin(headers: Headers): boolean {
   }
 }
 
+/**
+ * Czy ogólne proxy może przekazać taką ścieżkę. Punkty logowania (login, refresh, logout, register) mają własne
+ * trasy, które trzymają tokeny w ciasteczkach: przez ogólne proxy odpowiedź z tokenami trafiłaby do JavaScriptu,
+ * a o to właśnie chodziło, żeby nie trafiała. Z grupy "auth" przepuszczamy tylko "me" (i to, co pod nim).
+ */
+export function proxyAllowed(segments: string[]): boolean {
+  return segments[0] !== "auth" || segments[1] === "me";
+}
+
 export const SAFE_METHODS = ["GET", "HEAD", "OPTIONS"];
