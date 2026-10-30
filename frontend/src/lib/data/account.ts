@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { HttpError, listMyRecipes } from "../api";
+import { HttpError, listCocktails, listMyRecipes } from "../api";
 import { useSession } from "../auth";
 import { demoData, deleteDemoRecipe, deleteDemoReview } from "../demo/data";
+import { useFavorites } from "../favorites";
+import { useSource } from "../source";
 import { activityOf, myReviewsOf, recipesOf, statsOf } from "../demo/fixtures";
 import { activityFromOwn, reviewFromOwn, statsFromOwn } from "./mappers";
 import { proxyJson } from "./proxy";
@@ -71,6 +73,20 @@ export function useMyStats() {
       return statsFromOwn(r);
     },
   });
+}
+
+// Ulubione są w localStorage (ten sam zapis w trybie demo i w prawdziwym), a szczegóły koktajli pobieramy z wybranego źródła.
+// Bez ulubionych nie pytamy o nic: lista z pustym ids oznaczałaby w API Solvro "wszystkie koktajle".
+export function useFavoriteCocktails() {
+  const ids = useFavorites();
+  const source = useSource();
+  const query = useQuery({
+    queryKey: ["favorites", source, ids],
+    enabled: ids.length > 0,
+    retry,
+    queryFn: () => listCocktails({ name: "", category: "", alcoholic: "", sort: "+name", page: 1, ids }, source),
+  });
+  return { ids, ...query };
 }
 
 // Po zmianie odświeżamy wszystko ("moje" dane i listę na stronie głównej), bo jeden przepis jest widoczny w wielu miejscach.

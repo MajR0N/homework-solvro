@@ -6,3 +6,5 @@ export type Role = (typeof ROLES)[number];
 export const isRole = (x: unknown): x is Role => ROLES.includes(x as Role);
 /** Ranga roli (0 = user); nieznana nazwa daje -1, czyli mniej niż każda prawdziwa rola. */
 export const rank = (role: string): number => ROLES.indexOf(role as Role);
+
+export const ROLE_PL: Record<Role, string> = { user: "Użytkownik", admin: "Administrator", staff: "Staff", owner: "Właściciel" };
