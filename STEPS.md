@@ -386,3 +386,13 @@ Owner feedback after looking at the live app: (1) the bar should be a dark blue 
 
 **Checked:** tsc, lint, build, screenshots (dark desktop list and detail, dark phone list). **Not checked:** light theme after this change, keyboard use of the new selects.
 
+## 26. Login form (30 October 2026)
+
+Owner decision: no demo account and no hard-coded credentials. The owner creates the admin account themselves (`createsuperuser` or the CMS) and types the credentials into a login form. Nothing secret is in the frontend bundle.
+
+**Built:** `lib/auth.ts` (session in localStorage with the same `useSyncExternalStore` pattern as favorites; `login` calls `/auth/login/` then `/auth/me/` for name and role; `logout` clears locally first, then invalidates the refresh token on the server), `app/login/page.tsx` (form, Polish error messages for 401/400 and 429 lockout, busy state), and the top bar shows "Zaloguj" or the user name plus "Wyloguj" (only when the own backend is configured). Phones keep two rows: heart and account buttons share the first row.
+
+**Known limits (written in the code as `ponytail:` comments):** access tokens live 10 minutes and there is no refresh call yet because nothing in the UI uses a protected endpoint; tokens in localStorage are readable by an XSS script. Logging in does not unlock any UI feature yet (no review or cocktail forms). The live backend allows CORS only from the deployed frontend, so signing in from `localhost:3000` is blocked by the browser unless that origin is added to `CORS_ALLOWED_ORIGINS` on the backend project.
+
+**Checked:** tsc, lint, build, screenshot of the login page; the live endpoint answers 401 to wrong credentials. **Not checked:** a successful login (no account yet), logout, the logged-in bar.
+
