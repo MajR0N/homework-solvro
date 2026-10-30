@@ -68,9 +68,15 @@ export default function TopBar() {
             !loading &&
             (session ? (
               <>
-                <span className="hidden max-w-32 truncate text-sm md:inline sm:order-5" title={`${session.username} (${session.role})`}>
+                {/* nazwa to link do konta (wcześniej był to sam tekst i na komputerze nie było drogi do /account) */}
+                <Link
+                  href="/account"
+                  aria-current={pathname.startsWith("/account") ? "page" : undefined}
+                  title={`${session.username} (${session.role})`}
+                  className={`max-w-40 truncate rounded-full border px-4 py-2 text-sm sm:order-5 ${pathname.startsWith("/account") ? "border-transparent bg-white font-semibold text-[#203560]" : "border-current/35"}`}
+                >
                   {session.username}
-                </span>
+                </Link>
                 {isAdminLevel(session.role) && (
                   <Link href="/admin" className="rounded-full border border-current/35 px-4 py-2 text-sm sm:order-5">
                     Panel

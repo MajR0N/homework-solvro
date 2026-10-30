@@ -547,3 +547,5 @@ The owner asked to build every accepted prototype (user page with the phone dock
 
 **Not checked.** Light theme, screen reader, keyboard-only use beyond J/K, the deployed Vercel pair. Bulk delete is not offered (only single delete); the admin cannot deactivate accounts (the API only changes roles, on purpose). The cocktail table in real mode uses the public list (12 per page); the queue shows the 12 newest pending recipes (the dashboard shows the full count).
 
+**Fix after phase 3 (31 October 2026): no way to the account page on desktop.** Reported by the owner for demo mode, but it affected every logged-in user: on screens from 768 px the top bar showed the user name as plain text, so nothing linked to `/account` (only the phone dock had "Profil"). The name is now a link to `/account` (highlighted on account pages). Checked in headless Edge on the production build: link present and clickable in demo mode, lands on the account overview, `aria-current` set, the phone dock still works and there is no sideways scroll at 390 px. The phase 1 checks missed this because they opened `/account` by URL and through the dock, never by clicking from the desktop bar.
+
