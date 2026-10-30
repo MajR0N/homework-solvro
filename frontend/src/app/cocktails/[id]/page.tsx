@@ -69,57 +69,68 @@ export default function CocktailPage() {
     );
   }
 
+  const facts = [
+    ["Kategoria", pl(data.category)],
+    ["Naczynie", pl(data.glass)],
+    ["Alkohol", data.alcoholic ? "Z alkoholem" : "Bezalkoholowy"],
+  ];
+
   return (
-    <main id="content" className="mx-auto w-full max-w-5xl p-4">
+    <main id="content" className="mx-auto w-full max-w-7xl p-4">
       <Back />
 
-      {/* zdjęcie po lewej i przyklejone przy przewijaniu, cała treść po prawej; na telefonie jedna kolumna */}
-      <div className="grid gap-8 lg:grid-cols-[2fr_3fr]">
-        <div className="relative aspect-square self-start overflow-hidden rounded-xl bg-foreground/5 shadow-lg shadow-primary/20 lg:sticky lg:top-24">
-          {data.imageUrl && (
-            <Image src={data.imageUrl} alt={data.name} fill priority sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
-          )}
+      {/* Baner: rozmyte zdjęcie w tle pod ciemną nakładką (dlatego tekst jest zawsze biały, w obu motywach), ostre zdjęcie obok. */}
+      <section aria-labelledby="tytul" className="relative isolate overflow-hidden rounded-3xl text-white">
+        <div aria-hidden="true" className="absolute inset-0 -z-20 bg-[#203560]">
+          {data.imageUrl && <Image src={data.imageUrl} alt="" fill sizes="100vw" className="scale-125 object-cover blur-3xl" />}
         </div>
-
-        <div>
-          <div className="flex items-start justify-between gap-3">
-            <h1 className="text-4xl font-bold leading-tight tracking-tight">{data.name}</h1>
-            <FavoriteButton id={data.id} name={data.name} className="shrink-0 border" />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-r from-[#0f1a30]/90 to-[#0f1a30]/70" />
+        <div className="grid items-end gap-6 p-5 sm:p-8 md:grid-cols-[minmax(0,17rem)_1fr] md:gap-8">
+          <div className="relative aspect-square max-w-64 overflow-hidden rounded-2xl bg-white/10 shadow-2xl shadow-black/50 md:max-w-none">
+            {data.imageUrl && (
+              <Image src={data.imageUrl} alt={data.name} fill priority sizes="(min-width: 768px) 17rem, 16rem" className="object-cover" />
+            )}
           </div>
-          <div className="mt-3 empty:hidden">
-            <Badges cocktail={data} />
+          <div>
+            <div className="flex items-start justify-between gap-3">
+              <h1 id="tytul" className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+                {data.name}
+              </h1>
+              <FavoriteButton id={data.id} name={data.name} className="shrink-0" />
+            </div>
+            <div className="mt-3 empty:hidden">
+              <Badges cocktail={data} />
+            </div>
+            {/* fakty w jednym rzędzie rozdzielone cienkimi liniami (bez pudełek) */}
+            <dl className="mt-6 flex flex-wrap gap-y-3">
+              {facts.map(([term, value]) => (
+                <div key={term} className="border-l border-white/35 px-6 first:border-l-0 first:pl-0">
+                  <dt className="text-sm text-white/80">{term}</dt>
+                  <dd className="text-lg font-semibold">{value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
+        </div>
+      </section>
 
-          {/* podstawowe fakty w jednym rzędzie; wartości dłuższe niż kolumna zawijają się do kolejnej linii */}
-          <dl className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(9.5rem,1fr))] gap-3">
-            {[
-              ["Kategoria", pl(data.category)],
-              ["Naczynie", pl(data.glass)],
-              ["Alkohol", data.alcoholic ? "Z alkoholem" : "Bezalkoholowy"],
-            ].map(([term, value]) => (
-              <div key={term} className="rounded-xl border border-foreground/15 bg-foreground/5 px-4 py-3">
-                <dt className="text-sm text-foreground/70">{term}</dt>
-                <dd className="mt-0.5 font-semibold">{value}</dd>
-              </div>
-            ))}
-          </dl>
-
-          <h2 className={`mt-10 ${heading}`}>Przygotowanie</h2>
-          <p className="mt-3 max-w-prose text-lg leading-relaxed">{data.instructions}</p>
-
-      <h2 className={`mt-10 mb-4 ${heading}`}>Składniki</h2>
-          <ul className="divide-y divide-foreground/15 rounded-xl border border-foreground/15 bg-foreground/5">
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start">
+        <section aria-labelledby="skladniki">
+          <h2 id="skladniki" className={`mb-4 ${heading}`}>
+            Składniki
+          </h2>
+          <ul className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3">
             {data.ingredients.map((ing) => (
-              <li key={ing.id} className="px-4 py-3.5">
+              <li key={ing.id} className="rounded-xl border border-foreground/15 bg-foreground/5 p-3">
                 <div className="flex items-center gap-3">
-                  <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-foreground/10">
+                  <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-foreground/10">
                     {ing.imageUrl ? (
-                    <Image src={ing.imageUrl} alt="" fill sizes="56px" className="object-cover" />
-                  ) : (
-                    <span aria-hidden="true" className="grid size-full place-items-center text-lg font-semibold text-foreground/60">
-                      {ing.name.charAt(0).toUpperCase()}
-                    </span>
-                  )}
+                      <Image src={ing.imageUrl} alt="" fill sizes="64px" className="object-cover" />
+                    ) : (
+                      <span aria-hidden="true" className="grid size-full place-items-center text-xl font-semibold text-foreground/60">
+                        {ing.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-lg font-semibold leading-tight">{ing.name}</p>
@@ -137,42 +148,51 @@ export default function CocktailPage() {
               </li>
             ))}
           </ul>
+        </section>
 
-          {source === "own" && (
-            <section className="mt-10" aria-labelledby="opinie">
-              <h2 id="opinie" className={`mb-4 ${heading}`}>
-                Opinie{reviews.data ? ` (${reviews.data.total})` : ""}
-              </h2>
-              {reviews.isError ? (
-                <p role="alert">Nie udało się pobrać opinii.</p>
-              ) : reviews.isPending ? (
-                <p className="text-foreground/70">Ładowanie opinii…</p>
-              ) : reviews.data.reviews.length === 0 ? (
-                <p className="text-foreground/70">Nikt jeszcze nie ocenił tego koktajlu.</p>
-              ) : (
-                <ul className="space-y-3">
-                  {reviews.data.reviews.map((r) => (
-                    <li key={r.id} className="rounded-xl border border-foreground/15 p-3">
-                      <div className="flex flex-wrap items-center gap-x-3 text-sm">
-                        <Stars rating={r.rating} />
-                        {/* author = null: konto zostało usunięte, ale opinia i jej ocena zostają */}
-                        <span className={r.author ? "font-medium" : "italic text-foreground/70"}>{r.author ?? "usunięty użytkownik"}</span>
-                        <time dateTime={r.createdAt} className="text-foreground/70">
-                          {new Date(r.createdAt).toLocaleDateString("pl-PL")}
-                        </time>
-                      </div>
-                      {r.text && <p className="mt-2 whitespace-pre-line">{r.text}</p>}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <p className="mt-4 text-sm text-foreground/70">
-                Opinie dodaje się na razie przez API po zalogowaniu (Swagger); formularza w interfejsie jeszcze nie ma.
-              </p>
-            </section>
-          )}
-        </div>
+        <section aria-labelledby="przygotowanie">
+          <h2 id="przygotowanie" className={`mb-4 ${heading}`}>
+            Przygotowanie
+          </h2>
+          <div className="rounded-xl border border-foreground/15 bg-foreground/5 p-5">
+            <p className="max-w-prose text-lg leading-relaxed">{data.instructions}</p>
+          </div>
+        </section>
       </div>
+
+      {source === "own" && (
+        <section className="mt-10" aria-labelledby="opinie">
+          <h2 id="opinie" className={`mb-4 ${heading}`}>
+            Opinie{reviews.data ? ` (${reviews.data.total})` : ""}
+          </h2>
+          {reviews.isError ? (
+            <p role="alert">Nie udało się pobrać opinii.</p>
+          ) : reviews.isPending ? (
+            <p className="text-foreground/70">Ładowanie opinii…</p>
+          ) : reviews.data.reviews.length === 0 ? (
+            <p className="text-foreground/70">Nikt jeszcze nie ocenił tego koktajlu.</p>
+          ) : (
+            <ul className="grid gap-3 md:grid-cols-2">
+              {reviews.data.reviews.map((r) => (
+                <li key={r.id} className="rounded-xl border border-foreground/15 p-3">
+                  <div className="flex flex-wrap items-center gap-x-3 text-sm">
+                    <Stars rating={r.rating} />
+                    {/* author = null: konto zostało usunięte, ale opinia i jej ocena zostają */}
+                    <span className={r.author ? "font-medium" : "italic text-foreground/70"}>{r.author ?? "usunięty użytkownik"}</span>
+                    <time dateTime={r.createdAt} className="text-foreground/70">
+                      {new Date(r.createdAt).toLocaleDateString("pl-PL")}
+                    </time>
+                  </div>
+                  {r.text && <p className="mt-2 whitespace-pre-line">{r.text}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-4 text-sm text-foreground/70">
+            Opinie dodaje się na razie przez API po zalogowaniu (Swagger); formularza w interfejsie jeszcze nie ma.
+          </p>
+        </section>
+      )}
     </main>
   );
 }

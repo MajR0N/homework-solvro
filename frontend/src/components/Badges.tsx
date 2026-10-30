@@ -1,4 +1,4 @@
-import type { Cocktail } from "@/lib/api";
+import type { Cocktail, Status } from "@/lib/api";
 import { STATUS_PL } from "@/lib/pl";
 
 const STAR = "M12 17.3l-5.4 3.2 1.4-6.1L3.3 10l6.2-.5L12 3.8l2.5 5.7 6.2.5-4.7 4.4 1.4 6.1z";
@@ -24,6 +24,32 @@ export function Stars({ rating }: { rating: number }) {
 
 const pill = "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium";
 
+// "Na topie" w ciepłym akcencie, pozostałe etykiety w kolorze głównym; tekst, więc nie zależy od samego koloru
+export function StatusPill({ status }: { status: Status }) {
+  return <span className={`${pill} ${status === "trending" ? "bg-warm text-on-warm" : "bg-primary text-on-primary"}`}>{STATUS_PL[status]}</span>;
+}
+
+// Mała ikona weryfikacji na ciemnym szkle karty (zawsze biała, więc widoczna w obu motywach); znaczenie niesie opis, nie kolor
+export function VerifiedIcon() {
+  return (
+    <span role="img" aria-label="Zweryfikowany" title="Zweryfikowany" className="inline-grid size-[1.15rem] shrink-0 place-items-center rounded-full bg-white text-[#203560]">
+      <svg viewBox="0 0 24 24" className="size-3" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3.5">
+        <path d="M5 13l4 4L19 7" />
+      </svg>
+    </span>
+  );
+}
+
+// Ocena w jednej linii: gwiazdka, średnia i liczba opinii
+export function RatingInline({ avg, count }: { avg: number; count: number }) {
+  return (
+    <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-semibold" role="img" aria-label={`Średnia ocena ${avg} na 5, liczba opinii ${count}`}>
+      <Star filled />
+      {avg.toFixed(1).replace(".", ",")} ({count})
+    </span>
+  );
+}
+
 // Znaczki z własnego backendu: zweryfikowany, etykieta popularności i ocena. Solvro ich nie zna, więc wtedy nic nie pokazujemy.
 export default function Badges({ cocktail }: { cocktail: Cocktail }) {
   const { verified, status, ratingAvg, ratingCount } = cocktail;
@@ -32,7 +58,9 @@ export default function Badges({ cocktail }: { cocktail: Cocktail }) {
   return (
     <ul className="flex flex-wrap items-center gap-1.5" aria-label="Znaczki">
       {status && (
-        <li className={`${pill} ${status === "trending" ? "bg-warm text-on-warm" : "bg-primary text-on-primary"}`}>{STATUS_PL[status]}</li>
+        <li>
+          <StatusPill status={status} />
+        </li>
       )}
       {verified && (
         <li className={`${pill} border border-current/40`}>

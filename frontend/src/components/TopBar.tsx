@@ -36,7 +36,7 @@ export default function TopBar() {
 
   return (
     // zewnętrzny element jest przezroczysty i trzyma pigułkę w tej samej szerokości co treść strony
-    <header className="sticky top-3 z-30 mx-auto mt-3 w-full max-w-5xl px-4">
+    <header className="sticky top-3 z-30 mx-auto mt-3 w-full max-w-7xl px-4">
       <div className="glass flex flex-wrap items-center gap-x-3 gap-y-2 rounded-3xl px-4 py-2.5 sm:rounded-full sm:py-2 sm:pr-3">
         <Link href="/" aria-label="Solvro, strona główna" className="shrink-0 rounded-md sm:order-1">
           {/* oficjalne logo bez zmian: białe na ciemnym szkle */}

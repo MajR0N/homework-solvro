@@ -408,3 +408,11 @@ After using the live app the owner reported: the "Tylko zweryfikowane" checkbox 
 
 **Waiting for the owner:** which variant to build for the list (A, B, C), the detail page (A, B, C) and the card (A, B, C). The login form from section 26 is already in the app and independent of this.
 
+## 28. Card A, detail page A and a wider layout (30 October 2026)
+
+Owner picked from `design-proposals/`: card **A** (slim glass), detail page **A** (banner), list **C** (featured tiles and a floating filter pill) but "with filters that definitely need changes", so the list itself waits for a decision on three filter proposals (section 29).
+
+**Built:** `CocktailCard` now shows the status pill on the photo, a white verified icon next to the name (role `img`, label "Zweryfikowany"), the rating on the right and only the category below ("Bezalkoholowy" is shown only as the exception). `Badges.tsx` exports `StatusPill`, `VerifiedIcon`, `RatingInline`, shared with the detail page. Detail page: banner (blurred photo under a dark gradient so text is always white, sharp photo, title, badges, facts separated by thin lines), ingredient cards in an auto-fill grid next to the preparation panel, reviews in two columns underneath. The bar and the list are now `max-w-7xl` (was `5xl`) so everything shares one left edge; the list grid has 5 columns from 1280 px.
+
+**Checked:** tsc, lint, build, screenshots (list at 1900 px, detail at 1500 px dark, detail on a 500 px window light). **Not checked:** the own-backend badges on real cards (the local build showed the Solvro source, which has no badges), hover and keyboard use, the blurred banner with a bright photo (the overlay is strong enough that the blur is faint).
+

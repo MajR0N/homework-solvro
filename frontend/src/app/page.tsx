@@ -70,7 +70,7 @@ function Cocktails() {
   const categories = useQuery({ queryKey: ["categories", source], queryFn: () => getCategories(source), staleTime: Infinity });
 
   return (
-    <main id="content" className="mx-auto w-full max-w-5xl p-4">
+    <main id="content" className="mx-auto w-full max-w-7xl p-4">
       <h1 className="mb-6 text-3xl font-bold">Koktajle</h1>
 
       <form
@@ -148,7 +148,7 @@ function Cocktails() {
           </button>
         </div>
       ) : isPending ? (
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4" aria-busy="true" aria-label="Ładowanie">
+        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" aria-busy="true" aria-label="Ładowanie">
           {Array.from({ length: 12 }, (_, i) => (
             <li key={i} className="aspect-4/5 animate-pulse rounded-xl bg-foreground/10" />
           ))}
@@ -161,7 +161,7 @@ function Cocktails() {
             Znaleziono: {data.meta.total}
           </p>
           <ul
-            className={`grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 ${isPlaceholderData ? "opacity-60" : ""}`}
+            className={`grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 ${isPlaceholderData ? "opacity-60" : ""}`}
           >
             {data.data.map((c) => (
               <li key={c.id}>
