@@ -1,9 +1,11 @@
+from datetime import timedelta
+
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db import IntegrityError, transaction
-from django.db.models import ProtectedError
+from django.db.models import Avg, Count, ProtectedError
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import generics, status, viewsets
 from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -16,11 +18,14 @@ from .models import Category, Cocktail, CocktailView, Ingredient, Review, Review
 from .pagination import Pagination
 from .permissions import IsAuthorOrAdmin, ReviewPermission
 from .serializers import (
+    ActivitySerializer,
     CategorySerializer,
     CocktailDetailSerializer,
     CocktailListSerializer,
     CocktailWriteSerializer,
     IngredientSerializer,
+    MyReviewSerializer,
+    MyStatsSerializer,
     ReviewReportSerializer,
     ReviewSerializer,
 )
@@ -176,3 +181,76 @@ class CocktailViewCount(APIView):
             # ignore_conflicts = INSERT ... ON CONFLICT DO NOTHING: bezpieczne także przy równoległych żądaniach
             CocktailView.objects.bulk_create([CocktailView(cocktail=cocktail, day=day, visitor=visitor)], ignore_conflicts=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class GlassList(APIView):
+    """Rodzaje szklanek występujące w bazie (do filtra). Krótka lista, więc bez paginacji."""
+
+    permission_classes = [AllowAny]
+
+    @extend_schema(responses={200: {"type": "array", "items": {"type": "string"}}})
+    def get(self, request):
+        glasses = Cocktail.objects.exclude(glass="").values_list("glass", flat=True).distinct().order_by("glass")
+        return Response(list(glasses))
+
+
+class MyReviews(generics.ListAPIView):
+    """Opinie, które sam wystawiłem (najnowsze pierwsze)."""
+
+    serializer_class = MyReviewSerializer
+    pagination_class = Pagination
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Review.objects.filter(author=self.request.user).select_related("cocktail").order_by("-created_at", "-id")
+
+
+class MyActivity(APIView):
+    """Ostatnie wydarzenia: opinie innych o moich koktajlach i moje opinie o cudzych, od najnowszych."""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        parameters=[OpenApiParameter("limit", int, description="Ile wydarzeń (1 do 30, domyślnie 8).")],
+        responses=ActivitySerializer(many=True),
+    )
+    def get(self, request):
+        try:
+            limit = min(max(int(request.query_params.get("limit", 8)), 1), 30)
+        except ValueError:
+            limit = 8
+        base = Review.objects.select_related("cocktail", "author").order_by("-created_at", "-id")
+        received = [setattr(r, "kind", "received") or r for r in base.filter(cocktail__author=request.user).exclude(author=request.user)[:limit]]
+        given = [setattr(r, "kind", "given") or r for r in base.filter(author=request.user)[:limit]]
+        events = sorted(received + given, key=lambda r: (r.created_at, r.id), reverse=True)[:limit]
+        return Response(ActivitySerializer(events, many=True).data)
+
+
+class MyStats(APIView):
+    """Liczby do panelu autora: ile koktajli, wyświetleń, jaka średnia ocena i wyświetlenia dzień po dniu z 30 dni."""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses=MyStatsSerializer)
+    def get(self, request):
+        mine = Cocktail.objects.filter(author=request.user)
+        views = CocktailView.objects.filter(cocktail__in=mine)
+        today = timezone.localdate()
+        first = today - timedelta(days=29)
+        per_day = dict(views.filter(day__gte=first).values("day").annotate(n=Count("id")).values_list("day", "n"))
+        by_day = [{"day": first + timedelta(days=i), "views": per_day.get(first + timedelta(days=i), 0)} for i in range(30)]
+        ratings = Review.objects.filter(cocktail__in=mine).aggregate(avg=Avg("rating"), n=Count("id"))
+        return Response(
+            MyStatsSerializer(
+                {
+                    "recipes": mine.count(),
+                    "views_total": views.count(),
+                    "views_30d": sum(d["views"] for d in by_day),
+                    "rating_avg": None if ratings["avg"] is None else round(float(ratings["avg"]), 2),
+                    "rating_count": ratings["n"],
+                    "reviews_written": Review.objects.filter(author=request.user).count(),
+                    "views_by_day": by_day,
+                }
+            ).data
+        )
+

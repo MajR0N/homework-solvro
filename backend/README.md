@@ -206,9 +206,11 @@ Wszystkie adresy mają prefiks `/api/v1/`. Interaktywna dokumentacja (Swagger, z
 | koktajle | `GET`, `POST /cocktails/` · `GET`, `PUT`, `PATCH`, `DELETE /cocktails/{id}/` |
 | składniki | `GET`, `POST /ingredients/` · `GET`, `PUT`, `PATCH`, `DELETE /ingredients/{id}/` |
 | kategorie | `GET /categories/` |
+| szklanki | `GET /glasses/` (lista nazw szklanek z bazy, do filtra) |
 | opinie | `GET`, `POST /cocktails/{id}/reviews/` · `GET`, `PUT`, `PATCH`, `DELETE /reviews/{id}/` · `POST /reviews/{id}/report/` |
 | wyświetlenia | `POST /cocktails/{id}/views/` |
 | konta | `POST /auth/register/`, `/auth/login/`, `/auth/refresh/`, `/auth/logout/` · `GET /auth/me/` |
+| moje dane (po zalogowaniu) | `GET /me/reviews/` · `GET /me/activity/` · `GET /me/stats/` |
 
 Kody odpowiedzi: 201 po utworzeniu, 204 po usunięciu, 400 dla złych danych lub parametrów (z komunikatem, które pole jest złe), 401 bez logowania, 403 bez uprawnień, 404 dla nieistniejącego zasobu, 409 przy konflikcie, 429 po przekroczeniu limitu.
 
@@ -345,6 +347,18 @@ Rangi: user < admin < staff < owner. Nikt nie może edytować własnego konta w 
 - Admin **usuwa**, ale nie **edytuje** cudzych opinii; autor koktajlu może opinię tylko **zgłosić**, nie usunąć (inaczej kasowałby złe oceny).
 - Po usunięciu konta opinia zostaje i nadal liczy się do średniej, a `author` oraz `author_username` mają wartość `null` (frontend pokazuje „usunięty użytkownik”).
 - Zgłoszenia i opinie są w CMS (Reviews, Review reports): admin sortuje opinie po liczbie zgłoszeń i je usuwa albo odrzuca zgłoszenie (usuwa samo zgłoszenie). Opinii w CMS nie da się edytować.
+
+## Moje dane (`/me/...`)
+
+Trzy adresy tylko dla zalogowanego (bez tokenu 401). Zasilają stronę konta we frontendzie i zwracają wyłącznie dane osoby z tokenu; nie ma parametru "czyje", więc nie da się zajrzeć w cudze.
+
+| Adres | Zwraca |
+|---|---|
+| `GET /me/reviews/` | moje opinie, najnowsze pierwsze, po 20 na stronę; każda z koktajlem (`id`, `name`, `image_url`) |
+| `GET /me/activity/?limit=8` | ostatnie wydarzenia: `kind: "received"` (ktoś ocenił mój koktajl, pole `author_username`) i `kind: "given"` (ja oceniłem cudzy), od najnowszych; `limit` od 1 do 30, zły albo brakujący = 8 |
+| `GET /me/stats/` | `recipes`, `views_total`, `views_30d`, `rating_avg` (średnia wszystkich opinii o moich koktajlach, `null` bez opinii), `rating_count`, `reviews_written` oraz `views_by_day`: dokładnie 30 dni od najstarszego, także dni z zerem |
+
+Wyświetlenia są liczone z tabeli `CocktailView` (jeden odwiedzający na koktajl i dzień), a własne wyświetlenia autora się nie liczą. Testy: `tests/test_me_endpoints.py`.
 
 ## Wyświetlenia i etykiety popularności
 

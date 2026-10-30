@@ -137,6 +137,52 @@ class ReviewSerializer(serializers.ModelSerializer):
         return review.author.username if review.author_id else None  # None = usunięty użytkownik
 
 
+class CocktailRefSerializer(serializers.ModelSerializer):
+    """Skrót koktajlu do wyświetlenia przy opinii (nazwa i zdjęcie), bez liczenia ocen i wyświetleń."""
+
+    class Meta:
+        model = Cocktail
+        fields = ["id", "name", "image_url"]
+
+
+class MyReviewSerializer(serializers.ModelSerializer):
+    """Opinia razem z koktajlem, którego dotyczy (lista "moje opinie" i aktywność)."""
+
+    cocktail = CocktailRefSerializer(read_only=True)
+
+    class Meta:
+        model = Review
+        fields = ["id", "rating", "text", "created_at", "updated_at", "cocktail"]
+
+
+class ActivitySerializer(MyReviewSerializer):
+    """Wydarzenie w aktywności: "received" = ktoś ocenił mój koktajl, "given" = ja oceniłem cudzy."""
+
+    kind = serializers.ChoiceField(choices=["received", "given"], read_only=True)
+    author_username = serializers.SerializerMethodField()
+
+    def get_author_username(self, review) -> str | None:
+        return review.author.username if review.author_id else None
+
+    class Meta(MyReviewSerializer.Meta):
+        fields = ["kind", "author_username"] + MyReviewSerializer.Meta.fields
+
+
+class DayViewsSerializer(serializers.Serializer):
+    day = serializers.DateField()
+    views = serializers.IntegerField()
+
+
+class MyStatsSerializer(serializers.Serializer):
+    recipes = serializers.IntegerField(help_text="Ile koktajli dodałem.")
+    views_total = serializers.IntegerField(help_text="Policzone wyświetlenia moich koktajli (jeden odwiedzający = jedno na dzień).")
+    views_30d = serializers.IntegerField()
+    rating_avg = serializers.FloatField(allow_null=True, help_text="Średnia wszystkich opinii o moich koktajlach; null, gdy ich nie ma.")
+    rating_count = serializers.IntegerField()
+    reviews_written = serializers.IntegerField(help_text="Ile opinii sam wystawiłem.")
+    views_by_day = DayViewsSerializer(many=True, help_text="Ostatnie 30 dni od najstarszego, także dni bez wyświetleń (0).")
+
+
 class ReviewReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReviewReport
