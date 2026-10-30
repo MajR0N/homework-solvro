@@ -461,7 +461,7 @@ Checked: a CDP script in headless Edge (dark theme, 1500 px and 420 px) clicked 
 
 The owner liked concept E of the user page (phone layout with a bottom glass dock) and asked to reuse it for the main page and to mix all five user-page concepts. Built `frontend/design-proposals/app.html` (+ `app.js`, `app.css`): one responsive prototype. Wide: top bar (A, B side menu from 64rem). Narrow: bottom dock on the main page and the account page (E). Account sections: overview with shelves (C) and activity feed, author panel with chart and table (D), favourites, own reviews, settings. Main page: "Na topie teraz" tiles, category chips, sort, favourite hearts.
 
-File naming: the owner asked for English file names, so the new files are `admin-sidebar.html`, `admin-topbar.html`, `admin-panel.js/css`, `app.html/js/css`. The older mockups (`list.html`, `profile.html`, ...) keep their Polish names for now.
+File naming: the owner asked for English file names, so the new files are `admin-sidebar.html`, `admin-topbar.html`, `admin-panel.js/css`, `app.html/js/css`. The older mockups were renamed too (same day): filtry→filters, karta→card, lista→list, profil→profile, przepis→recipe, szczegoly→detail (all `.html`). README and this file were updated; older sections above may still mention the old names in prose.
 
 Simplifications: add/edit uses a short dialog (name, category, image); the full editor is concept C of `recipe.html`, not built. Popularity labels use invented thresholds; the 30-day chart is invented data. State is in `sessionStorage`, no backend call.
 
