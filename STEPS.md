@@ -396,3 +396,15 @@ Owner decision: no demo account and no hard-coded credentials. The owner creates
 
 **Checked:** tsc, lint, build, screenshot of the login page; the live endpoint answers 401 to wrong credentials. **Not checked:** a successful login (no account yet), logout, the logged-in bar.
 
+## 27. Design proposals for the list, detail page and card (30 October 2026)
+
+After using the live app the owner reported: the "Tylko zweryfikowane" checkbox sits alone on its own row and is an unstyled white system checkbox; the list uses about 1000 px of a 1900 px screen; the detail page has bad category positioning and layout; the card's glass panel covers half the photo and its badges wrap into separate lines. The owner asked for **three design ideas per layout in separate files in a new folder with a README for the recruiter, inside `frontend/`** instead of fixing each by hand.
+
+**Built:** `frontend/design-proposals/` with `lista.html`, `szczegoly.html`, `karta.html` (three variants each, each with pros and cons), `proposals.css` (copy of the app tokens) and a Polish `README.md`. Plain HTML/CSS with a little inline JS to render repeated cards; no build step and no change to `src/`. Data: real cocktail and ingredient names and photos from the Solvro API; badges, ratings and the review are samples. The folder lives under `frontend/`, so it is not part of the Next.js build (the HTML is not imported by the app).
+
+**Found while checking:** a CSS bug in the mocks (the `background` shorthand on the glass reset the select arrow's `no-repeat`, so it tiled across the control); fixed with `background-color`. The app itself was not affected.
+
+**Checked:** screenshots of all three files at 1500 px in the dark theme. **Not checked:** light theme, phone widths, hover and keyboard behaviour of card variant C, any screen reader.
+
+**Waiting for the owner:** which variant to build for the list (A, B, C), the detail page (A, B, C) and the card (A, B, C). The login form from section 26 is already in the app and independent of this.
+

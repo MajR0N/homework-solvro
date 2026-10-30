@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Karta koktajlu: trzy propozycje</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="proposals.css">
+  <style>
+    /* każdy wariant pokazuje cztery stany tej samej karty: pełne znaczki, wszystkie naraz, jeden i brak */
+    .row4 { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr)); max-width: 62rem; }
+    .row4 .card { aspect-ratio: 4 / 5; }
+    .state { margin-top: 0.4rem; font-size: 0.75rem; color: var(--muted); }
+    /* K2: zdjęcie w całości, opis pod nim na zwykłym tle (szkło zostaje tylko na pasku) */
+    .k2 .card { aspect-ratio: auto; display: flex; flex-direction: column; border: 1px solid var(--line); box-shadow: none; }
+    .k2 .photo { position: relative; aspect-ratio: 1; overflow: hidden; }
+    .k2 .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .k2 .photo .tag { position: absolute; top: 0.6rem; left: 0.6rem; }
+    .k2 .photo .fav { position: absolute; top: 0.5rem; right: 0.5rem; }
+    .k2 .body { display: grid; gap: 0.25rem; padding: 0.85rem 1rem 1rem; }
+    .k2 .body h3 { font-size: 1.0625rem; line-height: 1.2; }
+    .k2 .body .meta { font-size: 0.8125rem; color: var(--muted); }
+    .k2 .foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.35rem; min-height: 1.5rem; }
+
+    /* K3: domyślnie tylko nazwa na szkle, po najechaniu lub fokusie rozwija się reszta */
+    .k3 .card { cursor: pointer; }
+    .k3 .cap { padding: 0.6rem 0.75rem; transition: transform 0.2s; }
+    .k3 .top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .k3 .more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.25s ease; }
+    .k3 .more > div { overflow: hidden; }
+    .k3 .more .meta { margin-top: 0.4rem; font-size: 0.8125rem; opacity: 0.9; }
+    .k3 .more .badges { margin-top: 0.5rem; padding-bottom: 0.1rem; }
+    .k3 .card:hover .more, .k3 .card:focus-within .more, .k3 .card:focus .more { grid-template-rows: 1fr; }
+    .k3 .tag { position: absolute; top: 0.6rem; left: 0.6rem; }
+    @media (hover: none) { .k3 .more { grid-template-rows: 1fr; } } /* telefon nie ma najechania, więc rozwinięte zawsze */
+    @media (prefers-reduced-motion: reduce) { .k3 .more { transition: none; } }
+  </style>
+</head>
+<body>
+<div class="doc">
+  <header>
+    <h1>Karta koktajlu: trzy propozycje</h1>
+    <p class="lead">Obecna karta ma dwa problemy widoczne na zrzucie ekranu: szklany panel zasłania około połowy zdjęcia, a znaczki "Zweryfikowany" i ocena zawijają się do osobnych linii, więc karta z kompletem etykiet jest dużo wyższa niż pusta. Poniżej trzy sposoby. Każdy jest pokazany na czterech stanach: pełny zestaw etykiet (najgorszy przypadek), weryfikacja plus ocena, tylko etykieta popularności z oceną i brak etykiet.</p>
+    <nav aria-label="Warianty"><ul>
+      <li><a href="#k1">A: wąskie szkło</a></li>
+      <li><a href="#k2">B: zdjęcie i opis pod nim</a></li>
+      <li><a href="#k3">C: szkło rozwijane</a></li>
+    </ul></nav>
+  </header>
+
+  <section class="variant" id="k1" aria-labelledby="k1-t">
+    <h2 id="k1-t">A: wąskie szkło, znaczki rozdzielone według funkcji</h2>
+    <p class="idea">Status ("Na topie", "Popularny") przechodzi na zdjęcie jako jedna pigułka w rogu. Weryfikacja to mała ikona przy nazwie (z opisem dla czytnika ekranu), a ocena stoi po prawej w tej samej linii. Pod nazwą zostaje tylko kategoria. Szkło ma stałą, niską wysokość niezależnie od liczby etykiet.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Karty mają tę samą wysokość panelu</li><li>Zdjęcie jest zasłonięte mniej więcej w jednej piątej</li><li>Najbliższe obecnemu wyglądowi, więc najtańsze we wdrożeniu</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Ikona weryfikacji jest mniej oczywista niż napis (pomaga podpowiedź)</li><li>Informacja "Z alkoholem" wypada z karty (zostaje na stronie szczegółów)</li></ul></div>
+    </div>
+    <div class="stage k1"><div class="row4" data-row="k1"></div></div>
+  </section>
+
+  <section class="variant" id="k2" aria-labelledby="k2-t">
+    <h2 id="k2-t">B: zdjęcie w całości, opis pod nim</h2>
+    <p class="idea">Klasyczna karta: kwadratowe zdjęcie bez żadnej nakładki oprócz serca i statusu, a pod nim opis na zwykłym tle: nazwa, kategoria i stopka z weryfikacją i oceną. Szkło zostaje wyłącznie na pasku u góry, więc jest tam, gdzie ma coś rozmywać.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Całe zdjęcie widać, a koktajle to przede wszystkim zdjęcia</li><li>Najlepszy kontrast tekstu, bo tło jest jednolite</li><li>Najprostszy do przeczytania, gdy etykiet jest dużo</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Mniej charakterystyczne, szkło znika z kart</li><li>Karta jest wyższa, więc na ekranie mieści się mniej rzędów</li></ul></div>
+    </div>
+    <div class="stage k2"><div class="row4" data-row="k2"></div></div>
+  </section>
+
+  <section class="variant" id="k3" aria-labelledby="k3-t">
+    <h2 id="k3-t">C: szkło rozwijane po najechaniu</h2>
+    <p class="idea">Domyślnie na dole jest tylko nazwa i ocena na jednej linii szkła, a zdjęcie widać prawie w całości. Po najechaniu myszą albo ustawieniu fokusu klawiaturą szkło rozwija się i pokazuje kategorię oraz wszystkie znaczki. Na telefonie, który nie ma najechania, panel jest od razu rozwinięty. Status popularności zostaje stale widoczny na zdjęciu.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Najczystsza siatka w spoczynku</li><li>Pełna informacja bez zmiany rozmiaru karty (panel rośnie w górę, nie przesuwa układu)</li><li>Wykorzystuje szkło jako element interakcji</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Weryfikacja nie jest widoczna, dopóki karta nie jest rozwinięta</li><li>Najwięcej pracy: dostępność przy klawiaturze i brak najechania wymagają osobnych reguł</li></ul></div>
+    </div>
+    <p class="count" style="margin-bottom:.75rem">Najedź myszą albo przejdź klawiszem Tab na kartę, żeby zobaczyć rozwinięcie.</p>
+    <div class="stage k3"><div class="row4" data-row="k3"></div></div>
+  </section>
+</div>
+
+<script>
+const ICON = {
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>',
+  star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.3l-5.4 3.2 1.4-6.1L3.3 10l6.2-.5L12 3.8l2.5 5.7 6.2.5-4.7 4.4 1.4 6.1z"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
+};
+// nazwy i zdjęcia z API Solvro; status, weryfikacja i oceny są PRZYKŁADOWE
+const CARDS = [
+  { name: "Margarita", slug: "margarita", cat: "Zwykły drink", status: "t", verified: true, rating: "4,6 (18)", state: "Pełny zestaw: Na topie, zweryfikowany, ocena" },
+  { name: "Absinthe #2", slug: "absinthe-2", cat: "Domowy likier", status: "", verified: true, rating: "2,0 (1)", state: "Zweryfikowany i ocena" },
+  { name: "Black Russian", slug: "black-russian", cat: "Zwykły drink", status: "p", verified: false, rating: "4,2 (9)", state: "Popularny i ocena" },
+  { name: "Artillery", slug: "artillery", cat: "Zwykły drink", status: "", verified: false, rating: "", state: "Bez etykiet" },
+];
+const STATUS = { t: '<span class="pill warm">Na topie</span>', p: '<span class="pill status">Popularny</span>' };
+const vtick = `<span class="vtick" title="Zweryfikowany" role="img" aria-label="Zweryfikowany">${ICON.check}</span>`;
+const rate = (c) => (c.rating ? `<span class="rate" aria-label="Ocena ${c.rating}">${ICON.star}${c.rating}</span>` : "");
+const photo = (c) => `<img src="https://cocktails.solvro.pl/images/cocktails/${c.slug}.png" alt="" loading="lazy">`;
+const fav = (c) => `<button class="fav" aria-label="Ulubione: ${c.name}">${ICON.heart}</button>`;
+
+const VARIANTS = {
+  k1: (c) => `<div><article class="card">${photo(c)}${fav(c)}
+    <div class="tag">${STATUS[c.status] || ""}</div>
+    <div class="cap glass"><div class="top"><h3 class="name">${c.name}${c.verified ? vtick : ""}</h3>${rate(c)}</div><p class="meta">${c.cat}</p></div></article>
+    <p class="state">${c.state}</p></div>`,
+  k2: (c) => `<div><article class="card"><div class="photo">${photo(c)}${fav(c)}<div class="tag">${STATUS[c.status] || ""}</div></div>
+    <div class="body"><h3>${c.name}</h3><p class="meta">${c.cat}</p>
+    <div class="foot"><span>${c.verified ? `<span class="pill">${ICON.check}Zweryfikowany</span>` : ""}</span>${rate(c)}</div></div></article>
+    <p class="state">${c.state}</p></div>`,
+  k3: (c) => `<div><article class="card" tabindex="0">${photo(c)}${fav(c)}
+    <div class="tag">${STATUS[c.status] || ""}</div>
+    <div class="cap glass"><div class="top"><h3>${c.name}</h3>${rate(c)}</div>
+    <div class="more"><div><p class="meta">${c.cat}</p>${c.verified ? `<div class="badges"><span class="pill">${ICON.check}Zweryfikowany</span></div>` : ""}</div></div></div></article>
+    <p class="state">${c.state}</p></div>`,
+};
+document.querySelectorAll("[data-row]").forEach((el) => (el.innerHTML = CARDS.map(VARIANTS[el.dataset.row]).join("")));
+</script>
+</body>
+</html>

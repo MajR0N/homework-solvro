@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strona koktajlu: trzy propozycje</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="proposals.css">
+  <style>
+    .title { font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1.05; letter-spacing: -0.02em; }
+    .back { display: inline-block; margin: 1.25rem 0 1rem; color: inherit; }
+    .vtick-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .section-title { font-size: 1.5rem; letter-spacing: -0.01em; margin-bottom: 1rem; }
+    .stack > * + * { margin-top: 2.5rem; }
+    .initial { font-size: 1.25rem; }
+
+    /* D1: szeroki baner z rozmytym zdjęciem w tle, niżej dwie kolumny (składniki | przygotowanie) */
+    .d1 .hero { position: relative; overflow: hidden; border-radius: 1.5rem; color: #fff; isolation: isolate; }
+    .d1 .hero .bg { position: absolute; inset: -3rem; z-index: -2; background-size: cover; background-position: center; filter: blur(30px) saturate(1.2); }
+    .d1 .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgb(15 26 48 / 0.82), rgb(15 26 48 / 0.6)); }
+    .d1 .hero .inner { display: grid; grid-template-columns: minmax(0, 17rem) 1fr; gap: 2rem; align-items: end; padding: 2rem; }
+    .d1 .hero .photo { aspect-ratio: 1; border-radius: 1rem; overflow: hidden; box-shadow: 0 20px 40px -16px rgb(0 0 0 / 0.6); }
+    .d1 .hero .photo img { width: 100%; height: 100%; object-fit: cover; }
+    .d1 .hero .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+    .d1 .hero .fav { background: rgb(255 255 255 / 0.15); color: #fff; border: 1px solid rgb(255 255 255 / 0.4); }
+    .d1 .inline-facts { display: flex; flex-wrap: wrap; gap: 0.75rem 0; margin-top: 1.5rem; }
+    .d1 .inline-facts > div { padding: 0 1.5rem; border-left: 1px solid rgb(255 255 255 / 0.35); }
+    .d1 .inline-facts > div:first-child { padding-left: 0; border-left: 0; }
+    .d1 .inline-facts dt { font-size: 0.8125rem; opacity: 0.8; }
+    .d1 .inline-facts dd { font-weight: 600; font-size: 1.125rem; }
+    .d1 .cols { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 2rem; margin-top: 2rem; align-items: start; }
+    .d1 .ing-grid { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); }
+    .d1 .ing-grid .ing { border: 1px solid var(--line); border-radius: 0.75rem; padding: 0.75rem; background: var(--soft); }
+    .d1 .ing-grid .thumb { width: 4rem; height: 4rem; }
+    .d1 .ing-grid .ing:first-child { border-top: 1px solid var(--line); }
+    .d1 .measure-pill { align-self: flex-start; }
+
+    /* D2: karta przepisu, trzy kolumny: zdjęcie i fakty | opis | składniki; całość widać bez przewijania */
+    .d2 .recipe { display: grid; grid-template-columns: 16rem minmax(0, 1fr) 20rem; gap: 2rem; align-items: start; }
+    .d2 .recipe > aside { position: sticky; top: 5.5rem; }
+    .d2 .recipe .photo { aspect-ratio: 1; overflow: hidden; border-radius: 1rem; margin-bottom: 1rem; }
+    .d2 .recipe .photo img { width: 100%; height: 100%; object-fit: cover; }
+    .d2 .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+    .d2 .prep { margin-top: 2rem; }
+    .d2 .ing .measure { text-align: right; }
+
+    /* D3: galeria składników: duże zdjęcie ze szkłem jak na karcie, pod nim kafle składników */
+    .d3 .top { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 2rem; align-items: stretch; }
+    .d3 .photo { position: relative; min-height: 22rem; overflow: hidden; border-radius: 1rem; }
+    .d3 .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .d3 .photo .cap { position: absolute; left: 0.75rem; right: 0.75rem; bottom: 0.75rem; padding: 1rem 1.25rem; border-radius: 0.75rem; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+    .d3 .photo .fav { position: absolute; top: 0.75rem; right: 0.75rem; }
+    .d3 .facts-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .d3 .tiles { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); }
+    .d3 .tile { position: relative; aspect-ratio: 1; overflow: hidden; border-radius: 0.75rem; background: var(--soft); border: 1px solid var(--line); display: grid; place-items: center; }
+    .d3 .tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 0.75rem 0.75rem 3.5rem; }
+    .d3 .tile .letter { font-size: 3rem; font-weight: 600; color: var(--muted); padding-bottom: 2rem; }
+    .d3 .tile .cap { position: absolute; left: 0.4rem; right: 0.4rem; bottom: 0.4rem; padding: 0.45rem 0.65rem; border-radius: 0.5rem; display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+    .d3 .tile .cap b { font-size: 0.9rem; line-height: 1.15; }
+    .d3 .tile .cap span { font-size: 0.8125rem; white-space: nowrap; opacity: 0.95; }
+
+    @media (max-width: 64rem) {
+      .d1 .hero .inner, .d1 .cols, .d2 .recipe, .d3 .top { grid-template-columns: 1fr; }
+      .d1 .hero .photo { max-width: 16rem; }
+      .d2 .recipe > aside { position: static; }
+    }
+  </style>
+</head>
+<body>
+<div class="doc">
+  <header>
+    <h1>Strona koktajlu: trzy propozycje układu</h1>
+    <p class="lead">Obecna strona ma pod zdjęciem dużo pustego miejsca, trzy skromne pola faktów (kategoria, naczynie, alkohol) w osobnym rzędzie, a lista składników jest wąskim pasem wciśniętym w prawą kolumnę. Poniżej trzy układy. Przykładem jest "Absinthe #2": prawdziwe dane z API Solvro, a ocena i opinia są przykładowe.</p>
+    <nav aria-label="Warianty"><ul>
+      <li><a href="#d1">A: baner</a></li>
+      <li><a href="#d2">B: karta przepisu</a></li>
+      <li><a href="#d3">C: galeria składników</a></li>
+    </ul></nav>
+  </header>
+
+  <section class="variant" id="d1" aria-labelledby="d1-t">
+    <h2 id="d1-t">A: szeroki baner z rozmytym zdjęciem</h2>
+    <p class="idea">Na górze duży panel: zdjęcie koktajlu jako rozmyte tło, ostre zdjęcie po lewej, tytuł, znaczki i fakty w jednym rzędzie rozdzielone cienkimi liniami (bez pudełek). Pod nim dwie kolumny: składniki jako siatka kafli i przygotowanie obok. Strona wypełnia szerokość i od razu jest "stroną", a nie formularzem.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Najmocniejsze pierwsze wrażenie</li><li>Fakty zajmują jeden rząd zamiast trzech pudełek</li><li>Składniki w siatce wykorzystują szerokość</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Baner zabiera około 20 rem wysokości, zanim pojawi się przepis</li><li>Tekst na rozmytym zdjęciu wymaga ciemnej nakładki (jest, i ją trzeba utrzymać)</li></ul></div>
+    </div>
+    <div class="stage d1"><div class="mock">
+      <div data-bar></div>
+      <a class="back" href="#d1">← Wróć do listy</a>
+      <section class="hero" aria-label="Absinthe #2">
+        <div class="bg" style="background-image:url(https://cocktails.solvro.pl/images/cocktails/absinthe-2.png)"></div>
+        <div class="inner">
+          <div class="photo"><img src="https://cocktails.solvro.pl/images/cocktails/absinthe-2.png" alt="Absinthe #2"></div>
+          <div>
+            <div class="top"><h3 class="title">Absinthe #2</h3><button class="fav" aria-label="Ulubione: Absinthe #2" data-heart></button></div>
+            <div class="badges" style="margin-top:.75rem" data-badges></div>
+            <dl class="inline-facts"><div><dt>Kategoria</dt><dd>Domowy likier</dd></div><div><dt>Naczynie</dt><dd>Słoik</dd></div><div><dt>Alkohol</dt><dd>Z alkoholem</dd></div></dl>
+          </div>
+        </div>
+      </section>
+      <div class="cols">
+        <section aria-labelledby="d1-ing"><h2 class="section-title" id="d1-ing">Składniki</h2><div class="ing-grid" data-ing="d1"></div></section>
+        <section aria-labelledby="d1-prep"><h2 class="section-title" id="d1-prep">Przygotowanie</h2><div class="panel"><p class="prose" data-prep></p></div></section>
+      </div>
+      <section style="margin-top:2.5rem" aria-labelledby="d1-rev"><h2 class="section-title" id="d1-rev">Opinie (1)</h2><div data-review></div></section>
+    </div></div>
+  </section>
+
+  <section class="variant" id="d2" aria-labelledby="d2-t">
+    <h2 id="d2-t">B: karta przepisu w trzech kolumnach</h2>
+    <p class="idea">Jak karta przepisu w książce kucharskiej: po lewej zdjęcie i fakty jako tabela z liniami, na środku tytuł i przygotowanie w wygodnej szerokości tekstu, po prawej "lista zakupów" ze składnikami i ilościami wyrównanymi do prawej. Zdjęcie i składniki są przyklejone, więc zostają widoczne przy czytaniu opisu i opinii.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Wszystko, czego potrzeba do zrobienia drinka, jest na jednym ekranie</li><li>Brak pustych miejsc pod zdjęciem</li><li>Ilości wyrównane do prawej łatwo przeskanować</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Trzy kolumny wymagają szerokiego ekranu (poniżej 1024 px zwija się do jednej)</li><li>Mniej efektowne niż baner</li></ul></div>
+    </div>
+    <div class="stage d2"><div class="mock">
+      <div data-bar></div>
+      <a class="back" href="#d2">← Wróć do listy</a>
+      <div class="recipe">
+        <aside aria-label="Zdjęcie i fakty">
+          <div class="photo"><img src="https://cocktails.solvro.pl/images/cocktails/absinthe-2.png" alt="Absinthe #2"></div>
+          <dl class="facts"><div><dt>Kategoria</dt><dd>Domowy likier</dd></div><div><dt>Naczynie</dt><dd>Słoik</dd></div><div><dt>Alkohol</dt><dd>Z alkoholem</dd></div></dl>
+        </aside>
+        <div>
+          <div class="head"><h3 class="title">Absinthe #2</h3><button class="fav" aria-label="Ulubione: Absinthe #2" data-heart style="border:1px solid var(--line)"></button></div>
+          <div class="badges" style="margin-top:.75rem" data-badges></div>
+          <section class="prep" aria-labelledby="d2-prep"><h2 class="section-title" id="d2-prep">Przygotowanie</h2><p class="prose" data-prep></p></section>
+          <section style="margin-top:2.5rem" aria-labelledby="d2-rev"><h2 class="section-title" id="d2-rev">Opinie (1)</h2><div data-review></div></section>
+        </div>
+        <aside class="panel" aria-labelledby="d2-ing"><h2 class="section-title" id="d2-ing" style="font-size:1.25rem">Składniki</h2><div data-ing="d2"></div></aside>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="variant" id="d3" aria-labelledby="d3-t">
+    <h2 id="d3-t">C: galeria składników</h2>
+    <p class="idea">Zdjęcie koktajlu jest duże i poziome, z nazwą na szkle jak na karcie na liście (ten sam język wizualny). Obok stoją fakty jako chipy i przygotowanie. Składniki to osobna galeria kafli ze zdjęciami: składnik bez zdjęcia dostaje dużą literę. Idealne, jeśli składniki mają być równie ważne jak koktajl.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Spójne z kartami z listy</li><li>Składniki są atrakcyjne, a nie tylko wypisane</li><li>Dobrze wypełnia szeroki ekran</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Przy wielu składnikach bez zdjęcia galeria wygląda ubogo</li><li>Ilości są mniejsze i trudniej je porównać niż na liście</li></ul></div>
+    </div>
+    <div class="stage d3"><div class="mock">
+      <div data-bar></div>
+      <a class="back" href="#d3">← Wróć do listy</a>
+      <div class="top">
+        <div class="photo"><img src="https://cocktails.solvro.pl/images/cocktails/absinthe-2.png" alt="Absinthe #2"><button class="fav" aria-label="Ulubione: Absinthe #2" data-heart></button>
+          <div class="cap glass"><div><h3 class="title" style="font-size:2rem">Absinthe #2</h3></div><div class="badges" data-badges></div></div></div>
+        <div>
+          <div class="facts-chips"><span class="chip">Domowy likier</span><span class="chip">Słoik</span><span class="chip">Z alkoholem</span></div>
+          <h2 class="section-title">Przygotowanie</h2><p class="prose" data-prep></p>
+        </div>
+      </div>
+      <section style="margin-top:2.5rem" aria-labelledby="d3-ing"><h2 class="section-title" id="d3-ing">Składniki</h2><div class="tiles" data-ing="d3"></div></section>
+      <section style="margin-top:2.5rem" aria-labelledby="d3-rev"><h2 class="section-title" id="d3-rev">Opinie (1)</h2><div data-review style="max-width:40rem"></div></section>
+    </div></div>
+  </section>
+</div>
+
+<script>
+const ICON = {
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>',
+  star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.3l-5.4 3.2 1.4-6.1L3.3 10l6.2-.5L12 3.8l2.5 5.7 6.2.5-4.7 4.4 1.4 6.1z"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
+};
+// prawdziwe dane z API Solvro (Absinthe #2); brak zdjęcia przy Licorice root to też stan z prawdziwych danych
+const ING = [
+  { name: "Vodka", type: "Vodka", slug: "vodka", measure: "1 bottle" },
+  { name: "Anise", type: "", slug: "anise", measure: "50 ml pure" },
+  { name: "Sugar", type: "", slug: "sugar", measure: "50 gr" },
+  { name: "Wormwood", type: "", slug: "wormwood", measure: "1" },
+  { name: "Licorice root", type: "", slug: "", measure: "1 tblsp" },
+];
+const PREP = "Mix together and let sit a few days. Strain through a coffee filter. To serve mix 1 part absinthe to 4 parts water, add ice, enjoy.";
+const thumb = (i) => `<div class="thumb">${i.slug ? `<img src="https://cocktails.solvro.pl/images/ingredients/${i.slug}.png" alt="" loading="lazy">` : `<span class="initial" aria-hidden="true">${i.name[0]}</span>`}</div>`;
+const INGR = {
+  d1: (i) => `<div class="ing">${thumb(i)}<div class="name">${i.name}${i.type ? `<small>${i.type}</small>` : ""}</div><span class="measure">${i.measure}</span></div>`,
+  d2: (i) => `<div class="ing">${thumb(i)}<div class="name">${i.name}</div><span class="measure">${i.measure}</span></div>`,
+  d3: (i) => `<div class="tile">${i.slug ? `<img src="https://cocktails.solvro.pl/images/ingredients/${i.slug}.png" alt="" loading="lazy">` : `<span class="letter" aria-hidden="true">${i.name[0]}</span>`}<div class="cap glass"><b>${i.name}</b><span>${i.measure}</span></div></div>`,
+};
+const BAR = `<header class="bar glass"><img src="../public/solvro/KN_Solvro_White.svg" alt="Solvro">
+  <div class="search"><input class="field" placeholder="Szukaj koktajlu" aria-label="Szukaj koktajlu"></div>
+  <button class="btn"><span class="heart">${ICON.heart}</span>Ulubione (1)</button>
+  <select class="select" aria-label="Źródło danych"><option>Własny backend</option></select>
+  <button class="btn">Zaloguj</button></header>`;
+const REVIEW = `<article class="review"><div class="meta"><span class="rate" style="display:inline-flex;gap:.1rem;color:var(--primary)">${ICON.star.repeat(2)}<span style="opacity:.3;display:inline-flex">${ICON.star.repeat(3)}</span></span><b>kasia_barmanka</b><time datetime="2026-10-12">12.10.2026</time></div>
+  <p style="margin-top:.5rem">Za słodkie jak na mój gust, ale słoik wygląda świetnie na półce.</p></article>`;
+const BADGES = `<span class="pill">${ICON.check}Zweryfikowany</span><span class="pill">${ICON.star}2,0 (1)</span>`;
+
+document.querySelectorAll("[data-bar]").forEach((e) => (e.innerHTML = BAR));
+document.querySelectorAll("[data-heart]").forEach((e) => (e.innerHTML = ICON.heart));
+document.querySelectorAll("[data-badges]").forEach((e) => (e.innerHTML = BADGES));
+document.querySelectorAll("[data-prep]").forEach((e) => (e.textContent = PREP));
+document.querySelectorAll("[data-review]").forEach((e) => (e.innerHTML = REVIEW));
+document.querySelectorAll("[data-ing]").forEach((e) => (e.innerHTML = ING.map(INGR[e.dataset.ing]).join("")));
+</script>
+</body>
+</html>
