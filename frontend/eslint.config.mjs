@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // statyczne makiety (nie jest to kod aplikacji)
+    "design-proposals/**",
   ]),
 ]);
 
