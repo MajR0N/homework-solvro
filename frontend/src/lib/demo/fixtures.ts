@@ -42,9 +42,9 @@ export function seedDemoData(now: Date): DemoData {
     rows.map(([name, measure], i) => ({ id: -(i + 1), name, alcohol: false, type: null, percentage: null, imageUrl: null, measure }));
   const recipe = (
     id: number, name: string, slug: string, category: string, glass: string, instructions: string,
-    rows: [string, string][], verified: boolean, views: number, ratingAvg: number | null, ratingCount: number, createdDaysAgo: number, seed: number,
+    rows: [string, string][], verified: boolean, views: number, ratingAvg: number | null, ratingCount: number, createdDaysAgo: number, seed: number, author = DEMO_USER,
   ): DemoRecipe => ({
-    id, name, category, glass, alcoholic: true, instructions, imageUrl: `${IMG}${slug}.png`, ingredients: ing(rows), verified,
+    id, name, category, glass, alcoholic: true, authorName: author, instructions, imageUrl: `${IMG}${slug}.png`, ingredients: ing(rows), verified,
     status: views >= 600 ? "popular" : views >= 250 ? "trending" : null, // ponytail: progi wymyślone; w prawdziwym backendzie etykiety liczy baza
     ratingAvg, ratingCount, views30d: views, viewsTotal: views, daily: dailySeries(views, seed), createdAt: ago(createdDaysAgo),
   });
@@ -58,6 +58,12 @@ export function seedDemoData(now: Date): DemoData {
         [["Rum biały", "60 ml"], ["Sok z limonki", "25 ml"], ["Syrop cukrowy", "15 ml"]], false, 274, 4.3, 2, 9, 3),
       recipe(900_004, "Old Fashioned po polsku", "whiskey-sour", "Cocktail", "Old-fashioned glass", "Rozpuść cukier z angosturą, dodaj whisky i lód, mieszaj.",
         [["Whisky", "50 ml"], ["Angostura", "2 krople"], ["Cukier", "1 łyżeczka"]], false, 97, null, 0, 4, 4),
+      // przepisy innych osób: ich nie widać na koncie kasia_mixuje, ale są w panelu administratora (id 900101+)
+      recipe(900_101, "Szarlotka z rumem", "allegheny", "Ordinary Drink", "Old-fashioned glass", "Podgrzej sok jabłkowy z cynamonem, dodaj rum.",
+        [["Rum ciemny", "40 ml"], ["Sok jabłkowy", "100 ml"], ["Cynamon", "1 laska"]], true, 188, 5.0, 3, 40, 5, "tomek_barman"),
+      recipe(900_102, "Manhattan bez lodu", "manhattan", "Cocktail", "Cocktail glass", "Wymieszaj składniki bez lodu, podaj w schłodzonym kieliszku.",
+        [["Bourbon", "50 ml"], ["Czerwony wermut", "25 ml"], ["Angostura", "2 krople"]], false, 58, null, 0, 5, 1, "ola.shaker"),
+      { ...recipe(900_103, "Bez nazwy 2", "", "Ordinary Drink", "", "", [], false, 4, null, 0, 1, 2, "anon_barman"), imageUrl: null },
     ],
     reviews: [
       { id: 1, rating: 4, text: "Dałam odrobinę mniej cukru i było idealnie.", createdAt: ago(1, 3), author: DEMO_USER, cocktail: DAIQUIRI },
@@ -74,7 +80,9 @@ export function seedDemoData(now: Date): DemoData {
 
 // ---------- to, co zwróciłby backend (te same kształty co w data/types.ts) ----------
 
-export const recipesOf = (d: DemoData): MyRecipe[] => d.recipes;
+/** Moje przepisy: tylko te, których autorem jest konto demo (reszta jest w panelu administratora). */
+const mineOf = (d: DemoData): DemoRecipe[] => d.recipes.filter((r) => r.authorName === DEMO_USER);
+export const recipesOf = (d: DemoData): MyRecipe[] => mineOf(d);
 
 const asReview = (r: DemoReview): MyReview => ({ id: r.id, rating: r.rating, text: r.text, createdAt: r.createdAt, cocktail: r.cocktail });
 const byNewest = (a: DemoReview, b: DemoReview) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id;
@@ -82,7 +90,7 @@ const byNewest = (a: DemoReview, b: DemoReview) => b.createdAt.localeCompare(a.c
 export const myReviewsOf = (d: DemoData): MyReview[] => d.reviews.filter((r) => r.author === DEMO_USER).sort(byNewest).map(asReview);
 
 export function activityOf(d: DemoData, limit: number): ActivityEvent[] {
-  const mine = new Set(d.recipes.map((r) => r.id));
+  const mine = new Set(recipesOf(d).map((r) => r.id));
   return d.reviews
     .flatMap((r): ActivityEvent[] => {
       if (r.author === DEMO_USER) return [{ ...asReview(r), kind: "given", author: r.author }];
@@ -94,7 +102,8 @@ export function activityOf(d: DemoData, limit: number): ActivityEvent[] {
 
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-export function statsOf(d: DemoData, now: Date): MyStats {
+export function statsOf(all: DemoData, now: Date): MyStats {
+  const d = { ...all, recipes: mineOf(all) };
   const rated = d.recipes.reduce((s, r) => s + (r.ratingCount ?? 0), 0);
   const viewsByDay = Array.from({ length: 30 }, (_, i) => {
     const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (29 - i));
@@ -159,7 +168,7 @@ export function withRecipeSaved(d: DemoData, input: RecipeInput, id: number | nu
   }
   const newId = Math.max(DEMO_ID_MIN, ...d.recipes.map((r) => r.id)) + 1;
   const created: DemoRecipe = {
-    ...fields, id: newId, verified: false, status: null, ratingAvg: null, ratingCount: 0, views30d: 0, viewsTotal: 0, daily: Array(30).fill(0), createdAt: now.toISOString(),
+    ...fields, id: newId, authorName: DEMO_USER, verified: false, status: null, ratingAvg: null, ratingCount: 0, views30d: 0, viewsTotal: 0, daily: Array(30).fill(0), createdAt: now.toISOString(),
   };
   return { id: newId, data: { ...d, recipes: [...d.recipes, created] } };
 }

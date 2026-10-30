@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEMO_USER, type RecipeInput, activityOf, dailySeries, demoIngredientId, distribute, isDemoId, myReviewsOf, seedDemoData, statsOf, withRecipeSaved, withoutRecipe, withoutReview } from "./fixtures";
+import { DEMO_USER, type RecipeInput, activityOf, dailySeries, demoIngredientId, distribute, isDemoId, myReviewsOf, recipesOf, seedDemoData, statsOf, withRecipeSaved, withoutRecipe, withoutReview } from "./fixtures";
 
 const NOW = new Date(2026, 9, 30, 12, 0, 0); // 30 października 2026
 const seed = () => seedDemoData(NOW);
@@ -24,6 +24,11 @@ describe("distribute i dailySeries", () => {
 });
 
 describe("dane początkowe", () => {
+  it("konto widzi tylko własne przepisy, inni autorzy są tylko w danych", () => {
+    expect(recipesOf(seed()).map((r) => r.id)).toEqual([900_001, 900_002, 900_003, 900_004]);
+    expect(seed().recipes.map((r) => r.authorName)).toContain("tomek_barman");
+    expect(statsOf(seed(), NOW).recipes).toBe(4);
+  });
   it("id przepisów demo są rozpoznawane, id z Solvro nie", () => {
     expect(seed().recipes.every((r) => isDemoId(r.id))).toBe(true);
     expect([11007, "11007", 42].some(isDemoId)).toBe(false);
@@ -66,9 +71,9 @@ describe("zmiany", () => {
   it("usunięcie przepisu usuwa jego opinie i wpływa na statystyki, a oryginał zostaje nietknięty", () => {
     const before = seed();
     const after = withoutRecipe(before, 900_001);
-    expect(after.recipes).toHaveLength(3);
+    expect(after.recipes).toHaveLength(6);
     expect(after.reviews.some((r) => r.cocktail.id === 900_001)).toBe(false);
-    expect(before.recipes).toHaveLength(4);
+    expect(before.recipes).toHaveLength(7);
     expect(statsOf(after, NOW)).toMatchObject({ recipes: 3, viewsTotal: 672, ratingCount: 4 });
   });
   it("usunięcie opinii zmniejsza liczbę wystawionych", () => {
@@ -88,7 +93,7 @@ describe("zapis przepisu w trybie demo", () => {
   const input: RecipeInput = { name: "Nowy drink", category: "Shot", glass: "Shot glass", alcoholic: false, imageUrl: "", instructions: "Wymieszaj.", ingredients: [{ id: -5, name: "Mint", measure: "3 listki" }] };
   it("nowy przepis dostaje kolejne duże id, zero statystyk i brak znaczka", () => {
     const { data, id } = withRecipeSaved(seed(), input, null, NOW);
-    expect(id).toBe(900_005);
+    expect(id).toBe(900_104);
     expect(isDemoId(id)).toBe(true);
     const created = data.recipes.find((r) => r.id === id)!;
     expect(created).toMatchObject({ name: "Nowy drink", verified: false, views30d: 0, ratingCount: 0, imageUrl: null, createdAt: NOW.toISOString() });
@@ -101,7 +106,7 @@ describe("zapis przepisu w trybie demo", () => {
     expect(id).toBe(900_001);
     const after = data.recipes.find((r) => r.id === 900_001)!;
     expect(after).toMatchObject({ name: "Zmieniony Mojito", verified: true, views30d: 612, ratingAvg: 4.6, imageUrl: "https://cocktails.solvro.pl/x.png" });
-    expect(data.recipes).toHaveLength(4);
+    expect(data.recipes).toHaveLength(7);
     expect(before.recipes[0].name).toBe("Wiśniowy Mojito"); // oryginał nietknięty
   });
   it("edycja nieistniejącego przepisu to błąd, a nie cichy nowy wpis", () => {

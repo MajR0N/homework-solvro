@@ -84,7 +84,7 @@ export default function RecipeEditor({ id }: { id: number | null }) {
         </main>
       );
     // Backend i tak odmówi (403), ale nie pokazujemy formularza, którego nie da się zapisać. Import z Solvro nie ma autora: tylko admin wzwyż.
-    const own = demo.on || recipe.data.authorName === session.username;
+    const own = recipe.data.authorName === session.username;
     if (!own && rank(session.role) < rank("admin"))
       return (
         <Gate title="Nie możesz edytować tego przepisu" text="Edytować można tylko własne przepisy. Przepisy innych osób i dane z importu zmienia administrator.">

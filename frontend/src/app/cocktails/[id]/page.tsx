@@ -103,7 +103,7 @@ export default function CocktailPage() {
               </h1>
               <div className="flex shrink-0 items-center gap-2">
                 {/* edytować może autor i administrator wzwyż (backend i tak to sprawdza); przepis demo tylko w trybie demo */}
-                {session && (demo ? isDemoId(id) : source === "own" && (data.authorName === session.username || rank(session.role) >= rank("admin"))) && (
+                {session && (demo ? isDemoId(id) : source === "own") && (data.authorName === session.username || rank(session.role) >= rank("admin")) && (
                   <Link href={`/recipes/${data.id}/edit`} className="rounded-full border border-white/50 px-4 py-2 text-sm hover:bg-white/15">
                     Edytuj
                   </Link>

@@ -23,6 +23,7 @@ export type Cocktail = {
   ratingAvg?: number | null;
   ratingCount?: number;
   views30d?: number; // wyświetlenia z 30 dni (tylko własny backend)
+  hasImage?: boolean; // własny backend: czy koktajl ma zapisany adres zdjęcia
   authorName?: string; // kto dodał koktajl; puste = import z Solvro (tylko własny backend)
 };
 export type Ingredient = {
@@ -87,7 +88,7 @@ type OwnIngredient = {
   image_url: string;
   measure?: string;
 };
-type OwnCocktail = {
+export type OwnCocktail = {
   id: number;
   name: string;
   category: string;
@@ -116,7 +117,7 @@ export function allowedImage(url: string): string | null {
   }
 }
 
-const fromOwn = (c: OwnCocktail): Cocktail => ({
+export const fromOwn = (c: OwnCocktail): Cocktail => ({
   id: c.id,
   name: c.name,
   category: c.category,
@@ -124,6 +125,7 @@ const fromOwn = (c: OwnCocktail): Cocktail => ({
   alcoholic: c.alcoholic,
   instructions: c.instructions ?? "",
   imageUrl: allowedImage(c.image_url),
+  hasImage: c.image_url !== "", // czy backend ma jakikolwiek adres zdjęcia (imageUrl pomija obce hosty)
   verified: c.verified ?? false,
   status: c.status ?? null,
   ratingAvg: c.rating_avg ?? null,
