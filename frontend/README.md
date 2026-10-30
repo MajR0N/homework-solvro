@@ -81,13 +81,26 @@ Strona konta łączy pięć propozycji z `design-proposals/profile.html`: baner 
 | `/account/favorites` | ulubione (zapisane w tej przeglądarce, więc działają w demo i po zalogowaniu) |
 | `/account/reviews` | moje opinie, z usuwaniem |
 | `/account/settings` | dane konta, wylogowanie, w demo także przywracanie danych |
-| `/recipes/new` | zaślepka: edytor przepisu powstaje w fazie 2 |
+| `/recipes/new`, `/recipes/<id>/edit` | edytor przepisu (opis niżej) |
 
 Strony używają tylko hooków z `src/lib/data/account.ts` (`useMyRecipes`, `useMyReviews`, `useMyActivity`, `useMyStats`, `useFavoriteCocktails`, `useDeleteRecipe`, `useDeleteReview`) i nie wiedzą, czy dane są z trybu demo, czy z backendu. Prawdziwy backend: `GET /cocktails/?author=<nazwa>` (publiczny odczyt, wprost) oraz `GET /me/reviews`, `/me/activity`, `/me/stats` i `DELETE` przez proxy z ciasteczkiem. Tryb demo: `src/lib/demo/fixtures.ts` liczy to samo z przykładowych danych w `localStorage` (testy: `fixtures.test.ts`). Przepisy demo mają id od 900000, a strona szczegółów (`/cocktails/900001`) czyta je z `localStorage`.
 
 **Dolna nawigacja (propozycja E).** Poniżej 768 px pojawia się szklany pasek z czterema pozycjami (Główna, Ulubione, Dodaj, Profil, ikony Phosphor), a z górnego paska znikają ulubione i konto. Od 768 px jest tylko górny pasek.
 
 **Filtry na liście (własny backend).** Panel „Filtry” ma teraz także: autora (wszyscy, import Solvro, użytkownicy, moje), etykietę popularności i rodzaj szklanki. „Moje” jest tylko dla zalogowanego z prawdziwego konta (nie w trybie demo). Wartości są w adresie: `?by=import|users|mine&status=trending|popular|most_popular&glass=...`.
+
+### Edytor przepisu (`/recipes/new`, `/recipes/<id>/edit`)
+
+Układ jak strona koktajlu (propozycja C z `design-proposals/recipe.html`): szklany baner (zdjęcie, nazwa, kategoria, szklanka, adres zdjęcia, alkohol), panele „Składniki” i „Przygotowanie” oraz przyklejony szklany pasek zapisu. Ten sam ekran dodaje i edytuje; na telefonie pasek jest nad dolną nawigacją.
+
+- **Składniki to prawdziwe składniki z bazy.** Backend łączy je po id, więc samo wpisanie nazwy nie wystarcza: pole działa jak lista podpowiedzi (wzorzec ARIA combobox: strzałki, Enter, Esc), a gdy nic nie pasuje, pojawia się „Dodaj „…” jako nowy składnik” (`POST /ingredients/`, może każdy zalogowany). Każdy składnik tylko raz, miara to dowolny tekst.
+- **Walidacja** w `src/lib/recipe/form.ts` (czyste funkcje z testami, te same limity co backend): nazwa i kategoria wymagane, zdjęcie tylko `https`, najwyżej 50 składników. Po nieudanej próbie zapisu fokus trafia na pierwsze błędne pole, a błędy z backendu (400) trafiają do właściwych pól (`serverErrors`).
+- **Szkic** zapisuje się sam w `localStorage` po 400 ms przerwy w pisaniu (klucz zawiera konto albo „demo” i id przepisu) i wraca przy następnym otwarciu z przyciskiem „Odrzuć szkic”. Po zapisie jest kasowany, po nieudanym zapisie (np. wygasła sesja) zostaje.
+- **Ostrzeżenie przed wyjściem.** Zamknięcie lub odświeżenie karty pokazuje okno przeglądarki, a kliknięcie w link naszej aplikacji okno „Wyjść bez zapisywania?” (szkic zostaje). „Anuluj” pyta o odrzucenie i kasuje szkic. **Czego to nie łapie:** przycisku „wstecz” przeglądarki i przejść z kodu; wtedy chroni szkic.
+- **Uprawnienia.** Edytować może autor oraz administrator wzwyż (backend sprawdza to jeszcze raz, 403). Dane z importu Solvro nie mają autora, więc zwykły użytkownik zobaczy komunikat zamiast formularza. Przycisk „Edytuj” jest w panelu autora i na stronie przepisu.
+- **Znaczek „zweryfikowany”** nie jest w formularzu: backend nie pozwala go ustawić przez API (nadaje go administrator, faza 3).
+- **Zdjęcie** to adres `https`; podgląd i obraz w aplikacji działają tylko dla hosta `cocktails.solvro.pl` (ograniczenie `next/image`, patrz „Znane ograniczenia”), inne adresy zapisują się, ale pokazują puste miejsce.
+- W trybie demo wszystko działa na `localStorage` (listy kategorii, szklanek i składników są stałe, nowe składniki zapamiętuje przeglądarka); w prawdziwym trybie zapis idzie przez proxy z ciasteczkiem, a po zapisie źródło danych przełącza się na własny backend.
 
 ## Struktura
 - `src/app/globals.css` — kolory marki i wyprowadzone z nich zmienne (jasny i ciemny motyw), szkło, fokus
@@ -99,6 +112,7 @@ Strony używają tylko hooków z `src/lib/data/account.ts` (`useMyRecipes`, `use
 - `src/app/api/` — trasy `auth/login`, `auth/logout`, `auth/session` i ogólne `proxy/[...path]`
 - `src/lib/demo/` — tryb demo: `mode.ts` (włączenie i rola), `store.ts` (magazyn w `localStorage` z wartością początkową i resetem)
 - `src/lib/data/` — dane konta: `account.ts` (hooki), `mappers.ts` (backend na typy interfejsu), `proxy.ts` (wywołania przez proxy), `types.ts`
+- `src/lib/recipe/` — model formularza przepisu (`form.ts`), szkice (`draft.ts`), ostrzeżenie przed wyjściem (`useLeaveGuard.ts`); `src/components/recipe/` — edytor i pole składnika
 - `src/lib/format.ts` — odmiana po polsku, liczby, daty, inicjały
 - `src/app/account/`, `src/components/account/`, `src/components/BottomDock.tsx` — strona konta i dolna nawigacja
 - `src/lib/roles.ts` — role i ich kolejność
