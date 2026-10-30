@@ -475,3 +475,29 @@ The owner decided to skip the separate UI/UX task. `uiux/` (`palette.html`, `tok
 
 **Next (owner's request):** build the accepted prototypes into the Next.js app in phases, each one grilled first: (1) account page, phone dock, richer filters; (2) recipe editor C with real create/edit calls; (3) admin panel with the top bar (needs new backend endpoints: users and roles, report queue, stats).
 
+## 35. Plan: build the accepted prototypes into the app (grilled 30 October 2026)
+
+The owner asked to build every accepted prototype (user page with the phone dock, richer filters, recipe editor C, admin panel with the top bar) into `frontend/`. Each branch was grilled one question at a time; these are the decisions. **No deadline pressure** (the owner said the 31 October date is not a hard stop), so the work is done properly in phases with a stop after each one.
+
+**Correction:** `CLAUDE.md` said the backend is not deployed. It is: Vercel + Neon (see `backend/README.md`). `CLAUDE.md` was fixed.
+
+| # | Topic | Decision |
+|---|---|---|
+| G1 | Scope | Everything, in phases, no day limit. |
+| G2 | My reviews | New backend endpoints for the logged-in user's reviews **and** for recent reviews on my recipes (activity feed). |
+| G3, G4, G5 | Demo | The demo profile (made-up recipes, reviews, stats, 30-day chart) lives **in the frontend** as fixtures, switched by a separate **"Tryb demo" toggle** (account menu + a visible banner "Tryb demo: zmiany zapisują się tylko w tej przeglądarce"). Demo = you are `kasia_mixuje`, no login, writes go to localStorage, a demo role can be chosen (user/admin/staff/owner), so the admin panel can be shown without backend. Off = real login and real backend. The source select (Solvro / own backend) stays as it is. Assumption to confirm: real mode also gets a stats endpoint (totals + views per day from `CocktailView`), so the author panel is real there. |
+| G6 | Routes | Nested, English: `/account`, `/account/recipes`, `/account/favorites`, `/account/reviews`, `/account/settings` (one layout with banner and section menu); `/recipes/new`, `/recipes/[id]/edit`; `/admin/*`. UI text stays Polish. Dock: `/`, `/account/favorites`, `/recipes/new`, `/account`. |
+| G7, G8 | Auth | **httpOnly cookies through a Next.js proxy** (tokens never reach JavaScript). Proxy only for login, refresh, logout and writes; public reads and the view counter stay direct from the browser. The proxy adds `X-Client-IP` plus a shared-secret header, and the backend trusts `X-Client-IP` only when the secret matches (otherwise all users share Vercel's IP: global login lockout, broken view de-duplication). Refresh is done server-side in the proxy, single-flight. |
+| G9 | Demo layer | Data-layer adapter: pages use hooks (TanStack Query); each hook's query function picks the demo store or the real calls. No MSW. |
+| G10 | Filters | Add: author (all / Solvro / users / mine, `?author=`), glass type (needs a small endpoint listing glasses), popularity label (`?status=`). Not added: minimum rating (no backend support). |
+| G11 | Ingredients in the editor | Typeahead over existing ingredients (`/ingredients/?search=`) with an inline "add new ingredient" row (`POST /ingredients/`); measure is free text; each ingredient once. Category must already exist. Image is a URL (https only), no upload. |
+| G12 | Unsaved work | Warn on leave (beforeunload + in-app confirm) **and** autosave a draft to localStorage (restore with a notice and a discard button). |
+| G13 | Admin API | Real endpoints under `/api/v1/admin/` (users + role change, report queue + dismiss, verify/unverify incl. bulk, dashboard stats). The role rules move into **one shared policy module** used by both the Django CMS and the API, with tests (privilege-escalation cases first). The CMS stays as fallback. |
+| G14 | Admin edit | One editor: admin "Edytuj" opens `/recipes/[id]/edit` (concept C) with admin extras (verified switch, author line). |
+| G15 | Tests | pytest for every new endpoint and the policy; **Vitest** (one dev dependency) for pure frontend logic (demo store, drafts, role rules mirror, ingredient dedupe); browser behaviour checked with a headless-Edge script, reported honestly, not committed. |
+| G16 | Order | **Phase 0 foundation** (backend trusted-IP header, Next proxy routes, cookie session replacing localStorage tokens, "Tryb demo" + demo store, Vitest) then **Phase 1** (account pages, phone dock, filters, new `/auth/me` endpoints) then **Phase 2** (recipe editor with drafts) then **Phase 3** (admin API with shared policy + admin panel with the top bar). Small commits, stop and report after each phase. |
+
+**Known costs the owner accepted:** the cookie proxy is the largest option (more code than localStorage + refresh); the shared policy module touches the existing CMS; two code paths (demo and real) must stay in sync; Solvro's public API has no login, so account, editor and admin only exist with the own backend or in demo mode.
+
+**Not yet decided:** visual details of the dock on tablets, exact demo fixtures, how the deployed frontend gets `BACKEND_URL` and the shared secret (Vercel env, to be done in Phase 0).
+

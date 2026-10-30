@@ -6,7 +6,7 @@ Task specs: https://github.com/Solvro/rekrutacja (cocktails theme). Cocktails AP
 
 ## Scope
 - `frontend/` — Next.js (App Router), TypeScript, Tailwind CSS, TanStack Query. UI text and code comments in **Polish**, identifiers in English.
-- `backend/` — Django (+ Django REST Framework), PostgreSQL. **Built**: CRUD, pagination, validation, filters, Swagger, JWT accounts with four roles, CMS, reviews, views and popularity labels, tests. See `backend/README.md`. It runs locally and is not deployed; the frontend reads from it through the source switch when `NEXT_PUBLIC_BACKEND_URL` is set (read-only: no login or write forms yet).
+- `backend/` — Django (+ Django REST Framework), PostgreSQL. **Built**: CRUD, pagination, validation, filters, Swagger, JWT accounts with four roles, CMS, reviews, views and popularity labels, tests. See `backend/README.md`. It is deployed on Vercel (database on Neon) and also runs locally; the frontend reads from it through the source switch when `NEXT_PUBLIC_BACKEND_URL` is set. Login exists; the write forms, account page and admin panel are being built (plan: `STEPS.md` section 35).
 - UI/UX homework (`uiux/`) — **skipped by the user on 30 October 2026**; the folder was removed. The palette and its contrast check live in `frontend/design-proposals/palette.html` (Solvro blues, see `STEPS.md` section 22). Design proposals are in `frontend/design-proposals/`; the accepted ones are being built into `frontend/`.
 - Not doing: Mobile, DevOps, AI/ML, PM, Promotion.
 - README files (root, `frontend/`, `backend/`) are written in **Polish**; `STEPS.md` stays in English.
