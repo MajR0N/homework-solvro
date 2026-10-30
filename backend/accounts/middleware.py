@@ -1,3 +1,6 @@
+import hmac
+import ipaddress
+
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse
@@ -43,3 +46,30 @@ class BodySizeLimit:
         if size > settings.MAX_REQUEST_BODY_BYTES:
             return HttpResponse("Żądanie jest za duże.", status=413, content_type="text/plain; charset=utf-8")
         return self.get_response(request)
+
+
+class TrustedClientIP:
+    """Zaufany adres klienta od naszego własnego serwera pośredniczącego (proxy we frontendzie).
+
+    Gdy żądanie idzie przeglądarka -> Next.js -> to API, adres widziany tutaj to adres serwera Next.js, więc wszyscy
+    użytkownicy dzieliliby jeden limit prób logowania i jedno "wyświetlenie na dzień". Proxy dopisuje więc
+    X-Client-IP oraz sekret X-Proxy-Secret. Adres uznajemy tylko, gdy sekret się zgadza (porównanie w stałym czasie);
+    bez sekretu albo ze złym sekretem nagłówek X-Client-IP jest ignorowany, więc nikt nie podszyje się pod cudzy adres.
+    Przepisujemy REMOTE_ADDR i X-Forwarded-For, bo DRF czyta adres z jednego z nich, zależnie od NUM_PROXIES.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        secret = settings.PROXY_SECRET
+        if secret and hmac.compare_digest(request.META.get("HTTP_X_PROXY_SECRET", "").encode(), secret.encode()):
+            try:
+                ip = str(ipaddress.ip_address(request.META.get("HTTP_X_CLIENT_IP", "").strip()))
+            except ValueError:
+                ip = None  # zły albo pusty adres: zostaje adres z połączenia
+            if ip:
+                request.META["REMOTE_ADDR"] = ip
+                request.META["HTTP_X_FORWARDED_FOR"] = ip
+        return self.get_response(request)
+

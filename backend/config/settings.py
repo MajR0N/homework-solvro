@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'accounts.middleware.TrustedClientIP',  # przed wszystkim, co czyta adres IP
     'accounts.middleware.BodySizeLimit',
     'accounts.middleware.AdminLoginLimit',
     'corsheaders.middleware.CorsMiddleware',  # przed CommonMiddleware, żeby dodać nagłówki CORS do odpowiedzi
@@ -132,6 +133,12 @@ CORS_URLS_REGEX = r'^/api/.*$'
 # Ile serwerów pośredniczących stoi przed Django (0 lokalnie). Od tego zależy, skąd bierzemy adres IP klienta
 # (limity, liczenie wyświetleń) i czy wolno ufać nagłówkowi o HTTPS. Na hostingu trzeba ustawić poprawnie.
 NUM_PROXIES = int(os.environ.get('NUM_PROXIES', '0'))
+
+# Wspólny sekret z proxy we frontendzie (Next.js). Z nim proxy może przekazać prawdziwy adres klienta w X-Client-IP
+# (patrz accounts.middleware.TrustedClientIP). Bez zmiennej funkcja jest wyłączona. Min. 32 znaki, np. `openssl rand -hex 32`.
+PROXY_SECRET = os.environ.get('PROXY_SECRET', '')
+if PROXY_SECRET and len(PROXY_SECRET) < 32:
+    raise ImproperlyConfigured('PROXY_SECRET musi mieć co najmniej 32 znaki')
 
 # Tryb produkcyjny: jedna zmienna PRODUCTION=true włącza wszystko, co jest potrzebne za HTTPS, i odmawia startu,
 # gdy konfiguracja jest niebezpieczna (DEBUG włączony albo adresy zostawione na domyślnych, lokalnych).

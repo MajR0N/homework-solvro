@@ -52,6 +52,7 @@ Zmienne w pliku `.env` (wszystkie sekrety zostają poza gitem):
 | `ALLOWED_HOSTS` | adresy po przecinku, domyślnie `localhost,127.0.0.1` |
 | `CORS_ALLOWED_ORIGINS` | adresy frontendu, którym przeglądarka pozwoli czytać API (po przecinku), domyślnie `http://localhost:3000,http://127.0.0.1:3000`; dotyczy tylko `/api/` |
 | `NUM_PROXIES` | ile serwerów pośredniczących stoi przed Django (domyślnie 0); ważne dla limitów i liczenia wyświetleń po IP |
+| `PROXY_SECRET` | wspólny sekret z proxy we frontendzie (min. 32 znaki, np. `openssl rand -hex 32`); z nim proxy może przekazać prawdziwy adres klienta w `X-Client-IP`. Bez zmiennej funkcja jest wyłączona |
 | `TRENDING_MIN_VIEWS`, `POPULAR_MIN_VIEWS`, `MOST_POPULAR_MIN_VIEWS` | progi etykiet popularności (domyślnie 10 / 20 / 100) |
 
 Import można uruchamiać wielokrotnie: zachowuje id z API Solvro, niczego nie dubluje, a przy błędzie sieci nie zostawia połowicznych danych.
@@ -294,6 +295,8 @@ Własny model użytkownika (`accounts.User`) z polem `role`: **user < admin < st
 | `GET /auth/me/` | `id`, `username`, `role` (wymaga nagłówka `Authorization: Bearer <access>`) |
 
 Rejestracja i logowanie mają wspólny limit 10 prób na minutę z jednego IP. Limit liczy adres z `REMOTE_ADDR`; za serwerem pośredniczącym (np. Cloud Run) trzeba ustawić zmienną `NUM_PROXIES`, inaczej limit będzie liczony po adresie pośrednika. Nie ma pola e-mail (mniej danych osobowych).
+
+**Adres klienta za proxy frontendu (`PROXY_SECRET`).** Frontend loguje przez własne proxy (Next.js), więc samo API widzi adres tego serwera, a nie użytkownika: wszyscy dzieliliby jeden limit prób logowania i jedno "wyświetlenie na dzień". Proxy dopisuje więc nagłówki `X-Client-IP` (prawdziwy adres) i `X-Proxy-Secret`. Middleware `TrustedClientIP` bierze adres z `X-Client-IP` **tylko wtedy**, gdy sekret zgadza się z `PROXY_SECRET` (porównanie w stałym czasie); w przeciwnym razie nagłówek jest ignorowany, więc nikt nie podrobi cudzego adresu. Zły adres IP w nagłówku jest pomijany. Bez ustawionego `PROXY_SECRET` (puste) funkcja jest wyłączona, a krótszy sekret niż 32 znaki zatrzymuje start serwera. Test: `tests/test_trusted_client_ip.py`.
 
 **Kto co może z koktajlami i składnikami:**
 
