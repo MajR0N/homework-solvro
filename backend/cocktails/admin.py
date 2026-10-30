@@ -4,6 +4,7 @@ from django.db.models import Count
 from accounts.admin import RoleAdminMixin
 
 from .models import Category, Cocktail, CocktailIngredient, Ingredient, Review, ReviewReport
+from .services import set_verified
 
 admin.site.site_header = "Koktajle CMS"
 admin.site.site_title = "Koktajle CMS"
@@ -48,11 +49,11 @@ class CocktailAdmin(RoleAdminMixin, AuthorOnAddMixin, admin.ModelAdmin):
 
     @admin.action(description="Mark selected cocktails as verified")
     def mark_verified(self, request, queryset):
-        self.message_user(request, f"Verified: {queryset.update(verified=True)}")
+        self.message_user(request, f"Verified: {set_verified(queryset, True)}")
 
     @admin.action(description="Remove the verified mark from selected cocktails")
     def mark_unverified(self, request, queryset):
-        self.message_user(request, f"Unverified: {queryset.update(verified=False)}")
+        self.message_user(request, f"Unverified: {set_verified(queryset, False)}")
 
 
 @admin.register(Review)

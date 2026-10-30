@@ -211,6 +211,7 @@ Wszystkie adresy mają prefiks `/api/v1/`. Interaktywna dokumentacja (Swagger, z
 | wyświetlenia | `POST /cocktails/{id}/views/` |
 | konta | `POST /auth/register/`, `/auth/login/`, `/auth/refresh/`, `/auth/logout/` · `GET /auth/me/` |
 | moje dane (po zalogowaniu) | `GET /me/reviews/` · `GET /me/activity/` · `GET /me/stats/` |
+| panel administratora (admin, staff, owner) | `GET /admin/stats/` · `GET /admin/users/`, `PATCH /admin/users/{id}/` · `GET /admin/reports/`, `POST /admin/reports/{id}/dismiss/` · `POST /admin/cocktails/verify/` |
 
 Kody odpowiedzi: 201 po utworzeniu, 204 po usunięciu, 400 dla złych danych lub parametrów (z komunikatem, które pole jest złe), 401 bez logowania, 403 bez uprawnień, 404 dla nieistniejącego zasobu, 409 przy konflikcie, 429 po przekroczeniu limitu.
 
@@ -242,6 +243,7 @@ Lista (`GET /cocktails/`) zwraca po 20 na stronę w formacie `{count, next, prev
 | `verified` | `?verified=true` | tylko zweryfikowane (lub `false`) |
 | `author` | `?author=anna` | koktajle dodane przez to konto (bez rozróżniania wielkości liter) |
 | `origin` | `?origin=import` | skąd pochodzi koktajl: `import` (dane Solvro, bez autora) albo `users` (dodane przez użytkowników, także gdy ich konto już nie istnieje) |
+| `has_image` | `?has_image=false` | tylko koktajle bez zdjęcia (`true` = tylko ze zdjęciem) |
 | `ingredient` | `?ingredient=mint,lime` | fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie |
 | `id` | `?id=11000,11007` | tylko te koktajle (ulubione); samo `?id=` = brak wyników |
 | `status` | `?status=trending` | etykieta popularności: `trending`, `popular`, `most_popular` |
@@ -360,6 +362,25 @@ Trzy adresy tylko dla zalogowanego (bez tokenu 401). Zasilają stronę konta we 
 | `GET /me/stats/` | `recipes`, `views_total`, `views_30d`, `rating_avg` (średnia wszystkich opinii o moich koktajlach, `null` bez opinii), `rating_count`, `reviews_written` oraz `views_by_day`: dokładnie 30 dni od najstarszego, także dni z zerem |
 
 Wyświetlenia są liczone z tabeli `CocktailView` (jeden odwiedzający na koktajl i dzień), a własne wyświetlenia autora się nie liczą. Testy: `tests/test_me_endpoints.py`.
+
+## API panelu administratora (`/admin/...`)
+
+Dla admin, staff i owner (zwykły użytkownik dostaje 403, niezalogowany 401). To ten sam zestaw możliwości co panel `/admin/` (CMS), tylko w postaci wygodnej dla frontendu. **Reguły ról są w jednym miejscu, `accounts/policy.py`, i korzystają z nich oba wejścia** (CMS i API), więc nie mogą się rozjechać:
+
+1. do panelu wchodzą admin, staff i owner,
+2. zarządzać można tylko kontami o **niższej** randze niż własna (siebie i równych sobie nie),
+3. nadać można tylko rolę **niższą** od własnej (admin nada tylko `user`, staff: `user` i `admin`, owner: do `staff`; roli `owner` nie da się nadać wcale, tylko `createsuperuser`).
+
+| Adres | Działanie |
+|---|---|
+| `GET /admin/users/?search=&role=` | konta, najnowsze pierwsze, po 20; każde z liczbą przepisów, opinii i zgłoszeń oraz polami `can_edit` i `assignable_roles` (co mogę z tym kontem zrobić) |
+| `PATCH /admin/users/{id}/` | zmiana **tylko** roli (`{"role": "admin"}`); 403, gdy konto nie jest niższe od mojego albo rola nie jest do nadania; inne pola są ignorowane |
+| `GET /admin/reports/` | zgłoszone opinie, najwięcej zgłoszeń pierwsze, z powodami i autorami zgłoszeń |
+| `POST /admin/reports/{id}/dismiss/` | odrzuca zgłoszenia opinii (opinia zostaje); usunięcie opinii to zwykłe `DELETE /reviews/{id}/` |
+| `POST /admin/cocktails/verify/` | `{"ids": [...], "verified": true}`: nadaje albo zdejmuje znaczek (do 200 id; nieistniejące są pomijane). **Jedyny** sposób na zmianę znaczka przez API, więc autor nadal nie nada go sobie sam |
+| `GET /admin/stats/` | liczby na pulpit: koktajle, bez znaczka, przepisy użytkowników czekające na decyzję, bez zdjęcia, konta, zgłoszone opinie, wyświetlenia z 7 dni (dzień po dniu), najpopularniejszy koktajl i 4 najnowsze konta |
+
+Testy: `tests/test_admin_api.py` (m.in. wszystkie 3 x 4 x 4 kombinacje aktor, konto, nowa rola oraz test, że CMS i API zgadzają się dla każdej pary ról).
 
 ## Wyświetlenia i etykiety popularności
 

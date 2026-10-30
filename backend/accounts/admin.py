@@ -4,7 +4,8 @@ from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 
-from .models import RANK, Role, User
+from . import policy
+from .models import Role, User
 
 
 admin.site.unregister(Group)  # role zastępują grupy Django, więc nie pokazujemy ich w CMS
@@ -14,7 +15,7 @@ class RoleAdminMixin:
     """CMS jest dla admin, staff i owner. Zamiast uprawnień Django (grupy, per-model) decyduje sama rola."""
 
     def _is_admin_level(self, request):
-        return request.user.is_active and request.user.rank >= RANK[Role.ADMIN]
+        return policy.is_admin_level(request.user)
 
     def has_module_permission(self, request):
         return self._is_admin_level(request)
@@ -61,7 +62,7 @@ class UserAdmin(RoleAdminMixin, DjangoUserAdmin):
 
     def _manages(self, request, obj):
         # Zarządzać można tylko kontami o niższej randze niż własna (siebie i równych sobie nie).
-        return obj is None or obj.rank < request.user.rank
+        return obj is None or policy.can_manage(request.user, obj)
 
     def has_change_permission(self, request, obj=None):
         return super().has_change_permission(request, obj) and self._manages(request, obj)
@@ -72,5 +73,6 @@ class UserAdmin(RoleAdminMixin, DjangoUserAdmin):
     def formfield_for_choice_field(self, db_field, request, **kwargs):
         if db_field.name == "role":
             # Nadać można tylko rolę niższą od własnej, więc nikt nie awansuje siebie ani nikogo na swój poziom.
-            kwargs["choices"] = [(value, label) for value, label in Role.choices if RANK[value] < request.user.rank]
+            allowed = policy.grantable_roles(request.user)
+            kwargs["choices"] = [(value, label) for value, label in Role.choices if value in allowed]
         return super().formfield_for_choice_field(db_field, request, **kwargs)

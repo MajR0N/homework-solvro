@@ -54,6 +54,13 @@ class CocktailFilter(StableOrderFilterSet):
         method="filter_origin",
         help_text="Skąd pochodzi koktajl: import (dane z Solvro, bez autora) albo users (dodane przez użytkowników).",
     )
+    has_image = django_filters.TypedChoiceFilter(
+        choices=[("true", "true"), ("false", "false")],
+        coerce=lambda v: v == "true",
+        field_name="image_url",
+        method="filter_has_image",
+        help_text="true = tylko ze zdjęciem, false = tylko bez zdjęcia.",
+    )
     alcoholic = true_false_filter()
     verified = true_false_filter()
     ingredient = django_filters.CharFilter(method="filter_ingredient", help_text="Fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie, np. mint,lime.")
@@ -75,6 +82,9 @@ class CocktailFilter(StableOrderFilterSet):
     class Meta:
         model = Cocktail
         fields = []
+
+    def filter_has_image(self, queryset, name, value):
+        return queryset.exclude(image_url="") if value else queryset.filter(image_url="")
 
     def filter_origin(self, queryset, name, value):
         # dane z importu nie mają autora (author = NULL); po usunięciu konta wpis użytkownika też traci link, ale zachowuje author_name

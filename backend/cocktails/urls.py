@@ -1,6 +1,7 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
+from .admin_api import AdminStats, AdminUserViewSet, DismissReports, ReportedReviews, VerifyCocktails
 from .views import (
     CategoryViewSet,
     CocktailReviews,
@@ -19,11 +20,16 @@ router = DefaultRouter()
 router.register("cocktails", CocktailViewSet, basename="cocktail")
 router.register("ingredients", IngredientViewSet, basename="ingredient")
 router.register("categories", CategoryViewSet, basename="category")
+router.register("admin/users", AdminUserViewSet, basename="admin-user")
 
 urlpatterns = router.urls + [
     path("cocktails/<int:cocktail_id>/reviews/", CocktailReviews.as_view(), name="cocktail-reviews"),
     path("cocktails/<int:cocktail_id>/views/", CocktailViewCount.as_view(), name="cocktail-views"),
     path("glasses/", GlassList.as_view(), name="glasses"),
+    path("admin/stats/", AdminStats.as_view(), name="admin-stats"),
+    path("admin/reports/", ReportedReviews.as_view(), name="admin-reports"),
+    path("admin/reports/<int:review_id>/dismiss/", DismissReports.as_view(), name="admin-reports-dismiss"),
+    path("admin/cocktails/verify/", VerifyCocktails.as_view(), name="admin-verify"),
     path("me/reviews/", MyReviews.as_view(), name="my-reviews"),
     path("me/activity/", MyActivity.as_view(), name="my-activity"),
     path("me/stats/", MyStats.as_view(), name="my-stats"),
