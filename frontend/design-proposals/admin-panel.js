@@ -5,16 +5,18 @@
 const NAV = document.body.dataset.nav;
 const IMG = "https://cocktails.solvro.pl/images/cocktails/";
 const ROLES = ["user", "admin", "staff", "owner"]; // od najniższej; rolę można nadać tylko niższą od własnej
-const ME = "jan_kowalczyk", IMPORT = "Solvro (import)", KEY = "panel-proto-v1";
+const ME = "jan_kowalczyk", IMPORT = "Solvro (import)", KEY = "panel-proto-v2";
 const CAT = { Cocktail: "Koktajl", "Ordinary Drink": "Zwykły drink", "Punch / Party Drink": "Poncz" };
 const PAGES = [["pulpit", "squares-four", "Pulpit"], ["koktajle", "martini", "Koktajle"], ["moderacja", "flag", "Moderacja"], ["uzytkownicy", "users", "Użytkownicy"]];
 const WEEK = [["pn", 742], ["wt", 805], ["śr", 861], ["cz", 938], ["pt", 1204], ["sb", 1010], ["nd", 758]]; // ponytail: wymyślone; backend liczy tylko sumy, nie dni
 const MATRIX = [["Dodaje przepisy i opinie", 0], ["Edytuje własne przepisy", 0], ["Edytuje cudze przepisy", 1], ["Nadaje znaczek", 1], ["Usuwa cudze opinie", 1], ["Nadaje rolę user", 1], ["Nadaje rolę admin", 2], ["Nadaje rolę staff", 3]]; // minimalna rola
 
+// Szczegóły przepisów: dla importu prawdziwe dane z API Solvro (po angielsku), dla przepisów użytkowników wymyślone. ing = [[składnik, miara]]
+const DETAILS = {"11007":{"glass":"Cocktail glass","alc":true,"how":"Rub the rim of the glass with the lime slice to make the salt stick to it. Take care to moisten only the outer rim and sprinkle the salt on it. The salt should present to the lips of the imbiber and never mix into the cocktail. Shake the other ingredients with ice, then carefully pour into the glass.","ing":[["Tequila","1 1/2 oz "],["Salt",""],["Triple sec","1/2 oz "],["Lime juice","1 oz "]]},"11003":{"glass":"Old-fashioned glass","alc":true,"how":"Stir into glass over ice, garnish and serve.","ing":[["Gin","1 oz "],["Campari","1 oz "],["Sweet Vermouth","1 oz "]]},"11008":{"glass":"Cocktail glass","alc":true,"how":"Stirred over ice, strained into a chilled glass, garnished, and served up.","ing":[["Bourbon","2 1/2 oz Blended "],["Ice","2 or 3 "],["Sweet Vermouth","3/4 oz "],["Angostura bitters","dash "],["Maraschino cherry","1 "],["Orange peel","1 twist of "]]},"11009":{"glass":"Copper Mug","alc":true,"how":"Combine vodka and ginger beer in a highball glass filled with ice. Add lime juice. Stir gently. Garnish.","ing":[["Vodka","2 oz "],["Lime juice","2 oz "],["Ginger ale","8 oz "]]},"11005":{"glass":"Cocktail glass","alc":true,"how":"Straight: Pour all ingredients into mixing glass with ice cubes. Stir well. Strain in chilled martini cocktail glass. Squeeze oil from lemon peel onto the drink, or garnish with olive.","ing":[["Gin","1 2/3 oz "],["Dry Vermouth","1/3 oz "],["Olive","1 "]]},"11006":{"glass":"Cocktail glass","alc":true,"how":"Pour all ingredients into shaker with ice cubes. Shake well. Strain in chilled cocktail glass.","ing":[["Lime","Juice of 1/2 "],["Light rum","1 1/2 oz "],["Powdered sugar","1 tsp "]]},"11004":{"glass":"Old-fashioned glass","alc":true,"how":"Shake with ice. Strain into chilled glass, garnish and serve. If served 'On the rocks', strain ingredients into old-fashioned glass filled with ice.","ing":[["Cherry","1 "],["Lemon","1/2 slice "],["Blended whiskey","2 oz "],["Powdered sugar","1/2 tsp "]]},"11002":{"glass":"Highball glass","alc":true,"how":"Combine all ingredients (except cola) and pour over ice in a highball glass. Add the splash of cola for color. Decorate with a slice of lemon and serve.","ing":[["Vodka","1/2 oz "],["Gin","1/2 oz "],["Tequila","1/2 oz "],["Coca-Cola","1 splash "],["Light rum","1/2 oz "],["Lemon","Juice of 1/2 "]]},"11014":{"glass":"Cocktail glass","alc":true,"how":"Shake all ingredients with ice and strain contents into a cocktail glass. Sprinkle nutmeg on top and serve.","ing":[["Gin","1/2 oz "],["Nutmeg",""],["Creme de Cacao","1/2 oz white "],["Light cream","2 oz "]]},"11060":{"glass":"Cocktail glass","alc":true,"how":"In a mixing glass half-filled with ice cubes, combine all of the ingredients. Stir well. Strain into a cocktail glass.","ing":[["Scotch","1 1/2 oz "],["Bitters","2 dashes "],["Dry Vermouth","1/2 oz "],["Sweet Vermouth","1/2 oz "]]},"11034":{"glass":"Cocktail glass","alc":true,"how":"Shake all ingredients with ice and strain contents into a cocktail glass.","ing":[["Gin","1 oz "],["Apricot brandy","1/2 oz "],["Apple brandy","1/2 oz "]]},"11052":{"glass":"Old-fashioned glass","alc":true,"how":"In an old-fashioned glass almost filled with ice cubes, combine all of the ingredients. Stir well.","ing":[["Gin","2 oz "],["Benedictine","1 tsp "],["Lime","1 "],["Wine","1 oz Green Ginger "]]},"11055":{"glass":"Cocktail glass","alc":true,"how":"Stir all ingredients with ice, strain into a cocktail glass, and serve.","ing":[["Gin","1 1/2 oz "],["Bitters","2 dashes "],["Sweet Vermouth","1 1/2 tsp "]]},"11046":{"glass":"Cocktail glass","alc":true,"how":"Shake all ingredients with ice, strain into a cocktail glass, and serve.","ing":[["Applejack","1 oz "],["Triple sec","1 oz "],["Lemon juice","1 oz "]]},"11023":{"glass":"Cocktail glass","alc":true,"how":"In a shaker half-filled with ice cubes, combine all of the ingredients. Shake well. Strain into a cocktail glass.","ing":[["Kahlua","1 oz "],["Dark rum","2 oz "],["Egg white","1 "]]},"11021":{"glass":"Cocktail glass","alc":true,"how":"Shake all ingredients (except lemon peel) with ice and strain into a cocktail glass. Top with the twist of lemon peel and serve.","ing":[["Bourbon","1 oz "],["Dry Vermouth","1 oz "],["Lemon juice","1 1/2 tsp "],["Lemon peel","1 twist of "],["Blackberry brandy","1 1/2 tsp "]]},"1":{"glass":"Szklanka highball","alc":true,"how":"Rozgnieć wiśnie z miętą i cukrem. Dodaj rum i sok z limonki, wypełnij lodem i dopełnij wodą gazowaną.","ing":[["Rum biały","50 ml"],["Wiśnie","8 sztuk"],["Mięta","kilka listków"],["Sok z limonki","20 ml"],["Woda gazowana","do pełna"]]},"2":{"glass":"Szklanka old fashioned","alc":true,"how":"Wymieszaj z lodem w szklance, dodaj plaster grejpfruta.","ing":[["Gin","30 ml"],["Campari","30 ml"],["Czerwony wermut","30 ml"],["Sok z grejpfruta","20 ml"]]},"3":{"glass":"Kieliszek koktajlowy","alc":true,"how":"Wstrząśnij z lodem, przelej do schłodzonego kieliszka.","ing":[["Rum biały","60 ml"],["Sok z limonki","25 ml"],["Syrop cukrowy","15 ml"]]},"4":{"glass":"Szklanka old fashioned","alc":true,"how":"Rozpuść cukier z angosturą, dodaj whisky i lód, mieszaj.","ing":[["Whisky","50 ml"],["Angostura","2 krople"],["Cukier","1 łyżeczka"]]},"5":{"glass":"Kieliszek koktajlowy","alc":true,"how":"Wymieszaj składniki bez lodu, podaj w schłodzonym kieliszku.","ing":[["Bourbon","50 ml"],["Czerwony wermut","25 ml"],["Angostura","2 krople"]]},"6":{"glass":"Kubek","alc":true,"how":"Podgrzej sok jabłkowy z cynamonem, dodaj rum.","ing":[["Rum ciemny","40 ml"],["Sok jabłkowy","100 ml"],["Cynamon","1 laska"]]},"7":{"glass":"","alc":true,"how":"","ing":[]}};
 const seed = () => {
   const c = (id, name, slug, author, cat, verified, views, rating, at) => ({ id, name, img: slug ? `${IMG}${slug}.png` : "", author, cat, verified, views, rating, at });
   const imp = (id, name, slug, cat, v, views, rating) => c(id, name, slug, IMPORT, cat, v, views, rating, "2024-08-23T16:47:00");
-  return {
+  const s = {
     next: 100,
     cocktails: [
       imp(11007, "Margarita", "margarita", "Ordinary Drink", true, 1204, "4,6 (18)"), imp(11003, "Negroni", "negroni", "Ordinary Drink", true, 938, "4,2 (9)"),
@@ -51,6 +53,8 @@ const seed = () => {
       { u: ME, r: "staff", d: "2026-08-10" }, { u: "solvro_owner", r: "owner", d: "2026-08-01" },
     ],
   };
+  s.cocktails = s.cocktails.map((c) => ({ glass: "", alc: true, how: "", ing: [], ...DETAILS[c.id], ...c }));
+  return s;
 };
 let D = JSON.parse(sessionStorage.getItem(KEY) || "null") || seed();
 const save = () => sessionStorage.setItem(KEY, JSON.stringify(D));
@@ -213,33 +217,45 @@ const commit = (msg) => { save(); if (msg) toast(msg); paint(); };
 /* ---------- okna dialogowe i komunikat ---------- */
 const dlg = $("#dlg");
 let onOk, tt;
-const open = (html) => { dlg.innerHTML = html; dlg.showModal(); };
+const open = (html) => { dlg.className = ""; dlg.innerHTML = html; dlg.showModal(); };
 const ask = (title, text, okLabel, fn) => { onOk = fn; open(`<h2 id="dt">${title}</h2><p class="muted">${text}</p><div class="row end"><button class="btn" data-act="close">Anuluj</button><button class="btn bad" data-act="ok">${okLabel}</button></div>`); };
 const toast = (msg) => { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 3500); };
 dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
 
+const ingRow = (n = "", m = "") => `<div class="ingrow"><input class="in" data-ing="n" value="${esc(n)}" placeholder="Składnik" aria-label="Nazwa składnika" maxlength="80" autocomplete="off"><input class="in" data-ing="m" value="${esc(m)}" placeholder="Miara, np. 50 ml" aria-label="Miara" maxlength="40" autocomplete="off"><button type="button" class="btn sm danger" data-act="ing-del" aria-label="Usuń składnik"><i class="ph ph-x" aria-hidden="true"></i></button></div>`;
+// panel edycji jest ten sam dla importu Solvro i przepisów użytkowników; różni je tylko podpis o autorze
 function openEdit(id) {
-  const c = id ? byId(id) : { name: "", cat: "Cocktail", img: "", verified: false };
-  open(`<form data-form="${id || "new"}" novalidate><h2 id="dt">${id ? "Edytuj koktajl" : "Dodaj koktajl"}</h2><div class="stack">
-    <label class="f"><span class="l">Nazwa</span><input class="in" name="name" value="${esc(c.name)}" maxlength="100" autocomplete="off"></label>
-    <label class="f"><span class="l">Kategoria</span><select class="in" name="cat">${Object.entries(CAT).map(([k, t]) => `<option value="${k}" ${k === c.cat ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+  const c = id ? byId(id) : { name: "", cat: "Cocktail", img: "", verified: false, glass: "", alc: true, how: "", ing: [], author: ME };
+  const own = c.author !== IMPORT;
+  open(`<form data-form="${id || "new"}" novalidate><h2 id="dt">${id ? "Edytuj koktajl" : "Dodaj koktajl"}</h2>
+    <p class="muted" style="margin:-.4rem 0 1rem;font-size:.875rem">${!id ? `Nowy przepis zostanie przypisany do konta ${ME}.` : own ? `<i class="ph ph-user" aria-hidden="true"></i> Przepis użytkownika <b>${esc(c.author)}</b>, dodany ${when(c.at)}.` : `<i class="ph ph-database" aria-hidden="true"></i> Przepis z importu Solvro.`}</p>
+    <div class="stack">
+    <div class="grid2"><label class="f"><span class="l">Nazwa</span><input class="in" name="name" value="${esc(c.name)}" maxlength="100" autocomplete="off"></label>
+      <label class="f"><span class="l">Kategoria</span><select class="in" name="cat">${Object.entries(CAT).map(([k, t]) => `<option value="${k}" ${k === c.cat ? "selected" : ""}>${t}</option>`).join("")}</select></label></div>
+    <div class="grid2"><label class="f"><span class="l">Rodzaj szklanki</span><input class="in" name="glass" value="${esc(c.glass)}" maxlength="60" autocomplete="off"></label>
+      <label class="switch" style="align-self:end;padding-bottom:.55rem"><input type="checkbox" name="alc" ${c.alc ? "checked" : ""}>Alkoholowy</label></div>
     <label class="f"><span class="l">Link do zdjęcia</span><input class="in" name="img" value="${esc(c.img)}" inputmode="url" placeholder="https://..." autocomplete="off"><span class="h">Adres musi zaczynać się od https://. Może być pusty.</span></label>
-    <label class="switch"><input type="checkbox" name="verified" ${c.verified ? "checked" : ""}>Znaczek "zweryfikowany"</label>
-    <p class="h" style="margin:0">Składniki i instrukcję edytuje się w formularzu przepisu.</p></div>
+    <label class="f"><span class="l">Instrukcja</span><textarea class="in" name="how" maxlength="2000" style="min-height:6rem">${esc(c.how)}</textarea></label>
+    <div class="f"><span class="l" id="ingl">Składniki</span><div id="ings" role="group" aria-labelledby="ingl">${c.ing.map(([n, m]) => ingRow(n, m)).join("")}</div><button type="button" class="btn sm" data-act="ing-add"><i class="ph ph-plus" aria-hidden="true"></i>Dodaj składnik</button><span class="h">Każdy składnik tylko raz. Miara to dowolny tekst.</span></div>
+    <div><label class="switch"><input type="checkbox" name="verified" ${c.verified ? "checked" : ""}>Znaczek "zweryfikowany"</label>${own ? `<span class="h">Autor nie może sam nadać znaczka, więc decyzja należy do administratora.</span>` : ""}</div></div>
     <div class="row end"><button type="button" class="btn" data-act="close">Anuluj</button><button class="btn primary">Zapisz</button></div></form>`);
+  dlg.className = "wide";
 }
 function saveEdit(f) {
   const v = Object.fromEntries(new FormData(f)), name = (v.name || "").trim(), img = (v.img || "").trim(), id = f.dataset.form === "new" ? null : Number(f.dataset.form);
-  const err = {};
-  if (!name) err.name = "Podaj nazwę koktajlu.";
-  else if (D.cocktails.some((c) => c.id !== id && c.name.toLowerCase() === name.toLowerCase())) err.name = "Koktajl o tej nazwie już istnieje.";
-  try { if (img && new URL(img).protocol !== "https:") throw 0; } catch { err.img = "Adres zdjęcia musi zaczynać się od https://."; }
+  const rows = [...f.querySelectorAll(".ingrow")].map((r) => [r.querySelector("[data-ing=n]"), r.querySelector("[data-ing=m]")]);
+  const err = {}, put = (k, msg, el) => (err[k] ||= [msg, el]);
+  if (!name) put("name", "Podaj nazwę koktajlu.", f.elements.name);
+  else if (D.cocktails.some((c) => c.id !== id && c.name.toLowerCase() === name.toLowerCase())) put("name", "Koktajl o tej nazwie już istnieje.", f.elements.name);
+  try { if (img && new URL(img).protocol !== "https:") throw 0; } catch { put("img", "Adres zdjęcia musi zaczynać się od https://.", f.elements.img); }
+  const seen = new Set();
+  rows.forEach(([n, m]) => { const k = n.value.trim().toLowerCase(); if (!k) { if (m.value.trim()) put("ing", "Podaj nazwę składnika albo usuń wiersz.", n); } else if (seen.has(k)) put("ing", `Składnik „${n.value.trim()}” jest już na liście. Każdy składnik tylko raz.`, n); else seen.add(k); });
   f.querySelectorAll(".e").forEach((e) => e.remove());
-  f.querySelectorAll(".f.err").forEach((e) => e.classList.remove("err"));
-  const bad = Object.keys(err);
-  bad.forEach((k) => { const l = f.elements[k].closest(".f"); l.classList.add("err"); l.insertAdjacentHTML("beforeend", `<span class="e" role="alert"><i class="ph-fill ph-warning-circle" aria-hidden="true"></i>${err[k]}</span>`); });
-  if (bad.length) return f.elements[bad[0]].focus();
-  const data = { name, img, cat: v.cat, verified: !!v.verified };
+  f.querySelectorAll("[aria-invalid]").forEach((e) => e.removeAttribute("aria-invalid"));
+  const bad = Object.values(err);
+  bad.forEach(([msg, el]) => { el.setAttribute("aria-invalid", "true"); el.closest(".f").insertAdjacentHTML("beforeend", `<span class="e" role="alert"><i class="ph-fill ph-warning-circle" aria-hidden="true"></i>${esc(msg)}</span>`); });
+  if (bad.length) return bad[0][1].focus();
+  const data = { name, img, cat: v.cat, glass: (v.glass || "").trim(), alc: !!v.alc, how: (v.how || "").trim(), ing: rows.filter(([n]) => n.value.trim()).map(([n, m]) => [n.value.trim(), m.value.trim()]), verified: !!v.verified };
   if (id) Object.assign(byId(id), data);
   else D.cocktails.push({ ...data, id: D.next++, author: ME, views: 0, rating: "brak", at: new Date().toISOString() });
   dlg.close();
@@ -275,6 +291,8 @@ const ACT = {
   cok: () => { const c = curQ().c; afterQueue(() => (c.verified = true), `„${c.name}" ma teraz znaczek.`); },
   cdel: () => { const c = curQ().c; ask(`Usunąć „${esc(c.name)}"?`, "Razem z opiniami. Tego nie da się cofnąć.", "Usuń przepis", () => afterQueue(() => removeCocktail([c.id]), `Usunięto „${c.name}".`)); },
   reset: () => { sessionStorage.removeItem(KEY); D = seed(); Object.assign(U, { f: "all", q: "", author: "", page: 1, qf: "all", qsel: null, uq: "" }); U.sel.clear(); commit("Przywrócono dane przykładowe."); },
+  "ing-add": () => { $("#ings").insertAdjacentHTML("beforeend", ingRow()); $("#ings .ingrow:last-child input").focus(); },
+  "ing-del": (b) => { const r = b.closest(".ingrow"), next = r.nextElementSibling?.querySelector("input") || r.previousElementSibling?.querySelector("input") || $("[data-act=ing-add]"); r.remove(); next.focus(); },
   close: () => dlg.close(),
   ok: () => { dlg.close(); onOk(); },
 };
