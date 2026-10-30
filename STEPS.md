@@ -416,3 +416,11 @@ Owner picked from `design-proposals/`: card **A** (slim glass), detail page **A*
 
 **Checked:** tsc, lint, build, screenshots (list at 1900 px, detail at 1500 px dark, detail on a 500 px window light). **Not checked:** the own-backend badges on real cards (the local build showed the Solvro source, which has no badges), hover and keyboard use, the blurred banner with a bright photo (the overlay is strong enough that the blur is faint).
 
+## 29. Filter proposals for list layout C (30 October 2026)
+
+The owner chose list layout C but said the filters need changes, and asked for three proposals. Problems with the filter strip in mock C: three drop-downs with long labels squeezed into one pill, no indication of what is active, no way to clear everything, and the verified checkbox homeless. Common requirements for all three: the active value is written in the control (not only a colour), every active filter is a removable chip, "Wyczyść filtry", filters apply instantly (they live in the URL already), and "Składnik" / "Zweryfikowane" only appear for the own backend.
+
+**Proposals** (`design-proposals/filtry.html`): **A** buttons with pop-over windows on the glass bar (category window, visible alcohol toggle, "Filtry (n)" for rare ones); **B** categories as their own scrollable chip row, the bar keeps only short/binary filters; **C** a filter drawer with all filters in sections and a live result count. Checked with a 1500 px screenshot only.
+
+**Waiting for the owner:** A, B or C for the filters (my recommendation: **B**, because it needs no pop-ups, no focus handling and no extra clicks, so it is the cheapest to build correctly before tomorrow's deadline). Then the list (featured "Na topie" tiles, which only exist for the own backend, plus the chosen filter bar) is built in one step.
+

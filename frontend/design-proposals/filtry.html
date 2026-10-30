@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Filtry listy: trzy propozycje</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="proposals.css">
+  <style>
+    /* przycisk filtra pokazuje nazwę i wartość; aktywny (inny niż domyślny) jest wypełniony i ma tekst, nie tylko kolor */
+    .toolbar { position: sticky; top: 0.75rem; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 1.5rem 0 0.75rem; padding: 0.5rem 0.75rem; border-radius: 999px; }
+    .toolbar .count { margin-left: auto; padding-right: 0.5rem; color: rgb(255 255 255 / 0.85); font-size: 0.875rem; }
+    .fbtn { display: inline-flex; align-items: center; gap: 0.4rem; font: inherit; font-size: 0.875rem; color: inherit; padding: 0.45rem 0.9rem; border: 1px solid rgb(255 255 255 / 0.35); border-radius: 999px; background-color: rgb(255 255 255 / 0.1); cursor: pointer; }
+    .fbtn small { opacity: 0.8; font-size: 0.8125rem; }
+    .fbtn b { font-weight: 600; }
+    .fbtn svg { width: 1rem; height: 1rem; }
+    .fbtn.on { background-color: #fff; color: #203560; border-color: transparent; }
+    .fbtn.on small { opacity: 0.75; }
+    .glass .seg { border-color: rgb(255 255 255 / 0.35); background: rgb(255 255 255 / 0.1); }
+    .glass .seg .chip { color: #fff; }
+    .glass .seg .chip[aria-pressed="true"] { background: #fff; color: #203560; }
+    .glass .switch input { background: rgb(255 255 255 / 0.3); }
+    .glass .switch input:checked { background: #80b3ff; }
+    .glass .switch input::after { background: #fff; }
+    .num { display: inline-grid; place-items: center; min-width: 1.25rem; height: 1.25rem; padding: 0 0.3rem; border-radius: 999px; background: #80b3ff; color: #0f1a30; font-size: 0.75rem; font-weight: 700; }
+
+    /* wybrane filtry jako usuwalne chipy pod paskiem */
+    .active { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; font-size: 0.875rem; }
+    .active .x { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.5rem 0.25rem 0.75rem; border: 1px solid var(--line); border-radius: 999px; background: var(--soft); font: inherit; color: inherit; cursor: pointer; }
+    .active .x svg { width: 0.8rem; height: 0.8rem; }
+    .active .clear { background: none; border: 0; padding: 0.25rem 0.5rem; font: inherit; color: var(--muted); text-decoration: underline; cursor: pointer; }
+
+    /* okno pod przyciskiem (F1) i szuflada (F3) */
+    .pop { position: absolute; z-index: 4; padding: 1rem; border-radius: 1rem; min-width: 18rem; }
+    .pop h4 { margin: 0 0 0.6rem; font-size: 0.875rem; }
+    .pop .chip { color: #fff; border-color: rgb(255 255 255 / 0.35); }
+    .pop .chip[aria-pressed="true"] { background: #fff; color: #203560; }
+    .pop .field { background-color: rgb(255 255 255 / 0.1); }
+    .pop .hint { color: rgb(255 255 255 / 0.8); }
+    .rel { position: relative; }
+    .drawer { display: grid; gap: 1.25rem; padding: 1.25rem; border-radius: 1rem; }
+    .drawer h4 { margin: 0 0 0.6rem; font-size: 0.875rem; }
+    .drawer .foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-top: 1rem; border-top: 1px solid rgb(255 255 255 / 0.2); }
+    .drawer .chip { color: #fff; border-color: rgb(255 255 255 / 0.35); }
+    .drawer .chip[aria-pressed="true"] { background: #fff; color: #203560; }
+    .drawer .field { background-color: rgb(255 255 255 / 0.1); }
+    .drawer .hint { color: rgb(255 255 255 / 0.8); }
+    .f3 { display: grid; grid-template-columns: 22rem minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+    .rowc { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr)); }
+    .cats { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.25rem 0 0.75rem; scrollbar-width: thin; }
+    .btn.link { border: 0; background: none; text-decoration: underline; }
+    @media (max-width: 60rem) { .f3 { grid-template-columns: 1fr; } .toolbar { border-radius: 1.5rem; } .pop { position: static; margin-bottom: 0.75rem; } }
+  </style>
+</head>
+<body>
+<div class="doc">
+  <header>
+    <h1>Filtry listy: trzy propozycje</h1>
+    <p class="lead">Wybrany układ C ma pływający szklany pasek filtrów, ale w makiecie filtry są w nim ściśnięte: trzy listy rozwijane z długimi etykietami, brak informacji, co jest włączone, i brak sposobu, by wyczyścić wszystko naraz. Wszystkie trzy propozycje rozwiązują te same sprawy: <strong>widać, co jest włączone</strong> (wartość stoi w przycisku, a nie tylko kolor), <strong>każdy filtr da się wyłączyć jednym kliknięciem</strong> (chip z krzyżykiem), jest <strong>"Wyczyść filtry"</strong>, a filtry działają od razu, bez przycisku "Zastosuj". Filtry "Składnik" i "Zweryfikowane" istnieją tylko przy własnym backendzie.</p>
+    <nav aria-label="Warianty"><ul>
+      <li><a href="#f1">A: przyciski z oknami</a></li>
+      <li><a href="#f2">B: kategorie jako osobny rząd</a></li>
+      <li><a href="#f3">C: szuflada filtrów</a></li>
+    </ul></nav>
+  </header>
+
+  <section class="variant" id="f1" aria-labelledby="f1-t">
+    <h2 id="f1-t">A: przyciski z oknami na szklanym pasku</h2>
+    <p class="idea">Pasek ma cztery rzeczy: przycisk Kategoria (otwiera okno z chipami), przełącznik Alkohol widoczny od razu (tylko trzy opcje), Sortuj i przycisk "Filtry" z licznikiem dla rzadziej używanych (składnik, zweryfikowane). Przycisk włączonego filtra jest biały i pokazuje wartość: "Kategoria: Koktajl". Pod paskiem leżą chipy z krzyżykiem.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Najbliższe wybranemu układowi C, mało zmian</li><li>Najczęstsze filtry (alkohol, sortowanie) są jednym kliknięciem</li><li>Pasek jest krótki, mieści się w jednej linii</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Kategorie są o jedno kliknięcie dalej (okno)</li><li>Okna trzeba zamykać (Esc i klik poza oknem)</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div data-bar></div>
+      <div class="toolbar glass" role="search">
+        <button class="fbtn on" aria-expanded="true"><small>Kategoria:</small> <b>Koktajl</b> <span data-icon="chevron" style="display:inline-flex"></span></button>
+        <div class="seg" role="group" aria-label="Alkohol"><button class="chip" aria-pressed="false">Wszystkie</button><button class="chip" aria-pressed="true">Z alkoholem</button><button class="chip" aria-pressed="false">Bez</button></div>
+        <button class="fbtn"><small>Sortuj:</small> <b>Najpopularniejsze</b> <span data-icon="chevron" style="display:inline-flex"></span></button>
+        <button class="fbtn on"><span data-icon="sliders" style="display:inline-flex"></span> Filtry <span class="num">1</span></button>
+        <span class="count">Znaleziono: 41</span>
+      </div>
+      <div class="rel">
+        <div class="pop glass" style="left:0;top:-0.25rem" role="dialog" aria-label="Kategoria">
+          <h4>Kategoria</h4>
+          <div class="chips"><button class="chip" aria-pressed="false">Wszystkie</button><button class="chip" aria-pressed="false">Zwykły drink</button><button class="chip" aria-pressed="true">Koktajl</button><button class="chip" aria-pressed="false">Shot</button><button class="chip" aria-pressed="false">Piwo</button><button class="chip" aria-pressed="false">Ponczu</button><button class="chip" aria-pressed="false">Domowy likier</button></div>
+        </div>
+        <div style="height:9rem"></div>
+      </div>
+      <div class="active" aria-label="Włączone filtry"><span class="count">Włączone:</span><button class="x">Kategoria: Koktajl <span data-icon="close" style="display:inline-flex"></span></button><button class="x">Z alkoholem <span data-icon="close" style="display:inline-flex"></span></button><button class="x">Zweryfikowane <span data-icon="close" style="display:inline-flex"></span></button><button class="clear">Wyczyść filtry</button></div>
+      <div class="rowc" data-cards="0,4"></div>
+    </div></div>
+  </section>
+
+  <section class="variant" id="f2" aria-labelledby="f2-t">
+    <h2 id="f2-t">B: kategorie jako osobny rząd chipów</h2>
+    <p class="idea">Kategorii jest najwięcej i są najważniejszym sposobem przeglądania, więc dostają własny przewijany rząd chipów pod paskiem, widoczny cały czas. Szklany pasek zostaje na filtry binarne i krótkie: alkohol, składnik, zweryfikowane (przełącznik) i sortowanie. Włączone filtry widać po zaznaczonych chipach i przełącznikach, a "Wyczyść" stoi na końcu paska.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Wszystko widoczne bez otwierania okien</li><li>Przełącznik "Zweryfikowane" ma miejsce w tej samej linii</li><li>Prosta implementacja, bez okien i obsługi Esc</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Zabiera dodatkowy rząd wysokości</li><li>Na telefonie pasek filtrów i rząd kategorii to dwie linie przewijania</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div data-bar></div>
+      <div class="toolbar glass" role="search">
+        <div class="seg" role="group" aria-label="Alkohol"><button class="chip" aria-pressed="false">Wszystkie</button><button class="chip" aria-pressed="true">Z alkoholem</button><button class="chip" aria-pressed="false">Bez</button></div>
+        <input class="field" style="width:12rem" placeholder="Składnik, np. mint" aria-label="Składnik">
+        <label class="switch"><input type="checkbox" checked> Zweryfikowane</label>
+        <button class="fbtn"><small>Sortuj:</small> <b>Najpopularniejsze</b> <span data-icon="chevron" style="display:inline-flex"></span></button>
+        <button class="fbtn">Wyczyść</button>
+        <span class="count">Znaleziono: 41</span>
+      </div>
+      <div class="cats chips" role="group" aria-label="Kategoria"><button class="chip" aria-pressed="false">Wszystkie</button><button class="chip" aria-pressed="false">Zwykły drink</button><button class="chip" aria-pressed="true">Koktajl</button><button class="chip" aria-pressed="false">Shot</button><button class="chip" aria-pressed="false">Piwo</button><button class="chip" aria-pressed="false">Ponczu</button><button class="chip" aria-pressed="false">Domowy likier</button><button class="chip" aria-pressed="false">Napój bezalkoholowy</button><button class="chip" aria-pressed="false">Kawa i herbata</button></div>
+      <div class="rowc" data-cards="0,4"></div>
+    </div></div>
+  </section>
+
+  <section class="variant" id="f3" aria-labelledby="f3-t">
+    <h2 id="f3-t">C: szuflada filtrów</h2>
+    <p class="idea">Pasek jest minimalny: jeden przycisk "Filtry" z licznikiem, sortowanie i liczba wyników. Przycisk otwiera panel ze szkła (na telefonie pełny ekran), w którym wszystkie filtry stoją razem w sekcjach i jest stopka z "Wyczyść" i liczbą wyników na żywo. Włączone filtry zostają widoczne pod paskiem jako chipy z krzyżykiem, więc szuflada nie musi być otwarta.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Najczystszy pasek, nie przeszkadza w przeglądaniu</li><li>Ten sam wzorzec na telefonie i na komputerze</li><li>Miejsce na kolejne filtry w przyszłości (np. szkło)</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Każda zmiana filtra wymaga otwarcia szuflady (dwa kliknięcia)</li><li>Więcej pracy: fokus, Esc, zamykanie, czytnik ekranu</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div data-bar></div>
+      <div class="toolbar glass">
+        <button class="fbtn on" aria-expanded="true"><span data-icon="sliders" style="display:inline-flex"></span> Filtry <span class="num">3</span></button>
+        <button class="fbtn"><small>Sortuj:</small> <b>Najpopularniejsze</b> <span data-icon="chevron" style="display:inline-flex"></span></button>
+        <span class="count">Znaleziono: 41</span>
+      </div>
+      <div class="active" aria-label="Włączone filtry"><button class="x">Kategoria: Koktajl <span data-icon="close" style="display:inline-flex"></span></button><button class="x">Z alkoholem <span data-icon="close" style="display:inline-flex"></span></button><button class="x">Zweryfikowane <span data-icon="close" style="display:inline-flex"></span></button><button class="clear">Wyczyść filtry</button></div>
+      <div class="f3">
+        <aside class="drawer glass" role="dialog" aria-label="Filtry">
+          <div><h4>Kategoria</h4><div class="chips"><button class="chip" aria-pressed="false">Wszystkie</button><button class="chip" aria-pressed="false">Zwykły drink</button><button class="chip" aria-pressed="true">Koktajl</button><button class="chip" aria-pressed="false">Shot</button><button class="chip" aria-pressed="false">Piwo</button><button class="chip" aria-pressed="false">Ponczu</button></div></div>
+          <div><h4>Alkohol</h4><div class="seg" role="group"><button class="chip" aria-pressed="false">Wszystkie</button><button class="chip" aria-pressed="true">Z alkoholem</button><button class="chip" aria-pressed="false">Bez</button></div></div>
+          <div><h4>Składnik</h4><input class="field" placeholder="np. mint, lime" aria-label="Składnik"><span class="hint">Nazwy po angielsku; po przecinku: koktajl musi mieć wszystkie.</span></div>
+          <label class="switch"><input type="checkbox" checked> Tylko zweryfikowane</label>
+          <div class="foot"><button class="btn link" style="color:#fff">Wyczyść filtry</button><button class="btn primary" style="background:#fff;color:#203560">Pokaż 41 koktajli</button></div>
+        </aside>
+        <div class="rowc" style="grid-template-columns:repeat(auto-fill,minmax(11rem,1fr))" data-cards="0,6"></div>
+      </div>
+    </div></div>
+  </section>
+</div>
+<script src="proposals.js"></script>
+</body>
+</html>
