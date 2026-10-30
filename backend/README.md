@@ -241,6 +241,7 @@ Lista (`GET /cocktails/`) zwraca po 20 na stronę w formacie `{count, next, prev
 | `alcoholic` | `?alcoholic=true` | tylko `true` lub `false` |
 | `verified` | `?verified=true` | tylko zweryfikowane (lub `false`) |
 | `author` | `?author=anna` | koktajle dodane przez to konto (bez rozróżniania wielkości liter) |
+| `origin` | `?origin=import` | skąd pochodzi koktajl: `import` (dane Solvro, bez autora) albo `users` (dodane przez użytkowników, także gdy ich konto już nie istnieje) |
 | `ingredient` | `?ingredient=mint,lime` | fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie |
 | `id` | `?id=11000,11007` | tylko te koktajle (ulubione); samo `?id=` = brak wyników |
 | `status` | `?status=trending` | etykieta popularności: `trending`, `popular`, `most_popular` |

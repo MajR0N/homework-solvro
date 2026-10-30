@@ -49,6 +49,11 @@ class CocktailFilter(StableOrderFilterSet):
     category = django_filters.CharFilter(field_name="category__name", max_length=MAX_TEXT, help_text="Dokładna nazwa kategorii, np. Shot.")  # po nazwie, nie po id
     glass = django_filters.CharFilter(field_name="glass", max_length=MAX_TEXT, help_text="Dokładna nazwa szklanki, np. Jar.")
     author = django_filters.CharFilter(field_name="author__username", lookup_expr="iexact", max_length=150, help_text="Nazwa użytkownika, który dodał koktajl (istniejące konto).")
+    origin = django_filters.ChoiceFilter(
+        choices=[("import", "import"), ("users", "users")],
+        method="filter_origin",
+        help_text="Skąd pochodzi koktajl: import (dane z Solvro, bez autora) albo users (dodane przez użytkowników).",
+    )
     alcoholic = true_false_filter()
     verified = true_false_filter()
     ingredient = django_filters.CharFilter(method="filter_ingredient", help_text="Fragment nazwy składnika; po przecinku koktajl musi mieć wszystkie, np. mint,lime.")
@@ -70,6 +75,12 @@ class CocktailFilter(StableOrderFilterSet):
     class Meta:
         model = Cocktail
         fields = []
+
+    def filter_origin(self, queryset, name, value):
+        # dane z importu nie mają autora (author = NULL); po usunięciu konta wpis użytkownika też traci link, ale zachowuje author_name
+        if value == "import":
+            return queryset.filter(author__isnull=True, author_name="")
+        return queryset.exclude(author__isnull=True, author_name="")
 
     def filter_ingredient(self, queryset, name, value):
         # ?ingredient=mint,lime -> koktajl musi mieć OBA. Exists zamiast join, żeby koktajl nie pojawił się

@@ -105,3 +105,20 @@ def test_ties_in_a_sort_are_broken_alphabetically(api, data):
 def test_sort_by_category_name(api, data):
     assert names(api.get(URL, {"ordering": "category"}))[-1] == "Lemon Shot"  # Cocktail < Shot
     assert names(api.get(URL, {"ordering": "-category"}))[0] == "Lemon Shot"
+
+
+# ---- origin: import z Solvro albo dodane przez użytkowników ----
+
+def test_origin_separates_imported_cocktails_from_user_cocktails(api, data, make_user):
+    anna = make_user("anna")
+    Cocktail.objects.filter(pk=data.virgin.pk).update(author=anna, author_name="anna")
+    Cocktail.objects.filter(pk=data.shot.pk).update(author=None, author_name="usunięty")  # konto skasowane: zostaje nazwa
+    names = lambda url: sorted(c["name"] for c in api.get(url).json()["results"])
+    assert names("/api/v1/cocktails/?origin=import") == ["Mojito"]
+    assert names("/api/v1/cocktails/?origin=users") == ["Lemon Shot", "Virgin Mojito"]
+    assert len(names("/api/v1/cocktails/")) == 3
+
+
+def test_origin_rejects_unknown_values(api, data):
+    assert api.get("/api/v1/cocktails/?origin=martians").status_code == 400
+
