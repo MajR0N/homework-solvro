@@ -15,6 +15,7 @@ Wystarczy otworzyć plik w przeglądarce (dwuklik). Potrzebne jest połączenie 
 | [`profil.html`](profil.html) | strona zalogowanego użytkownika (pięć propozycji) | po zalogowaniu jest tylko przycisk z nazwą konta, nie ma gdzie zobaczyć własnych przepisów, ulubionych i opinii |
 | [`przepis.html`](przepis.html) | formularz dodawania przepisu (pięć propozycji) | aplikacja nie pozwala jeszcze dodać własnego koktajlu |
 | [`admin.html`](admin.html) | panel administratora we frontendzie (pięć propozycji) | administrator pracuje dziś w panelu Django (`/admin/`), który wygląda inaczej niż aplikacja |
+| [`panel-boczne.html`](panel-boczne.html) i [`panel-gorne.html`](panel-gorne.html) | działający prototyp panelu administratora: ten sam kod, dwa układy (menu boczne i menu górne) | połączenie pięciu propozycji z `admin.html` w jedną całość |
 | [`proposals.css`](proposals.css) | wspólne style makiet | kopia kolorów i kształtów z `src/app/globals.css` |
 | [`proposals.js`](proposals.js) | wspólny skrypt makiet | ikony, przykładowe karty i pasek (używa go `filtry.html`) |
 
@@ -85,3 +86,16 @@ Te trzy pliki mają po **pięć** propozycji. Potrzebują internetu także do ik
 **Czego nie sprawdzono:** makiety obejrzano tylko na zrzutach z przeglądarki Edge (szerokość 1500 px, **tylko motyw ciemny**; jasnego nie udało się wymusić, kolory mają jednak sprawdzone pary z `globals.css`). Nie sprawdzono ich na telefonie ani czytnikiem ekranu. Poziom 3:1 dla obwódek pól wyliczono, ale nie zmierzono narzędziem.
 
 **Uwaga o gęstości:** panel admina jest gęstszy niż reszta aplikacji (małe odstępy, liczby tabelaryczne). Zasady Solvro (jedna paleta, kształty, szkło) zostały te same.
+
+## Prototyp panelu administratora (dwa układy)
+
+Otwórz [`panel-boczne.html`](panel-boczne.html) (menu boczne) albo [`panel-gorne.html`](panel-gorne.html) (menu górne). Oba pliki ładują ten sam `panel.js` i `panel.css`, różni je tylko atrybut `data-nav` w `<body>`. Przycisk w menu konta przełącza między układami.
+
+Co działa (na danych przykładowych, bez backendu; zmiany zostają w `sessionStorage` do zamknięcia karty, przycisk "Przywróć dane" je kasuje):
+- **Pulpit** (propozycja C): liczby i listy spraw do zrobienia liczone z aktualnych danych, kafelki prowadzą do właściwego filtru.
+- **Koktajle** (A i E): wyszukiwanie, filtry, sortowanie, strony, tabela albo galeria, zaznaczanie, akcje grupowe (znaczek, usuń), dodawanie i edycja w oknie z walidacją (nazwa wymagana i unikalna, adres zdjęcia tylko `https`), usuwanie z potwierdzeniem.
+- **Moderacja** (B): kolejka zgłoszonych opinii i nowych przepisów, skróty J i K, usuń opinię, odrzuć zgłoszenia, zweryfikuj albo usuń przepis.
+- **Użytkownicy** (D): zmiana roli tylko na niższą od własnej, konto własne i ownera zablokowane, tabela "Kto co może". Lista "Zobacz panel jako" pokazuje, jak zmieniają się uprawnienia dla admin, staff i owner.
+
+Czego brakuje: składniki i kategorie (nie były głównym ekranem żadnej propozycji), prawdziwe logowanie i zapytania do backendu, dzienne wyświetlenia (wykres to dane wymyślone, backend liczy tylko sumy), kolejka "przepisy do sprawdzenia" (backend ma tylko filtr bez znaczka).
+Sprawdzone: skrypt w headless Edge (ciemny motyw, 1500 px i 420 px) przeszedł przez wyszukiwanie, filtry, akcje grupowe, formularz z błędami, kolejkę, role. Niesprawdzone: jasny motyw, czytnik ekranu, prawdziwy telefon.

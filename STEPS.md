@@ -444,3 +444,16 @@ Design read used: logged-in product UI on the existing Solvro tokens (dark glass
 Rules from the backend are baked into the mocks: authors cannot set the verified badge, image URLs must be https, an ingredient appears once per cocktail, the measure is free text, admins delete reviews but never edit them, a role can only be granted below one's own.
 
 Checked: headless Edge screenshots (1500 px, dark theme only) of all three pages, which found and fixed real bugs (doc-nav styles leaking into the side menus, missing select arrows, error text not red, links unreadable in dark mode, a collapsed bar chart). Not checked: light theme (could not be forced), phone, screen reader, keyboard use. The mockups are static; nothing is wired to the app. Next step: the owner picks one concept per page; only then do we build.
+
+**Decision (30 October 2026):** the owner picked concept C for the add-recipe form (`przepis.html`): in-place editor styled like the detail page with a glass save bar. Not built yet; waiting for the go-ahead.
+
+## 32. Working admin panel prototype, two navigation layouts (30 October 2026)
+
+Mixed the five admin concepts into one clickable prototype: dashboard (C), table plus gallery with bulk verify (A and E), moderation queue with J/K (B), users and roles with the permission matrix (D). Two layouts share one script: `panel-boczne.html` (sidebar) and `panel-gorne.html` (top bar), chosen by `<body data-nav>`. Files: `panel.js`, `panel.css`, the two HTML shells, all in `frontend/design-proposals/`.
+
+Rules from the backend kept: image URL must be https, cocktail names unique, authors cannot verify their own recipe, admins delete reviews but do not edit them, a role can only be granted below one's own, owner and own account are locked. State lives in memory plus `sessionStorage`; there is no backend call. Everything dynamic is HTML-escaped (a cocktail named `<b>x</b>` renders as text).
+
+Simplification: the weekly views chart is invented data (the backend counts totals only); ingredients and categories screens were left out.
+
+Checked: a CDP script in headless Edge (dark theme, 1500 px and 420 px) clicked through search, filters, sorting, paging, bulk verify, add/edit/delete with validation errors, the queue (J/K, delete, dismiss, verify), role changes under admin/staff/owner, reset. No console errors. Not checked: light theme, screen reader, real phone. No app code changed, so tsc/lint/build/pytest were not run.
+
