@@ -549,3 +549,19 @@ The owner asked to build every accepted prototype (user page with the phone dock
 
 **Fix after phase 3 (31 October 2026): no way to the account page on desktop.** Reported by the owner for demo mode, but it affected every logged-in user: on screens from 768 px the top bar showed the user name as plain text, so nothing linked to `/account` (only the phone dock had "Profil"). The name is now a link to `/account` (highlighted on account pages). Checked in headless Edge on the production build: link present and clickable in demo mode, lands on the account overview, `aria-current` set, the phone dock still works and there is no sideways scroll at 390 px. The phase 1 checks missed this because they opened `/account` by URL and through the dock, never by clicking from the desktop bar.
 
+## 41. Phase 4 (mobile and responsiveness): grilling in progress, decisions M1 to M7 (31 October 2026)
+
+**Findings on the current phone UI (390 px, demo mode):** the top bar is 2 rows (118 px) and the demo banner adds about 170 px, so about a third of an 844 px screen is chrome; the admin menu is a sideways scroller that shows only "Pulpit" (the other three screens are hidden); the admin cocktails page stacks five rows of filters above a table that is cut off at the third column; in the recipe editor the sticky save bar and the dock both sit on top of the form (about 120 px); the cocktail page title wraps beside the Edytuj and heart buttons.
+
+| # | Topic | Decision |
+|---|---|---|
+| M1 | Phone top bar | Logo + a search **icon** that expands the search field on tap. |
+| M2 | Demo and secondary controls | A gear icon opens a settings sheet (data source, demo toggle, and while demo is on: role, reset, turn off). While demo is on, a slim (~28 px) strip under the bar reads "Tryb demo, <role>" and opens the same sheet. |
+| M3 | Admin navigation | In `/admin` the bottom dock is replaced by admin tabs: Pulpit, Koktajle, Moderacja (with the to-do badge), Użytkownicy. The bar above shows "Panel administratora" with a way back to the app. |
+| M4 | Profile menu | **Desktop:** the user name becomes a button with a caret that opens a dropdown (header with name and role; Moje konto, Moje przepisy, Ulubione, Moje opinie, Ustawienia, "Panel administratora" for admin roles; "Wyloguj" or "Wyłącz demo"). Esc closes, arrows move, click outside closes, focus returns. **Phone:** the Profil tab opens `/account` directly; logout is in Ustawienia and in the settings sheet. (Prompted by the owner: a bare name with no hint of what it does is not acceptable.) |
+| M5 | Phone filters | One compact row [Filtry (n)] [Sortuj] + result count; Filtry opens a full bottom sheet with every filter and a sticky "Pokaż N wyników"; active filters as removable chips under the row. |
+| M6 | Phone cards | 2 columns with a slimmer one-line glass caption (name + verified tick; category and rating only when they fit); "Na topie teraz" becomes a swipeable rail. |
+| M7 | Phone recipe editor | While editing, the dock is replaced by the editor's own single bottom bar (Anuluj, Opublikuj or Zapisz zmiany, draft note); the page is three collapsible sections (Podstawy, Składniki, Przygotowanie), Podstawy open first, a section with an error opens by itself. |
+
+**Still to grill (not asked yet):** cocktail detail page on phones (title and buttons layout, ingredient list); account pages on phones (banner height, tabs vs list); admin screens on phones (cocktails table as cards, moderation as list then detail, users as cards, dashboard); dock behaviour (hide on scroll, safe-area insets, keyboard); breakpoints (is 768 px the right switch, what happens on tablets and landscape); touch target size and general responsiveness rules; how to verify (screenshots at 360, 390, 430, 768 px). **No code was changed in this step.**
+
