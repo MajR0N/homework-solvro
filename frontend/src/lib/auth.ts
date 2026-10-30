@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { HttpError } from "./api";
+import { DEMO_USER, demoStore, useDemo } from "./demo/mode";
 import { ownAvailable } from "./source";
 
 // Sesja zalogowanego użytkownika własnego backendu. Tokeny JWT są w ciasteczkach httpOnly, ustawianych przez serwer
@@ -16,10 +17,13 @@ async function fetchSession(): Promise<Session | null> {
   return (await res.json()).user ?? null;
 }
 
-// loading = jeszcze nie wiemy; pasek nie pokazuje wtedy ani "Zaloguj", ani nazwy (żeby nie migało)
-export function useSession(): { session: Session | null; loading: boolean } {
-  const q = useQuery({ queryKey: SESSION, queryFn: fetchSession, enabled: ownAvailable, staleTime: 60_000, retry: 1 });
-  return { session: q.data ?? null, loading: ownAvailable && q.isPending };
+// loading = jeszcze nie wiemy; pasek nie pokazuje wtedy ani "Zaloguj", ani nazwy (żeby nie migało).
+// W trybie demo sesja jest przykładowa (bez serwera), a prawdziwa jest ignorowana.
+export function useSession(): { session: Session | null; loading: boolean; demo: boolean } {
+  const demo = useDemo();
+  const q = useQuery({ queryKey: SESSION, queryFn: fetchSession, enabled: ownAvailable && !demo.on, staleTime: 60_000, retry: 1 });
+  if (demo.on) return { session: { username: DEMO_USER, role: demo.role }, loading: false, demo: true };
+  return { session: q.data ?? null, loading: ownAvailable && q.isPending, demo: false };
 }
 
 // Rzuca HttpError (401 = zły login lub hasło, 429 = blokada po zbyt wielu próbach)
@@ -37,6 +41,7 @@ export function useLogin() {
 export function useLogout() {
   const client = useQueryClient();
   return async () => {
+    if (demoStore.get().on) return demoStore.update((d) => ({ ...d, on: false })); // w demo "wyloguj" znaczy "wyłącz demo"
     client.setQueryData(SESSION, null); // wylogowanie w interfejsie działa od razu, nawet gdy serwer nie odpowie
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
   };

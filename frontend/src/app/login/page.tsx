@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { HttpError } from "@/lib/api";
 import { useLogin } from "@/lib/auth";
+import { useDemo } from "@/lib/demo/mode";
 import { ownAvailable } from "@/lib/source";
 
 const field = "mt-1 w-full rounded-full border border-foreground/25 bg-foreground/5 px-4 py-2 hover:bg-foreground/10";
@@ -16,6 +17,7 @@ function message(e: unknown): string {
 export default function LoginPage() {
   const router = useRouter();
   const login = useLogin();
+  const demo = useDemo();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -65,6 +67,19 @@ export default function LoginPage() {
           </form>
         </>
       )}
+      <div className="mt-8 border-t border-foreground/15 pt-6">
+        <p className="mb-3 text-sm text-foreground/70">Bez konta: tryb demo pokazuje przykładowy profil z przepisami i opiniami. Zmiany zapisują się tylko w tej przeglądarce.</p>
+        <button
+          type="button"
+          onClick={() => {
+            demo.setOn(true);
+            router.push("/");
+          }}
+          className="w-full rounded-full border border-foreground/30 px-5 py-2.5 font-semibold hover:bg-foreground/10"
+        >
+          Wypróbuj tryb demo
+        </button>
+      </div>
     </main>
   );
 }

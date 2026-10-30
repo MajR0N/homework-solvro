@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import { Suspense } from "react";
+import DemoBanner from "@/components/DemoBanner";
 import TopBar from "@/components/TopBar";
 import "./globals.css";
 import Providers from "./providers";
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Suspense fallback={<div className="glass sticky top-0 z-30 h-16 border-b border-current/15" aria-hidden="true" />}>
             <TopBar />
           </Suspense>
+          <DemoBanner />
           {children}
         </Providers>
       </body>

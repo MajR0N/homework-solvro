@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useLogout, useSession } from "@/lib/auth";
 import { useFavorites } from "@/lib/favorites";
+import DemoToggle from "./DemoToggle";
 import { patchParams } from "@/lib/params";
 import { ownAvailable } from "@/lib/source";
 import SourceSwitch from "./SourceSwitch";
@@ -18,7 +19,7 @@ export default function TopBar() {
   const pathname = usePathname();
   const sp = useSearchParams();
   const favs = useFavorites();
-  const { session, loading } = useSession();
+  const { session, loading, demo } = useSession();
   const logout = useLogout();
   const onList = pathname === "/";
   const onlyFav = onList && sp.get("fav") === "1";
@@ -58,8 +59,10 @@ export default function TopBar() {
             <span className="sr-only sm:not-sr-only">Ulubione</span> ({favs.length})
           </button>
 
-          {/* konto istnieje tylko we własnym backendzie */}
-          {ownAvailable &&
+          <DemoToggle className="sm:order-5" />
+
+          {/* konto istnieje tylko we własnym backendzie (albo w trybie demo) */}
+          {(ownAvailable || demo) &&
             !loading &&
             (session ? (
               <>
@@ -67,7 +70,7 @@ export default function TopBar() {
                   {session.username}
                 </span>
                 <button type="button" onClick={logout} className="rounded-full border border-current/35 px-4 py-2 text-sm sm:order-6">
-                  Wyloguj
+                  {demo ? "Wyłącz demo" : "Wyloguj"}
                 </button>
               </>
             ) : (

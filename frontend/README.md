@@ -66,6 +66,10 @@ Zmienne środowiskowe (pliki `.env*` są poza gitem):
 
 Znane ograniczenia: po wylogowaniu token access (ważny 10 minut) działa do wygaśnięcia, bo JWT nie da się odwołać; odświeżanie jest współdzielone tylko w obrębie jednej instancji serwera (na Vercelu dwa równoległe żądania na dwóch instancjach mogą się jeszcze ścigać, wtedy trzeba zalogować się ponownie).
 
+### Tryb demo
+
+Przycisk „Tryb demo” na pasku (i na stronie logowania) włącza przykładowy profil `kasia_mixuje`: aplikacja udaje zalogowaną osobę bez backendu i bez logowania, a nad treścią widać baner z wyborem roli (user, admin, staff, owner). Zmiany zapisują się tylko w `localStorage` tej przeglądarki, więc nic nie trafia do prawdziwej bazy. Wyłączone demo = prawdziwe logowanie i prawdziwy backend. Strony nie wiedzą, w którym trybie są: wybiera to warstwa danych (hooki), a nie komponenty. Magazyn danych demo to `src/lib/demo/store.ts` (z testami), stan trybu to `src/lib/demo/mode.ts`. Na razie tryb demo daje tylko sesję; przykładowe przepisy, opinie i statystyki dochodzą w fazie 1.
+
 ## Struktura
 - `src/app/globals.css` — kolory marki i wyprowadzone z nich zmienne (jasny i ciemny motyw), szkło, fokus
 - `src/lib/params.ts` — budowanie adresu listy po zmianie filtra (wspólne dla strony i paska)
@@ -74,6 +78,8 @@ Znane ograniczenia: po wylogowaniu token access (ważny 10 minut) działa do wyg
 - `src/lib/auth.ts` — sesja: pyta serwer, kto jest zalogowany (tokenów w przeglądarce nie ma)
 - `src/lib/server/` — kod tylko dla serwera: rozmowa z backendem, odświeżanie tokenów, czyste funkcje proxy (`proxy-utils.ts` ma testy: `npm test`)
 - `src/app/api/` — trasy `auth/login`, `auth/logout`, `auth/session` i ogólne `proxy/[...path]`
+- `src/lib/demo/` — tryb demo: `mode.ts` (włączenie i rola), `store.ts` (magazyn w `localStorage` z wartością początkową i resetem)
+- `src/lib/roles.ts` — role i ich kolejność
 - `src/lib/favorites.ts` — ulubione (`localStorage` + `useSyncExternalStore`)
 - `src/app/page.tsx` — lista, wyszukiwanie, filtry, paginacja
 - `src/app/cocktails/[id]/page.tsx` — szczegóły koktajlu
