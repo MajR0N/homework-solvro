@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { HttpError, listCocktails, listMyRecipes } from "../api";
 import { useSession } from "../auth";
+import { demoAdmin } from "../admin/store";
 import { demoData, demoIngredients, deleteDemoRecipe, deleteDemoReview } from "../demo/data";
 import { useFavorites } from "../favorites";
 import { useSource } from "../source";
@@ -119,6 +120,7 @@ export function useResetDemo() {
   return () => {
     demoData.reset();
     demoIngredients.reset();
+    demoAdmin.reset();
     client.invalidateQueries();
   };
 }

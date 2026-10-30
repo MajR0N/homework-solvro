@@ -200,6 +200,17 @@ export async function searchIngredients(q: string): Promise<IngredientOption[]> 
   return r.results.map((i) => ({ id: i.id, name: i.name, alcoholic: i.alcoholic }));
 }
 
+// Strona tabeli koktajli w panelu administratora: publiczny odczyt z filtrami znaczka, zdjęcia i pochodzenia (tylko własny backend)
+export async function listAdminCocktails(q: { search: string; verified: string; hasImage: string; origin: string; ordering: string; page: number }): Promise<Page<Cocktail>> {
+  const p = new URLSearchParams({ page: String(q.page), page_size: String(PER_PAGE), ordering: q.ordering });
+  if (q.search.trim()) p.set("search", q.search.trim());
+  if (q.verified) p.set("verified", q.verified);
+  if (q.hasImage) p.set("has_image", q.hasImage);
+  if (q.origin) p.set("origin", q.origin);
+  const r = await get<{ count: number; results: OwnCocktail[] }>("own", "/cocktails/", p);
+  return { data: r.results.map(fromOwn), meta: { total: r.count, lastPage: Math.max(1, Math.ceil(r.count / PER_PAGE)) } };
+}
+
 // Rodzaje szklanek występujące w bazie (filtr; tylko własny backend)
 export async function getGlasses(): Promise<string[]> {
   return get<string[]>("own", "/glasses/");
