@@ -1,7 +1,16 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import type { Filters as Query } from "@/lib/api";
-import { pl } from "@/lib/pl";
+import type { Filters as Query, Status } from "@/lib/api";
+import { pl, STATUS_PL } from "@/lib/pl";
+
+// Kto dodał koktajl: wszyscy, import z Solvro, użytkownicy albo ja (tylko po zalogowaniu)
+export type By = "" | "import" | "users" | "mine";
+const BY: { value: By; label: string }[] = [
+  { value: "", label: "Wszyscy" },
+  { value: "import", label: "Import Solvro" },
+  { value: "users", label: "Użytkownicy" },
+  { value: "mine", label: "Moje" },
+];
 
 type Props = {
   category: string;
@@ -11,6 +20,11 @@ type Props = {
   sorts: { value: string; label: string }[];
   ingredient: string;
   verified: boolean;
+  by: By;
+  canMine: boolean; // "Moje" ma sens tylko dla zalogowanego (nie w trybie demo, bo jego przepisy nie są w backendzie)
+  glass: string;
+  glasses: string[];
+  status: Status | "";
   total?: number;
   own: boolean; // składnik i "zweryfikowane" istnieją tylko we własnym backendzie
   update: (patch: Record<string, string>) => void;
@@ -67,7 +81,7 @@ function IngredientField({ value, onCommit }: { value: string; onCommit: (v: str
 
 // Filtry listy: kategoria i "Filtry" otwierają okna, alkohol i sortowanie są od razu w pasku. Wszystko działa od razu (URL),
 // a włączone filtry widać dwa razy: wartość w przycisku i chip z krzyżykiem pod paskiem.
-export default function Filters({ category, categories, alcoholic, sort, sorts, ingredient, verified, total, own, update }: Props) {
+export default function Filters({ category, categories, alcoholic, sort, sorts, ingredient, verified, by, canMine, glass, glasses, status, total, own, update }: Props) {
   const [open, setOpen] = useState<"category" | "more" | null>(null);
   const root = useRef<HTMLDivElement>(null);
 
@@ -90,12 +104,15 @@ export default function Filters({ category, categories, alcoholic, sort, sorts, 
     };
   }, [open]);
 
-  const moreCount = (verified ? 1 : 0) + (ingredient ? 1 : 0);
+  const moreCount = [verified, ingredient, by, glass, status].filter(Boolean).length;
   const active: { label: string; clear: Record<string, string> }[] = [];
   if (category) active.push({ label: `Kategoria: ${pl(category)}`, clear: { category: "" } });
   if (alcoholic) active.push({ label: alcoholic === "true" ? "Z alkoholem" : "Bezalkoholowe", clear: { alcohol: "" } });
   if (verified) active.push({ label: "Zweryfikowane", clear: { verified: "" } });
   if (ingredient) active.push({ label: `Składnik: ${ingredient}`, clear: { ing: "" } });
+  if (by) active.push({ label: `Autor: ${BY.find((o) => o.value === by)?.label}`, clear: { by: "" } });
+  if (glass) active.push({ label: `Szklanka: ${pl(glass)}`, clear: { glass: "" } });
+  if (status) active.push({ label: `Etykieta: ${STATUS_PL[status]}`, clear: { status: "" } });
 
   return (
     <div>
@@ -200,6 +217,41 @@ export default function Filters({ category, categories, alcoholic, sort, sorts, 
               />
               Tylko zweryfikowane
             </label>
+            <fieldset>
+              <legend className="mb-1 text-sm font-medium">Autor</legend>
+              <div className="flex flex-wrap gap-2">
+                {BY.filter((o) => o.value !== "mine" || canMine).map((o) => (
+                  <button key={o.value} type="button" aria-pressed={by === o.value} onClick={() => update({ by: o.value })} className={`${chip} ${by === o.value ? "border-transparent bg-white font-semibold text-[#203560]" : "border-white/35 hover:bg-white/20"}`}>
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend className="mb-1 text-sm font-medium">Etykieta popularności</legend>
+              <div className="flex flex-wrap gap-2">
+                {([["", "Dowolna"], ...Object.entries(STATUS_PL)] as [Status | "", string][]).map(([value, label]) => (
+                  <button key={value} type="button" aria-pressed={status === value} onClick={() => update({ status: value })} className={`${chip} ${status === value ? "border-transparent bg-white font-semibold text-[#203560]" : "border-white/35 hover:bg-white/20"}`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <label className="block text-sm font-medium">
+              Rodzaj szklanki
+              <select
+                value={glass}
+                onChange={(e) => update({ glass: e.target.value })}
+                className="select mt-1 w-full rounded-full border border-white/35 bg-white/10 py-2 pl-4 text-sm font-normal [&>option]:bg-background [&>option]:text-foreground"
+              >
+                <option value="">Dowolna</option>
+                {glasses.map((g) => (
+                  <option key={g} value={g}>
+                    {pl(g)}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
         )}
       </div>
@@ -223,7 +275,7 @@ export default function Filters({ category, categories, alcoholic, sort, sorts, 
           ))}
           <button
             type="button"
-            onClick={() => update({ category: "", alcohol: "", verified: "", ing: "" })}
+            onClick={() => update({ category: "", alcohol: "", verified: "", ing: "", by: "", glass: "", status: "" })}
             className="px-2 py-1 text-foreground/70 underline underline-offset-4 hover:text-foreground"
           >
             Wyczyść filtry

@@ -4,8 +4,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import CocktailCard from "@/components/CocktailCard";
 import Featured from "@/components/Featured";
-import FilterBar from "@/components/Filters";
-import { getCategories, listCocktails, type Filters } from "@/lib/api";
+import FilterBar, { type By } from "@/components/Filters";
+import { getCategories, getGlasses, listCocktails, type Filters } from "@/lib/api";
+import { useSession } from "@/lib/auth";
+import { STATUS_PL } from "@/lib/pl";
 import { useFavorites } from "@/lib/favorites";
 import { patchParams } from "@/lib/params";
 import { useSource } from "@/lib/source";
@@ -32,6 +34,7 @@ function Cocktails() {
   const sp = useSearchParams();
   const favs = useFavorites();
   const source = useSource();
+  const { session, demo } = useSession();
 
   // URL to dane od użytkownika - każdą wartość sprawdzamy
   const name = sp.get("q") ?? "";
@@ -43,6 +46,13 @@ function Cocktails() {
   // filtry dostępne tylko we własnym backendzie; przy Solvro ignorujemy je, nawet jeśli są w adresie
   const verified = source === "own" && sp.get("verified") === "1";
   const ingredient = source === "own" ? (sp.get("ing") ?? "") : "";
+  // "Moje" tylko dla zalogowanego z prawdziwego konta; w trybie demo przepisy nie leżą w backendzie
+  const canMine = source === "own" && !!session && !demo;
+  const byParam = sp.get("by");
+  const by: By = source !== "own" ? "" : byParam === "import" || byParam === "users" || (byParam === "mine" && canMine) ? byParam : "";
+  const glass = source === "own" ? (sp.get("glass") ?? "") : "";
+  const statusParam = sp.get("status") ?? "";
+  const status = source === "own" && statusParam in STATUS_PL ? (statusParam as keyof typeof STATUS_PL) : "";
   const page = Math.max(1, parseInt(sp.get("page") ?? "", 10) || 1);
   const onlyFav = sp.get("fav") === "1";
 
@@ -53,7 +63,13 @@ function Cocktails() {
   const noFavs = onlyFav && favs.length === 0;
 
   // ponytail: id[] trafia do URL-a zapytania, więc setki ulubionych = długi URL; wtedy filtrowanie po stronie klienta
-  const filters: Filters = { name, category, alcoholic, sort, page, ids: onlyFav ? favs : undefined, verified, ingredient };
+  const filters: Filters = {
+    name, category, alcoholic, sort, page, ids: onlyFav ? favs : undefined, verified, ingredient,
+    origin: by === "import" || by === "users" ? by : undefined,
+    author: by === "mine" ? session?.username : undefined,
+    glass: glass || undefined,
+    status: status || undefined,
+  };
   const { data, isPending, isError, isPlaceholderData, refetch } = useQuery({
     queryKey: ["cocktails", source, filters], // zmiana filtrów albo źródła = nowy klucz = nowe zapytanie
     queryFn: () => listCocktails(filters, source),
@@ -61,13 +77,14 @@ function Cocktails() {
     placeholderData: keepPreviousData, // poprzednie wyniki widoczne, gdy ładują się nowe
   });
   const categories = useQuery({ queryKey: ["categories", source], queryFn: () => getCategories(source), staleTime: Infinity });
+  const glasses = useQuery({ queryKey: ["glasses"], queryFn: getGlasses, staleTime: Infinity, enabled: source === "own" });
 
   return (
     <main id="content" className="mx-auto w-full max-w-7xl p-4">
       <h1 className="mb-6 text-3xl font-bold">Koktajle</h1>
 
       {/* kafelki "Na topie" tylko przy własnym backendzie i tylko na czystej liście (bez filtrów, szukania i ulubionych) */}
-      {source === "own" && page === 1 && !name && !category && !alcoholic && !verified && !ingredient && !onlyFav && <Featured />}
+      {source === "own" && page === 1 && !name && !category && !alcoholic && !verified && !ingredient && !by && !glass && !status && !onlyFav && <Featured />}
 
       <FilterBar
         category={category}
@@ -77,6 +94,11 @@ function Cocktails() {
         sorts={sorts}
         ingredient={ingredient}
         verified={verified}
+        by={by}
+        canMine={canMine}
+        glass={glass}
+        glasses={glasses.data ?? []}
+        status={status}
         total={data?.meta.total}
         own={source === "own"}
         update={update}

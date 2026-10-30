@@ -65,6 +65,10 @@ export type Filters = {
   ids?: number[]; // favorites view
   verified?: boolean; // tylko własny backend
   ingredient?: string; // tylko własny backend: fragmenty nazw składników po przecinku
+  origin?: "import" | "users"; // tylko własny backend: dane z Solvro albo dodane przez użytkowników
+  author?: string; // tylko własny backend: nazwa konta, które dodało koktajl ("moje")
+  glass?: string; // tylko własny backend: dokładna nazwa szklanki
+  status?: Status; // tylko własny backend: etykieta popularności
 };
 
 // ---------- własny backend (Django): kształt odpowiedzi i tłumaczenie na typy interfejsu ----------
@@ -133,18 +137,28 @@ const ingredientFromOwn = (i: OwnIngredient): Ingredient => ({
   measure: i.measure || null,
 });
 
+/** Parametry listy dla własnego backendu. Solvro: sort=+name, name=, id[]=1&id[]=2, perPage. Nasz backend: ordering=name, search=, id=1,2, page_size. */
+export function ownListParams(f: Filters): URLSearchParams {
+  const p = new URLSearchParams({ page: String(f.page), page_size: String(PER_PAGE), ordering: f.sort.replace(/^\+/, "") });
+  if (f.name) p.set("search", f.name);
+  if (f.category) p.set("category", f.category);
+  if (f.alcoholic) p.set("alcoholic", f.alcoholic);
+  if (f.ids) p.set("id", f.ids.join(",")); // puste id= to u nas "brak wyników", nie "wszystkie"
+  if (f.verified) p.set("verified", "true");
+  if (f.ingredient) p.set("ingredient", f.ingredient);
+  if (f.origin) p.set("origin", f.origin);
+  if (f.author) p.set("author", f.author);
+  if (f.glass) p.set("glass", f.glass);
+  if (f.status) p.set("status", f.status);
+  return p;
+}
+
 // ---------- funkcje używane przez strony ----------
 
 export async function listCocktails(f: Filters, source: Source): Promise<Page<Cocktail>> {
   if (source === "own") {
     // Solvro: sort=+name, name=, id[]=1&id[]=2, perPage. Nasz backend: ordering=name, search=, id=1,2, page_size.
-    const p = new URLSearchParams({ page: String(f.page), page_size: String(PER_PAGE), ordering: f.sort.replace(/^\+/, "") });
-    if (f.name) p.set("search", f.name);
-    if (f.category) p.set("category", f.category);
-    if (f.alcoholic) p.set("alcoholic", f.alcoholic);
-    if (f.ids) p.set("id", f.ids.join(",")); // puste id= to u nas "brak wyników", nie "wszystkie"
-    if (f.verified) p.set("verified", "true");
-    if (f.ingredient) p.set("ingredient", f.ingredient);
+    const p = ownListParams(f);
     const r = await get<{ count: number; results: OwnCocktail[] }>(source, "/cocktails/", p);
     return { data: r.results.map(fromOwn), meta: { total: r.count, lastPage: Math.max(1, Math.ceil(r.count / PER_PAGE)) } };
   }
@@ -168,6 +182,11 @@ export async function getCocktail(id: string, source: Source): Promise<Cocktail 
     return { ...fromOwn(c), ingredients: (c.ingredients ?? []).map(ingredientFromOwn) };
   }
   return get<{ data: Cocktail & { ingredients: Ingredient[] } }>(source, `/cocktails/${id}`).then((r) => r.data);
+}
+
+// Rodzaje szklanek występujące w bazie (filtr; tylko własny backend)
+export async function getGlasses(): Promise<string[]> {
+  return get<string[]>("own", "/glasses/");
 }
 
 export async function getCategories(source: Source): Promise<string[]> {

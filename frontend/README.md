@@ -70,6 +70,25 @@ Znane ograniczenia: po wylogowaniu token access (ważny 10 minut) działa do wyg
 
 Przycisk „Tryb demo” na pasku (i na stronie logowania) włącza przykładowy profil `kasia_mixuje`: aplikacja udaje zalogowaną osobę bez backendu i bez logowania, a nad treścią widać baner z wyborem roli (user, admin, staff, owner). Zmiany zapisują się tylko w `localStorage` tej przeglądarki, więc nic nie trafia do prawdziwej bazy. Wyłączone demo = prawdziwe logowanie i prawdziwy backend. Strony nie wiedzą, w którym trybie są: wybiera to warstwa danych (hooki), a nie komponenty. Magazyn danych demo to `src/lib/demo/store.ts` (z testami), stan trybu to `src/lib/demo/mode.ts`. Na razie tryb demo daje tylko sesję; przykładowe przepisy, opinie i statystyki dochodzą w fazie 1.
 
+### Konto użytkownika (`/account/...`)
+
+Strona konta łączy pięć propozycji z `design-proposals/profile.html`: baner z liczbami (A), sekcje jako zakładki na wąskim ekranie albo menu boczne na szerokim (B), półki z kartami (C), panel autora z wykresem i tabelą (D) oraz układ na telefon z wierszami (E). Każda sekcja ma własny adres:
+
+| Adres | Co pokazuje |
+|---|---|
+| `/account` | przegląd: liczby, półki (moje przepisy z kafelkiem „Dodaj przepis”, ulubione, ostatnie oceny) i ostatnia aktywność |
+| `/account/recipes` | panel autora: wykres wyświetleń z 30 dni, tabela (na telefonie wiersze), usuwanie z potwierdzeniem |
+| `/account/favorites` | ulubione (zapisane w tej przeglądarce, więc działają w demo i po zalogowaniu) |
+| `/account/reviews` | moje opinie, z usuwaniem |
+| `/account/settings` | dane konta, wylogowanie, w demo także przywracanie danych |
+| `/recipes/new` | zaślepka: edytor przepisu powstaje w fazie 2 |
+
+Strony używają tylko hooków z `src/lib/data/account.ts` (`useMyRecipes`, `useMyReviews`, `useMyActivity`, `useMyStats`, `useFavoriteCocktails`, `useDeleteRecipe`, `useDeleteReview`) i nie wiedzą, czy dane są z trybu demo, czy z backendu. Prawdziwy backend: `GET /cocktails/?author=<nazwa>` (publiczny odczyt, wprost) oraz `GET /me/reviews`, `/me/activity`, `/me/stats` i `DELETE` przez proxy z ciasteczkiem. Tryb demo: `src/lib/demo/fixtures.ts` liczy to samo z przykładowych danych w `localStorage` (testy: `fixtures.test.ts`). Przepisy demo mają id od 900000, a strona szczegółów (`/cocktails/900001`) czyta je z `localStorage`.
+
+**Dolna nawigacja (propozycja E).** Poniżej 768 px pojawia się szklany pasek z czterema pozycjami (Główna, Ulubione, Dodaj, Profil, ikony Phosphor), a z górnego paska znikają ulubione i konto. Od 768 px jest tylko górny pasek.
+
+**Filtry na liście (własny backend).** Panel „Filtry” ma teraz także: autora (wszyscy, import Solvro, użytkownicy, moje), etykietę popularności i rodzaj szklanki. „Moje” jest tylko dla zalogowanego z prawdziwego konta (nie w trybie demo). Wartości są w adresie: `?by=import|users|mine&status=trending|popular|most_popular&glass=...`.
+
 ## Struktura
 - `src/app/globals.css` — kolory marki i wyprowadzone z nich zmienne (jasny i ciemny motyw), szkło, fokus
 - `src/lib/params.ts` — budowanie adresu listy po zmianie filtra (wspólne dla strony i paska)
@@ -79,6 +98,9 @@ Przycisk „Tryb demo” na pasku (i na stronie logowania) włącza przykładowy
 - `src/lib/server/` — kod tylko dla serwera: rozmowa z backendem, odświeżanie tokenów, czyste funkcje proxy (`proxy-utils.ts` ma testy: `npm test`)
 - `src/app/api/` — trasy `auth/login`, `auth/logout`, `auth/session` i ogólne `proxy/[...path]`
 - `src/lib/demo/` — tryb demo: `mode.ts` (włączenie i rola), `store.ts` (magazyn w `localStorage` z wartością początkową i resetem)
+- `src/lib/data/` — dane konta: `account.ts` (hooki), `mappers.ts` (backend na typy interfejsu), `proxy.ts` (wywołania przez proxy), `types.ts`
+- `src/lib/format.ts` — odmiana po polsku, liczby, daty, inicjały
+- `src/app/account/`, `src/components/account/`, `src/components/BottomDock.tsx` — strona konta i dolna nawigacja
 - `src/lib/roles.ts` — role i ich kolejność
 - `src/lib/favorites.ts` — ulubione (`localStorage` + `useSyncExternalStore`)
 - `src/app/page.tsx` — lista, wyszukiwanie, filtry, paginacja
