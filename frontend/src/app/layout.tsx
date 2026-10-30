@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import { Suspense } from "react";
+import BottomDock from "@/components/BottomDock";
 import DemoBanner from "@/components/DemoBanner";
 import TopBar from "@/components/TopBar";
 import "./globals.css";
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="pl" className={`${spaceGrotesk.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col pb-24 md:pb-0">
         <a
           href="#content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-on-primary"
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </Suspense>
           <DemoBanner />
           {children}
+          <BottomDock />
         </Providers>
       </body>
     </html>

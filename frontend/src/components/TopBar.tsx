@@ -51,7 +51,7 @@ export default function TopBar() {
             type="button"
             onClick={() => go({ fav: onlyFav ? "" : "1" })}
             aria-pressed={onlyFav}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm sm:order-3 ${onlyFav ? "border-transparent bg-warm text-on-warm" : "border-current/35"}`}
+            className={`hidden items-center gap-1.5 rounded-full border px-4 py-2 text-sm sm:order-3 md:inline-flex ${onlyFav ? "border-transparent bg-warm text-on-warm" : "border-current/35"}`}
           >
             <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true" fill={onlyFav ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
               <path d={HEART} />
@@ -61,7 +61,8 @@ export default function TopBar() {
 
           <DemoToggle className="sm:order-5" />
 
-          {/* konto istnieje tylko we własnym backendzie (albo w trybie demo) */}
+          {/* konto istnieje tylko we własnym backendzie (albo w trybie demo); na telefonie jest w dolnej nawigacji */}
+          <div className="hidden md:contents">
           {(ownAvailable || demo) &&
             !loading &&
             (session ? (
@@ -78,6 +79,7 @@ export default function TopBar() {
                 Zaloguj
               </Link>
             ))}
+          </div>
         </div>
 
         {/* telefon: druga linia (wyszukiwarka i źródło danych); od sm: wszystko w jednej linii, kolejność z klas order */}
