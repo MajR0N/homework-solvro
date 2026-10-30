@@ -400,7 +400,7 @@ Owner decision: no demo account and no hard-coded credentials. The owner creates
 
 After using the live app the owner reported: the "Tylko zweryfikowane" checkbox sits alone on its own row and is an unstyled white system checkbox; the list uses about 1000 px of a 1900 px screen; the detail page has bad category positioning and layout; the card's glass panel covers half the photo and its badges wrap into separate lines. The owner asked for **three design ideas per layout in separate files in a new folder with a README for the recruiter, inside `frontend/`** instead of fixing each by hand.
 
-**Built:** `frontend/design-proposals/` with `lista.html`, `szczegoly.html`, `karta.html` (three variants each, each with pros and cons), `proposals.css` (copy of the app tokens) and a Polish `README.md`. Plain HTML/CSS with a little inline JS to render repeated cards; no build step and no change to `src/`. Data: real cocktail and ingredient names and photos from the Solvro API; badges, ratings and the review are samples. The folder lives under `frontend/`, so it is not part of the Next.js build (the HTML is not imported by the app).
+**Built:** `frontend/design-proposals/` with `list.html`, `detail.html`, `card.html` (three variants each, each with pros and cons), `proposals.css` (copy of the app tokens) and a Polish `README.md`. Plain HTML/CSS with a little inline JS to render repeated cards; no build step and no change to `src/`. Data: real cocktail and ingredient names and photos from the Solvro API; badges, ratings and the review are samples. The folder lives under `frontend/`, so it is not part of the Next.js build (the HTML is not imported by the app).
 
 **Found while checking:** a CSS bug in the mocks (the `background` shorthand on the glass reset the select arrow's `no-repeat`, so it tiled across the control); fixed with `background-color`. The app itself was not affected.
 
@@ -420,7 +420,7 @@ Owner picked from `design-proposals/`: card **A** (slim glass), detail page **A*
 
 The owner chose list layout C but said the filters need changes, and asked for three proposals. Problems with the filter strip in mock C: three drop-downs with long labels squeezed into one pill, no indication of what is active, no way to clear everything, and the verified checkbox homeless. Common requirements for all three: the active value is written in the control (not only a colour), every active filter is a removable chip, "Wyczyść filtry", filters apply instantly (they live in the URL already), and "Składnik" / "Zweryfikowane" only appear for the own backend.
 
-**Proposals** (`design-proposals/filtry.html`): **A** buttons with pop-over windows on the glass bar (category window, visible alcohol toggle, "Filtry (n)" for rare ones); **B** categories as their own scrollable chip row, the bar keeps only short/binary filters; **C** a filter drawer with all filters in sections and a live result count. Checked with a 1500 px screenshot only.
+**Proposals** (`design-proposals/filters.html`): **A** buttons with pop-over windows on the glass bar (category window, visible alcohol toggle, "Filtry (n)" for rare ones); **B** categories as their own scrollable chip row, the bar keeps only short/binary filters; **C** a filter drawer with all filters in sections and a live result count. Checked with a 1500 px screenshot only.
 
 **Waiting for the owner:** A, B or C for the filters (my recommendation: **B**, because it needs no pop-ups, no focus handling and no extra clicks, so it is the cheapest to build correctly before tomorrow's deadline). Then the list (featured "Na topie" tiles, which only exist for the own backend, plus the chosen filter bar) is built in one step.
 
@@ -437,7 +437,7 @@ Owner picked filters **A** (buttons with pop-up windows on the glass bar). Built
 
 ## 31. Design proposals for the user page, the add-recipe form and the admin panel (30 October 2026)
 
-The owner asked for five concepts each for: the user-specific page (no such page exists yet), the add-recipe form (the app cannot add a cocktail yet), and a frontend admin panel. Everything went into `frontend/design-proposals/` as three new pages (`profil.html`, `przepis.html`, `admin.html`) that reuse `proposals.css` / `proposals.js` (new shared styles for forms, tabs, tables, side menu, phone frame; the top bar can now show a logged-in account). The README in that folder lists the 15 concepts and their trade-offs (Polish).
+The owner asked for five concepts each for: the user-specific page (no such page exists yet), the add-recipe form (the app cannot add a cocktail yet), and a frontend admin panel. Everything went into `frontend/design-proposals/` as three new pages (`profile.html`, `recipe.html`, `admin.html`) that reuse `proposals.css` / `proposals.js` (new shared styles for forms, tabs, tables, side menu, phone frame; the top bar can now show a logged-in account). The README in that folder lists the 15 concepts and their trade-offs (Polish).
 
 Design read used: logged-in product UI on the existing Solvro tokens (dark glass, Space Grotesk, pill controls, rounded containers), density low for the user pages and high for the admin. Phosphor icons from a CDN are used for the new icons (no hand-drawn SVG); no em-dashes, no decorative dots. The design skill says dashboards and admin panels are out of its scope, so the admin concepts keep our own identity instead of adopting Fluent/Carbon (that would break the Solvro look the UI/UX task needs); the density rules were applied by hand.
 
@@ -445,7 +445,7 @@ Rules from the backend are baked into the mocks: authors cannot set the verified
 
 Checked: headless Edge screenshots (1500 px, dark theme only) of all three pages, which found and fixed real bugs (doc-nav styles leaking into the side menus, missing select arrows, error text not red, links unreadable in dark mode, a collapsed bar chart). Not checked: light theme (could not be forced), phone, screen reader, keyboard use. The mockups are static; nothing is wired to the app. Next step: the owner picks one concept per page; only then do we build.
 
-**Decision (30 October 2026):** the owner picked concept C for the add-recipe form (`przepis.html`): in-place editor styled like the detail page with a glass save bar. Not built yet; waiting for the go-ahead.
+**Decision (30 October 2026):** the owner picked concept C for the add-recipe form (`recipe.html`): in-place editor styled like the detail page with a glass save bar. Not built yet; waiting for the go-ahead.
 
 ## 32. Working admin panel prototype, two navigation layouts (30 October 2026)
 
@@ -461,9 +461,9 @@ Checked: a CDP script in headless Edge (dark theme, 1500 px and 420 px) clicked 
 
 The owner liked concept E of the user page (phone layout with a bottom glass dock) and asked to reuse it for the main page and to mix all five user-page concepts. Built `frontend/design-proposals/app.html` (+ `app.js`, `app.css`): one responsive prototype. Wide: top bar (A, B side menu from 64rem). Narrow: bottom dock on the main page and the account page (E). Account sections: overview with shelves (C) and activity feed, author panel with chart and table (D), favourites, own reviews, settings. Main page: "Na topie teraz" tiles, category chips, sort, favourite hearts.
 
-File naming: the owner asked for English file names, so the new files are `admin-sidebar.html`, `admin-topbar.html`, `admin-panel.js/css`, `app.html/js/css`. The older mockups (`lista.html`, `profil.html`, ...) keep their Polish names for now.
+File naming: the owner asked for English file names, so the new files are `admin-sidebar.html`, `admin-topbar.html`, `admin-panel.js/css`, `app.html/js/css`. The older mockups (`list.html`, `profile.html`, ...) keep their Polish names for now.
 
-Simplifications: add/edit uses a short dialog (name, category, image); the full editor is concept C of `przepis.html`, not built. Popularity labels use invented thresholds; the 30-day chart is invented data. State is in `sessionStorage`, no backend call.
+Simplifications: add/edit uses a short dialog (name, category, image); the full editor is concept C of `recipe.html`, not built. Popularity labels use invented thresholds; the 30-day chart is invented data. State is in `sessionStorage`, no backend call.
 
 Checked: CDP script in headless Edge at 1500 px and 390 px (search, filters, favourites, add/edit validation, delete down to empty states, review delete, dock navigation, no horizontal scroll on the phone). No console errors. Not checked: light theme, screen reader, real phone. No app code changed, so tsc/lint/build/pytest were not run.
 

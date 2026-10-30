@@ -1,4 +1,4 @@
-// Strona główna i konto użytkownika: działający prototyp bez backendu (propozycje A, B, C, D i E z profil.html w jednej stronie).
+// Strona główna i konto użytkownika: działający prototyp bez backendu (propozycje A, B, C, D i E z profile.html w jednej stronie).
 // Stan jest w pamięci i w sessionStorage (zamknięcie karty go kasuje, "Przywróć dane" też).
 // Dane są PRZYKŁADOWE: nazwy i zdjęcia koktajli z API Solvro, przepisy kasia_mixuje, opinie i liczby wymyślone.
 // Układ zmienia się sam: od 48rem pasek na górze, poniżej dolna szklana nawigacja (propozycja E).
@@ -170,7 +170,7 @@ const ask = (title, text, okLabel, fn) => { onOk = fn; open(`<h2 id="dt">${title
 const toast = (msg) => { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 3500); };
 dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
 
-// ponytail: to jest szybki formularz (nazwa, kategoria, zdjęcie). Pełny edytor ze składnikami i instrukcją to propozycja C z przepis.html, jeszcze niezbudowana.
+// ponytail: to jest szybki formularz (nazwa, kategoria, zdjęcie). Pełny edytor ze składnikami i instrukcją to propozycja C z recipe.html, jeszcze niezbudowana.
 function openEdit(id) {
   const c = id ? byId(id) : { name: "", cat: "Cocktail", img: "" };
   open(`<form data-form="${id || "new"}" novalidate><h2 id="dt">${id ? "Edytuj przepis" : "Dodaj przepis"}</h2><div class="stack">

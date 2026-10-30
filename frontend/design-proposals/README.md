@@ -8,41 +8,41 @@ Wystarczy otworzyć plik w przeglądarce (dwuklik). Potrzebne jest połączenie 
 
 | Plik | Czego dotyczy | Problem, który rozwiązuje |
 |---|---|---|
-| [`lista.html`](lista.html) | strona z listą koktajli | wąska kolumna (około 1000 px) na szerokim ekranie, filtry w jednym rzędzie z pustym miejscem, pole "Tylko zweryfikowane" w osobnej linii z systemowym, białym checkboxem |
-| [`szczegoly.html`](szczegoly.html) | strona jednego koktajlu | puste miejsce pod zdjęciem, fakty w osobnych pudełkach, składniki wciśnięte w wąski pas |
-| [`karta.html`](karta.html) | pojedyncza karta na liście | szklany panel zasłania około połowy zdjęcia, a znaczki "Zweryfikowany" i ocena zawijają się do osobnych linii |
-| [`filtry.html`](filtry.html) | filtry listy (po wyborze układu C) | filtry ściśnięte w pasku, brak informacji, co jest włączone, brak "Wyczyść filtry" |
-| [`profil.html`](profil.html) | strona zalogowanego użytkownika (pięć propozycji) | po zalogowaniu jest tylko przycisk z nazwą konta, nie ma gdzie zobaczyć własnych przepisów, ulubionych i opinii |
-| [`przepis.html`](przepis.html) | formularz dodawania przepisu (pięć propozycji) | aplikacja nie pozwala jeszcze dodać własnego koktajlu |
+| [`list.html`](list.html) | strona z listą koktajli | wąska kolumna (około 1000 px) na szerokim ekranie, filtry w jednym rzędzie z pustym miejscem, pole "Tylko zweryfikowane" w osobnej linii z systemowym, białym checkboxem |
+| [`detail.html`](detail.html) | strona jednego koktajlu | puste miejsce pod zdjęciem, fakty w osobnych pudełkach, składniki wciśnięte w wąski pas |
+| [`card.html`](card.html) | pojedyncza karta na liście | szklany panel zasłania około połowy zdjęcia, a znaczki "Zweryfikowany" i ocena zawijają się do osobnych linii |
+| [`filters.html`](filters.html) | filtry listy (po wyborze układu C) | filtry ściśnięte w pasku, brak informacji, co jest włączone, brak "Wyczyść filtry" |
+| [`profile.html`](profile.html) | strona zalogowanego użytkownika (pięć propozycji) | po zalogowaniu jest tylko przycisk z nazwą konta, nie ma gdzie zobaczyć własnych przepisów, ulubionych i opinii |
+| [`recipe.html`](recipe.html) | formularz dodawania przepisu (pięć propozycji) | aplikacja nie pozwala jeszcze dodać własnego koktajlu |
 | [`admin.html`](admin.html) | panel administratora we frontendzie (pięć propozycji) | administrator pracuje dziś w panelu Django (`/admin/`), który wygląda inaczej niż aplikacja |
 | [`admin-sidebar.html`](admin-sidebar.html) i [`admin-topbar.html`](admin-topbar.html) | działający prototyp panelu administratora: ten sam kod, dwa układy (menu boczne i menu górne) | połączenie pięciu propozycji z `admin.html` w jedną całość |
-| [`app.html`](app.html) | działający prototyp strony głównej i konta użytkownika w jednym układzie | połączenie pięciu propozycji z `profil.html`, z dolną nawigacją z propozycji E także na stronie głównej |
+| [`app.html`](app.html) | działający prototyp strony głównej i konta użytkownika w jednym układzie | połączenie pięciu propozycji z `profile.html`, z dolną nawigacją z propozycji E także na stronie głównej |
 | [`proposals.css`](proposals.css) | wspólne style makiet | kopia kolorów i kształtów z `src/app/globals.css` |
-| [`proposals.js`](proposals.js) | wspólny skrypt makiet | ikony, przykładowe karty i pasek (używa go `filtry.html`) |
+| [`proposals.js`](proposals.js) | wspólny skrypt makiet | ikony, przykładowe karty i pasek (używa go `filters.html`) |
 
 ## Trzy pomysły na każdy z nich
 
-**Lista (`lista.html`)**
+**Lista (`list.html`)**
 - **A: panel boczny.** Filtry w stałym panelu po lewej (chipy kategorii, przełącznik alkoholu, przełącznik "zweryfikowane"), siatka dostaje resztę szerokości.
 - **B: pasek chipów.** Jeden rząd pod nagłówkiem, rzadziej używane filtry w przycisku "Filtry"; najwięcej koktajli na ekranie.
 - **C: wyróżnione i pływający pasek.** Na górze kafelki "Na topie", niżej szklany pasek filtrów w kształcie pigułki, który przykleja się przy przewijaniu.
 
-**Strona koktajlu (`szczegoly.html`)**
+**Strona koktajlu (`detail.html`)**
 - **A: baner.** Duży panel z rozmytym zdjęciem w tle, fakty w jednym rzędzie, niżej składniki jako siatka i przygotowanie obok.
 - **B: karta przepisu.** Trzy kolumny: zdjęcie i fakty | opis | składniki jako lista z ilościami po prawej; zdjęcie i składniki są przyklejone.
 - **C: galeria składników.** Duże zdjęcie ze szkłem jak na karcie, a składniki jako kafle ze zdjęciami.
 
-**Karta (`karta.html`)**
+**Karta (`card.html`)**
 - **A: wąskie szkło.** Status na zdjęciu, weryfikacja jako ikona przy nazwie, ocena po prawej; panel ma stałą, niską wysokość.
 - **B: zdjęcie i opis pod nim.** Zdjęcie bez nakładki, opis na zwykłym tle.
 - **C: szkło rozwijane.** W spoczynku tylko nazwa i ocena; po najechaniu lub fokusie klawiaturą rozwija się reszta (na telefonie zawsze rozwinięte).
 
-**Filtry (`filtry.html`)**: wszystkie trzy pokazują, co jest włączone (wartość w przycisku i chipy z krzyżykiem), mają "Wyczyść filtry" i działają od razu.
+**Filtry (`filters.html`)**: wszystkie trzy pokazują, co jest włączone (wartość w przycisku i chipy z krzyżykiem), mają "Wyczyść filtry" i działają od razu.
 - **A: przyciski z oknami.** Kategoria otwiera okno z chipami, alkohol jest przełącznikiem w pasku, rzadkie filtry w przycisku "Filtry" z licznikiem.
 - **B: kategorie jako osobny rząd chipów.** Pasek ma filtry krótkie i binarne (alkohol, składnik, przełącznik "zweryfikowane", sortowanie).
 - **C: szuflada filtrów.** Pasek ma tylko przycisk "Filtry" i sortowanie; wszystkie filtry są razem w panelu ze szkła.
 
-Każda makieta ma przy sobie listę zalet i wad. Karty w `lista.html` używają karty A z `karta.html`, żeby układy listy były pokazane w najlepszej formie.
+Każda makieta ma przy sobie listę zalet i wad. Karty w `list.html` używają karty A z `card.html`, żeby układy listy były pokazane w najlepszej formie.
 
 ## Jak dobieraliśmy rozwiązania
 
@@ -61,14 +61,14 @@ Każda makieta ma przy sobie listę zalet i wad. Karty w `lista.html` używają 
 
 Te trzy pliki mają po **pięć** propozycji. Potrzebują internetu także do ikon (Phosphor, z `unpkg.com`). Liczby, konta, opinie i zgłoszenia są **przykładowe**; nazwy koktajli, składników i zdjęcia pochodzą z API Solvro (przepisy "kasia_mixuje" mają własne nazwy, ale zdjęcia podobnych drinków z Solvro).
 
-**Strona użytkownika (`profil.html`)**
+**Strona użytkownika (`profile.html`)**
 - **A: wizytówka i zakładki.** Szklany panel z nazwą, rolą i liczbami, pod nim zakładki przepisy, ulubione, opinie, konto.
 - **B: menu boczne konta.** Osobny obszar z menu i stroną "Przegląd" (liczby i ostatnia aktywność).
 - **C: półki.** Jedna strona z poziomymi półkami; pierwszy kafelek "Moje przepisy" to "Dodaj przepis".
 - **D: panel autora.** Tabela własnych przepisów z wyświetleniami, oceną, etykietą i akcjami.
 - **E: telefon.** Dolna szklana nawigacja, przepisy jako wiersze, stan pusty dla nowego użytkownika.
 
-**Dodawanie przepisu (`przepis.html`)**
+**Dodawanie przepisu (`recipe.html`)**
 - **A: jeden formularz i podgląd.** Trzy bloki i przyklejony podgląd karty; pokazany błąd powtórzonego składnika.
 - **B: kreator w krokach.** Podstawy, składniki, przygotowanie, podgląd.
 - **C: edycja na stronie koktajlu.** Układ strony koktajlu z edytowalnymi polami i szklanym paskiem zapisu.
@@ -105,7 +105,7 @@ Sprawdzone: skrypt w headless Edge (ciemny motyw, 1500 px i 420 px) przeszedł p
 
 Jedna strona, dwa układy, zależnie od szerokości okna. Od 48rem (komputer) na górze jest szklany pasek z szukajką, ulubionymi, przyciskiem "Dodaj przepis" i kontem. Poniżej 48rem (telefon) pasek zostaje tylko z logo i szukajką, a na dole pojawia się szklana nawigacja z propozycji E (Główna, Ulubione, Dodaj, Profil), na stronie głównej i na koncie. Pliki: `app.html`, `app.js`, `app.css` (dialog, komunikat i kilka klas bierze z `admin-panel.css`).
 
-Z propozycji z `profil.html` wzięto:
+Z propozycji z `profile.html` wzięto:
 - **A**: baner z nazwą, rolą i czterema liczbami oraz zakładki sekcji (na telefonie i w średnich oknach).
 - **B**: te same sekcje jako menu boczne na szerokim ekranie (od 64rem), "Przegląd" z ostatnią aktywnością.
 - **C**: na "Przeglądzie" poziome półki (Moje przepisy z kafelkiem "Dodaj przepis", Ulubione, Ostatnio oceniłam).
@@ -113,6 +113,6 @@ Z propozycji z `profil.html` wzięto:
 - **E**: dolna nawigacja, wiersze zamiast tabeli na telefonie, stany puste.
 
 Co działa (dane przykładowe, bez backendu, zmiany w `sessionStorage`): szukanie, filtr kategorii i sortowanie na stronie głównej, serce (ulubione) z licznikiem, dodawanie i edycja przepisu w oknie (nazwa wymagana i unikalna, zdjęcie tylko `https`), usuwanie z potwierdzeniem, usuwanie własnych opinii (średnia ocen koktajlu liczy się na nowo), stany puste, przywracanie danych w ustawieniach.
-Czego brakuje: strony szczegółów po kliknięciu karty (jest tylko makieta `szczegoly.html`), pełnego formularza przepisu z składnikami (wybrana propozycja C z `przepis.html` nie jest jeszcze zbudowana, okno ma tylko nazwę, kategorię i zdjęcie), wylogowania i zmiany hasła, wykresu z prawdziwych danych (backend liczy tylko sumy).
+Czego brakuje: strony szczegółów po kliknięciu karty (jest tylko makieta `detail.html`), pełnego formularza przepisu z składnikami (wybrana propozycja C z `recipe.html` nie jest jeszcze zbudowana, okno ma tylko nazwę, kategorię i zdjęcie), wylogowania i zmiany hasła, wykresu z prawdziwych danych (backend liczy tylko sumy).
 Sprawdzone: skrypt w headless Edge (ciemny motyw, 1500 px i 390 px): wyszukiwanie, filtry, ulubione, formularz z błędami, usuwanie do stanu pustego, dolna nawigacja, brak przewijania w poziomie na telefonie. Niesprawdzone: jasny motyw, czytnik ekranu, prawdziwy telefon.
 

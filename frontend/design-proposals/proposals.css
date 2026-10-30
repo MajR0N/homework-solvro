@@ -150,7 +150,7 @@ label.lbl .select, label.lbl .field { display: block; width: 100%; margin-top: 0
 .review .meta { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: center; font-size: 0.875rem; color: var(--muted); }
 .review .meta b { color: var(--fg); }
 
-/* ikona weryfikacji i ocena (używane w kartach A: karta.html i lista.html) */
+/* ikona weryfikacji i ocena (używane w kartach A: card.html i list.html) */
 .vtick { display: inline-grid; place-items: center; flex: none; width: 1.15rem; height: 1.15rem; border-radius: 50%; background: var(--primary); color: var(--on-primary); }
 .vtick svg { width: 0.7rem; height: 0.7rem; }
 .rate { display: inline-flex; align-items: center; gap: 0.2rem; font-weight: 600; font-size: 0.875rem; white-space: nowrap; }
@@ -171,7 +171,7 @@ label.lbl .select, label.lbl .field { display: block; width: 100%; margin-top: 0
   .bar .search { order: 5; flex-basis: 100%; }
 }
 
-/* ---------- dodatki dla profil.html, przepis.html i admin.html ---------- */
+/* ---------- dodatki dla profile.html, recipe.html i admin.html ---------- */
 :root { --edge: rgb(32 53 96 / 0.55); --ok: #1f7a4d; --bad: #b3261e; --on-bad: #ffffff; }
 @media (prefers-color-scheme: dark) { :root { --edge: rgb(255 255 255 / 0.55); --ok: #6fd6a0; --bad: #ff8a80; --on-bad: #0f1a30; } }
 .num { font-variant-numeric: tabular-nums; }

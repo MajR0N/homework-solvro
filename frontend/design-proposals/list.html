@@ -135,7 +135,7 @@ const DATA = [
 ].map(([name, slug, tag, rating]) => ({ name, slug, tag, rating }));
 
 const vtick = `<span class="vtick" title="Zweryfikowany" role="img" aria-label="Zweryfikowany">${ICON.check}</span>`;
-// karta A z karta.html: status na zdjęciu, weryfikacja jako ikona przy nazwie, ocena po prawej
+// karta A z card.html: status na zdjęciu, weryfikacja jako ikona przy nazwie, ocena po prawej
 const card = (c, cls = "") => {
   const status = { t: '<span class="pill warm">Na topie</span>', p: '<span class="pill status">Popularny</span>' }[c.tag] || "";
   const rate = c.rating ? `<span class="rate" aria-label="Ocena ${c.rating}">${ICON.star}${c.rating}</span>` : "";

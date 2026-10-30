@@ -1,5 +1,5 @@
-// Wspólne elementy makiet, które potrzebuje filtry.html: ikony, przykładowe karty (karta A) i pasek aplikacji.
-// (lista.html, karta.html i szczegoly.html mają własne kopie, bo powstały wcześniej.)
+// Wspólne elementy makiet, które potrzebuje filters.html: ikony, przykładowe karty (karta A) i pasek aplikacji.
+// (list.html, card.html i detail.html mają własne kopie, bo powstały wcześniej.)
 const ICON = {
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>',
   star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.3l-5.4 3.2 1.4-6.1L3.3 10l6.2-.5L12 3.8l2.5 5.7 6.2.5-4.7 4.4 1.4 6.1z"/></svg>',
