@@ -449,11 +449,21 @@ Checked: headless Edge screenshots (1500 px, dark theme only) of all three pages
 
 ## 32. Working admin panel prototype, two navigation layouts (30 October 2026)
 
-Mixed the five admin concepts into one clickable prototype: dashboard (C), table plus gallery with bulk verify (A and E), moderation queue with J/K (B), users and roles with the permission matrix (D). Two layouts share one script: `panel-boczne.html` (sidebar) and `panel-gorne.html` (top bar), chosen by `<body data-nav>`. Files: `panel.js`, `panel.css`, the two HTML shells, all in `frontend/design-proposals/`.
+Mixed the five admin concepts into one clickable prototype: dashboard (C), table plus gallery with bulk verify (A and E), moderation queue with J/K (B), users and roles with the permission matrix (D). Two layouts share one script: `admin-sidebar.html` (sidebar) and `admin-topbar.html` (top bar), chosen by `<body data-nav>`. Files: `admin-panel.js`, `admin-panel.css`, the two HTML shells, all in `frontend/design-proposals/`.
 
 Rules from the backend kept: image URL must be https, cocktail names unique, authors cannot verify their own recipe, admins delete reviews but do not edit them, a role can only be granted below one's own, owner and own account are locked. State lives in memory plus `sessionStorage`; there is no backend call. Everything dynamic is HTML-escaped (a cocktail named `<b>x</b>` renders as text).
 
 Simplification: the weekly views chart is invented data (the backend counts totals only); ingredients and categories screens were left out.
 
 Checked: a CDP script in headless Edge (dark theme, 1500 px and 420 px) clicked through search, filters, sorting, paging, bulk verify, add/edit/delete with validation errors, the queue (J/K, delete, dismiss, verify), role changes under admin/staff/owner, reset. No console errors. Not checked: light theme, screen reader, real phone. No app code changed, so tsc/lint/build/pytest were not run.
+
+## 33. Working user page and main page prototype with the phone dock (30 October 2026)
+
+The owner liked concept E of the user page (phone layout with a bottom glass dock) and asked to reuse it for the main page and to mix all five user-page concepts. Built `frontend/design-proposals/app.html` (+ `app.js`, `app.css`): one responsive prototype. Wide: top bar (A, B side menu from 64rem). Narrow: bottom dock on the main page and the account page (E). Account sections: overview with shelves (C) and activity feed, author panel with chart and table (D), favourites, own reviews, settings. Main page: "Na topie teraz" tiles, category chips, sort, favourite hearts.
+
+File naming: the owner asked for English file names, so the new files are `admin-sidebar.html`, `admin-topbar.html`, `admin-panel.js/css`, `app.html/js/css`. The older mockups (`lista.html`, `profil.html`, ...) keep their Polish names for now.
+
+Simplifications: add/edit uses a short dialog (name, category, image); the full editor is concept C of `przepis.html`, not built. Popularity labels use invented thresholds; the 30-day chart is invented data. State is in `sessionStorage`, no backend call.
+
+Checked: CDP script in headless Edge at 1500 px and 390 px (search, filters, favourites, add/edit validation, delete down to empty states, review delete, dock navigation, no horizontal scroll on the phone). No console errors. Not checked: light theme, screen reader, real phone. No app code changed, so tsc/lint/build/pytest were not run.
 

@@ -15,7 +15,8 @@ Wystarczy otworzyć plik w przeglądarce (dwuklik). Potrzebne jest połączenie 
 | [`profil.html`](profil.html) | strona zalogowanego użytkownika (pięć propozycji) | po zalogowaniu jest tylko przycisk z nazwą konta, nie ma gdzie zobaczyć własnych przepisów, ulubionych i opinii |
 | [`przepis.html`](przepis.html) | formularz dodawania przepisu (pięć propozycji) | aplikacja nie pozwala jeszcze dodać własnego koktajlu |
 | [`admin.html`](admin.html) | panel administratora we frontendzie (pięć propozycji) | administrator pracuje dziś w panelu Django (`/admin/`), który wygląda inaczej niż aplikacja |
-| [`panel-boczne.html`](panel-boczne.html) i [`panel-gorne.html`](panel-gorne.html) | działający prototyp panelu administratora: ten sam kod, dwa układy (menu boczne i menu górne) | połączenie pięciu propozycji z `admin.html` w jedną całość |
+| [`admin-sidebar.html`](admin-sidebar.html) i [`admin-topbar.html`](admin-topbar.html) | działający prototyp panelu administratora: ten sam kod, dwa układy (menu boczne i menu górne) | połączenie pięciu propozycji z `admin.html` w jedną całość |
+| [`app.html`](app.html) | działający prototyp strony głównej i konta użytkownika w jednym układzie | połączenie pięciu propozycji z `profil.html`, z dolną nawigacją z propozycji E także na stronie głównej |
 | [`proposals.css`](proposals.css) | wspólne style makiet | kopia kolorów i kształtów z `src/app/globals.css` |
 | [`proposals.js`](proposals.js) | wspólny skrypt makiet | ikony, przykładowe karty i pasek (używa go `filtry.html`) |
 
@@ -89,7 +90,7 @@ Te trzy pliki mają po **pięć** propozycji. Potrzebują internetu także do ik
 
 ## Prototyp panelu administratora (dwa układy)
 
-Otwórz [`panel-boczne.html`](panel-boczne.html) (menu boczne) albo [`panel-gorne.html`](panel-gorne.html) (menu górne). Oba pliki ładują ten sam `panel.js` i `panel.css`, różni je tylko atrybut `data-nav` w `<body>`. Przycisk w menu konta przełącza między układami.
+Otwórz [`admin-sidebar.html`](admin-sidebar.html) (menu boczne) albo [`admin-topbar.html`](admin-topbar.html) (menu górne). Oba pliki ładują ten sam `admin-panel.js` i `admin-panel.css`, różni je tylko atrybut `data-nav` w `<body>`. Przycisk w menu konta przełącza między układami.
 
 Co działa (na danych przykładowych, bez backendu; zmiany zostają w `sessionStorage` do zamknięcia karty, przycisk "Przywróć dane" je kasuje):
 - **Pulpit** (propozycja C): liczby i listy spraw do zrobienia liczone z aktualnych danych, kafelki prowadzą do właściwego filtru.
@@ -99,3 +100,19 @@ Co działa (na danych przykładowych, bez backendu; zmiany zostają w `sessionSt
 
 Czego brakuje: składniki i kategorie (nie były głównym ekranem żadnej propozycji), prawdziwe logowanie i zapytania do backendu, dzienne wyświetlenia (wykres to dane wymyślone, backend liczy tylko sumy), kolejka "przepisy do sprawdzenia" (backend ma tylko filtr bez znaczka).
 Sprawdzone: skrypt w headless Edge (ciemny motyw, 1500 px i 420 px) przeszedł przez wyszukiwanie, filtry, akcje grupowe, formularz z błędami, kolejkę, role. Niesprawdzone: jasny motyw, czytnik ekranu, prawdziwy telefon.
+
+## Prototyp strony głównej i konta (`app.html`)
+
+Jedna strona, dwa układy, zależnie od szerokości okna. Od 48rem (komputer) na górze jest szklany pasek z szukajką, ulubionymi, przyciskiem "Dodaj przepis" i kontem. Poniżej 48rem (telefon) pasek zostaje tylko z logo i szukajką, a na dole pojawia się szklana nawigacja z propozycji E (Główna, Ulubione, Dodaj, Profil), na stronie głównej i na koncie. Pliki: `app.html`, `app.js`, `app.css` (dialog, komunikat i kilka klas bierze z `admin-panel.css`).
+
+Z propozycji z `profil.html` wzięto:
+- **A**: baner z nazwą, rolą i czterema liczbami oraz zakładki sekcji (na telefonie i w średnich oknach).
+- **B**: te same sekcje jako menu boczne na szerokim ekranie (od 64rem), "Przegląd" z ostatnią aktywnością.
+- **C**: na "Przeglądzie" poziome półki (Moje przepisy z kafelkiem "Dodaj przepis", Ulubione, Ostatnio oceniłam).
+- **D**: sekcja "Moje przepisy" jako panel autora: wykres 30 dni, liczby, tabela z edycją i usuwaniem.
+- **E**: dolna nawigacja, wiersze zamiast tabeli na telefonie, stany puste.
+
+Co działa (dane przykładowe, bez backendu, zmiany w `sessionStorage`): szukanie, filtr kategorii i sortowanie na stronie głównej, serce (ulubione) z licznikiem, dodawanie i edycja przepisu w oknie (nazwa wymagana i unikalna, zdjęcie tylko `https`), usuwanie z potwierdzeniem, usuwanie własnych opinii (średnia ocen koktajlu liczy się na nowo), stany puste, przywracanie danych w ustawieniach.
+Czego brakuje: strony szczegółów po kliknięciu karty (jest tylko makieta `szczegoly.html`), pełnego formularza przepisu z składnikami (wybrana propozycja C z `przepis.html` nie jest jeszcze zbudowana, okno ma tylko nazwę, kategorię i zdjęcie), wylogowania i zmiany hasła, wykresu z prawdziwych danych (backend liczy tylko sumy).
+Sprawdzone: skrypt w headless Edge (ciemny motyw, 1500 px i 390 px): wyszukiwanie, filtry, ulubione, formularz z błędami, usuwanie do stanu pustego, dolna nawigacja, brak przewijania w poziomie na telefonie. Niesprawdzone: jasny motyw, czytnik ekranu, prawdziwy telefon.
+

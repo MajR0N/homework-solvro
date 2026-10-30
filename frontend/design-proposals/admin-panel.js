@@ -62,7 +62,7 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 const me = () => D.users.find((u) => u.u === ME);
 const rank = (r) => ROLES.indexOf(r);
 const byId = (id) => D.cocktails.find((c) => c.id === id);
-const num = new Intl.NumberFormat("pl-PL");
+const num = new Intl.NumberFormat("pl-PL", { useGrouping: "always" });
 const day = (iso) => new Date(iso).toLocaleDateString("pl-PL");
 const when = (iso) => new Date(iso).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" });
 const initials = (u) => u.replace(/[^a-z0-9]/gi, " ").trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
@@ -182,7 +182,7 @@ const VIEWS = {
 
 /* ---------- szkielet strony (raz) i odświeżanie ---------- */
 const logo = '<img src="../public/solvro/KN_Solvro_White.svg" alt="Solvro">';
-const other = NAV === "side" ? ["panel-gorne.html", "Menu górne"] : ["panel-boczne.html", "Menu boczne"];
+const other = NAV === "side" ? ["admin-topbar.html", "Menu górne"] : ["admin-sidebar.html", "Menu boczne"];
 const acct = `<div class="who"><span class="av" aria-hidden="true">JK</span><div><b>${ME}</b><small id="role"></small></div></div>
   <label class="f"><span class="l">Zobacz panel jako</span><select class="in" id="as">${["admin", "staff", "owner"].map((r) => `<option>${r}</option>`).join("")}</select><span class="h" style="color:rgb(255 255 255 / .85)">Sprawdź, jak zmieniają się uprawnienia.</span></label>
   <a class="btn" href="${other[0]}"><i class="ph ph-layout" aria-hidden="true"></i>${other[1]}</a>
