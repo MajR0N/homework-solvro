@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dodawanie przepisu: pięć propozycji</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <link rel="stylesheet" href="proposals.css">
+  <style>
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    h3.sec { font-size: 1.125rem; margin-bottom: 0.75rem; }
+
+    /* wiersz składnika: pole z podpowiedziami + ilość (wolny tekst, bo backend trzyma ilość jako tekst) */
+    .ings { display: grid; gap: 0.6rem; }
+    .irow { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) 9rem 2.5rem; gap: 0.5rem; align-items: start; }
+    .irow .thumb { width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; overflow: hidden; background: var(--soft); display: grid; place-items: center; font-weight: 700; color: var(--muted); }
+    .irow .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .irow .in { padding: 0.5rem 0.75rem; border-radius: 0.75rem; }
+    .irow .rm { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border: 1px solid var(--edge); border-radius: 50%; background: none; color: inherit; cursor: pointer; font-size: 1.1rem; }
+    .irow .e { grid-column: 2 / -1; margin-top: -0.2rem; }
+    .irow.err > label:first-of-type .in { border-color: var(--bad); box-shadow: 0 0 0 1px var(--bad); }
+    .addrow { justify-self: start; }
+    .sw { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.6rem 0.9rem; border: 1px solid var(--edge); border-radius: 0.75rem; }
+
+    .dropzone { display: grid; place-items: center; align-content: center; gap: 0.3rem; min-height: 9rem; padding: 1rem; text-align: center; border: 2px dashed var(--edge); border-radius: 0.75rem; }
+    .dropzone i { font-size: 1.75rem; }
+    .safe { display: flex; gap: 0.5rem; align-items: flex-start; padding: 0.75rem 1rem; border-radius: 0.75rem; background: var(--soft); border: 1px solid var(--line); font-size: 0.875rem; }
+    .safe i { font-size: 1.2rem; flex: none; margin-top: 0.1rem; }
+
+    /* A: długi formularz + podgląd */
+    .pa { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 1.5rem; align-items: start; }
+    .pa .form { display: grid; gap: 1.5rem; }
+    .pa .form > section { padding: 1.25rem; border: 1px solid var(--line); border-radius: 0.75rem; background: var(--soft); display: grid; gap: 1rem; }
+    .pa .prev { position: sticky; top: 1rem; display: grid; gap: 1rem; }
+    .check li { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; padding: 0.2rem 0; }
+    .check .done { color: var(--ok); }
+
+    /* B: kreator */
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 1.5rem 0; padding: 0; }
+    .steps li { display: flex; align-items: center; gap: 0.6rem; padding-top: 0.75rem; border-top: 4px solid var(--line); font-weight: 500; color: var(--muted); }
+    .steps li[data-s="done"] { border-top-color: var(--primary); color: var(--fg); }
+    .steps li[aria-current="step"] { border-top-color: var(--primary); color: var(--fg); font-weight: 700; }
+    .steps .ball { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid var(--edge); font-size: 1rem; flex: none; }
+    .steps [aria-current="step"] .ball, .steps [data-s="done"] .ball { background: var(--primary); color: var(--on-primary); border-color: transparent; }
+    .pb { max-width: 46rem; margin: 0 auto; display: grid; gap: 1.25rem; }
+    .pb .nav { display: flex; justify-content: space-between; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+
+    /* C: edycja na stronie koktajlu */
+    .pc .banner { position: relative; display: grid; grid-template-columns: 17rem minmax(0, 1fr); gap: 1.5rem; padding: 1.25rem; border-radius: 1.25rem; overflow: hidden; }
+    .pc .banner .in { background: rgb(255 255 255 / 0.1); border-color: rgb(255 255 255 / 0.55); color: #fff; }
+    .pc .banner .in::placeholder { color: #fff; opacity: 0.8; }
+    .pc .banner .big { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; padding: 0.4rem 0.9rem; }
+    .pc .banner .f > .l { color: rgb(255 255 255 / 0.95); }
+    .pc .banner .h { color: rgb(255 255 255 / 0.85); }
+    .pc .banner .dropzone { height: 100%; min-height: 12rem; border-color: rgb(255 255 255 / 0.7); }
+    .pc .cols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 1.5rem; margin-top: 1.5rem; align-items: start; }
+    .pc .savebar { position: sticky; bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; margin-top: 1.5rem; padding: 0.6rem 0.75rem 0.6rem 1.25rem; border-radius: 999px; }
+    .pc .savebar .btn.w { background: #fff; color: #203560; border-color: transparent; font-weight: 700; }
+    .pc .savebar .btn.g { border-color: rgb(255 255 255 / 0.55); }
+    .pc .savebar span.grow { font-size: 0.875rem; }
+
+    /* D: składniki najpierw */
+    .pd { display: grid; grid-template-columns: minmax(0, 1fr) 22rem; gap: 1.5rem; align-items: start; }
+    .pd .pick { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr)); }
+    .pd .tile { position: relative; aspect-ratio: 1; border: 1px solid var(--line); border-radius: 0.75rem; overflow: hidden; background: var(--soft); padding: 0; cursor: pointer; color: inherit; font: inherit; text-align: left; }
+    .pd .tile img { width: 100%; height: 100%; object-fit: contain; padding: 0.4rem; }
+    .pd .tile .cap { position: absolute; left: 0.35rem; right: 0.35rem; bottom: 0.35rem; padding: 0.3rem 0.5rem; border-radius: 0.5rem; font-size: 0.8125rem; font-weight: 600; }
+    .pd .tile[aria-pressed="true"] { outline: 3px solid var(--primary); outline-offset: -3px; }
+    .pd .tile .got { position: absolute; top: 0.35rem; right: 0.35rem; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--primary); color: var(--on-primary); font-size: 0.9rem; }
+    .pd .mine { position: sticky; top: 1rem; display: grid; gap: 1rem; }
+    .pd .mine .irow { grid-template-columns: 2.25rem minmax(0, 1fr) 7rem 2.25rem; }
+
+    /* E: szybkie okno */
+    .pe { position: relative; min-height: 46rem; border-radius: 1rem; overflow: hidden; padding: 1rem; }
+    .pe .behind { filter: blur(2px); opacity: 0.55; pointer-events: none; }
+    .pe .scrim { position: absolute; inset: 0; background: rgb(15 26 48 / 0.55); }
+    .pe .dlg { position: absolute; left: 50%; top: 1.25rem; width: min(34rem, calc(100% - 2rem)); transform: translateX(-50%); padding: 1.25rem; border-radius: 1.25rem; display: grid; gap: 1rem; background: var(--bg); border: 1px solid var(--line); box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.6); }
+    .pe .dlg header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .pe .dlg h3 { font-size: 1.375rem; letter-spacing: -0.01em; }
+    .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.5rem; border: 1px solid var(--edge); border-radius: 0.75rem; }
+    .tags .tg { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.4rem 0.2rem 0.7rem; border-radius: 999px; background: var(--primary); color: var(--on-primary); font-size: 0.875rem; font-weight: 600; }
+    .tags .tg button { display: grid; place-items: center; width: 1.4rem; height: 1.4rem; border: 0; border-radius: 50%; background: rgb(255 255 255 / 0.25); color: inherit; cursor: pointer; }
+    .tags input { flex: 1; min-width: 8rem; border: 0; background: none; font: inherit; color: inherit; padding: 0.2rem 0.3rem; }
+    .tags input:focus-visible { outline: none; }
+
+    @media (max-width: 60rem) { .pa, .pd, .pc .banner, .pc .cols { grid-template-columns: 1fr; } .pa .prev, .pd .mine { position: static; } .steps { grid-template-columns: repeat(2, 1fr); } .irow { grid-template-columns: 2.5rem 1fr 6rem 2.5rem; } }
+  </style>
+</head>
+<body>
+<div class="doc">
+  <header>
+    <h1>Dodawanie przepisu: pięć propozycji</h1>
+    <p class="lead">Formularz musi zebrać to, czego wymaga backend: nazwę, kategorię, szkło, informację o alkoholu, adres zdjęcia (tylko https), instrukcję i składniki z ilością jako wolnym tekstem (każdy składnik najwyżej raz). Znaczek "zweryfikowany" nadaje tylko administrator, więc formularz go nie ma i mówi o tym wprost.</p>
+    <nav aria-label="Propozycje"><ul>
+      <li><a href="#a">A: jeden formularz i podgląd</a></li>
+      <li><a href="#b">B: kreator w krokach</a></li>
+      <li><a href="#c">C: edycja na stronie koktajlu</a></li>
+      <li><a href="#d">D: składniki najpierw</a></li>
+      <li><a href="#e">E: szybkie okno</a></li>
+    </ul></nav>
+  </header>
+
+  <!-- ===== A ===== -->
+  <section class="variant" id="a">
+    <h2>A: jeden formularz i podgląd</h2>
+    <p class="idea">Cały formularz na jednej stronie, podzielony na trzy bloki, a obok przyklejony podgląd karty i lista braków. Pokazany jest też błąd: ten sam składnik dodany dwa razy.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Wszystko widać naraz, łatwo wrócić i poprawić.</li><li>Podgląd karty od razu pokazuje, jak przepis wypadnie na liście.</li><li>Najmniej kodu: jeden formularz, jedna walidacja.</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Długa strona, na telefonie dużo przewijania.</li><li>Przy pustym formularzu bloki mogą wyglądać na przytłaczające.</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div data-bar="user"></div>
+      <h2 style="margin:1.5rem 0 1rem;font-size:1.75rem;letter-spacing:-.02em">Nowy przepis</h2>
+      <div class="pa">
+        <form class="form" onsubmit="return false">
+          <section><h3 class="sec" style="margin:0">Podstawy</h3>
+            <label class="f"><span class="l">Nazwa</span><input class="in" value="Wiśniowy Mojito" maxlength="200"><span class="h">Do 200 znaków.</span></label>
+            <div class="grid2">
+              <label class="f"><span class="l">Kategoria</span><select class="in select"><option>Koktajl</option><option>Zwykły drink</option><option>Domowy likier</option></select></label>
+              <label class="f"><span class="l">Rodzaj szkła</span><input class="in" value="Highball" list="glasses"><datalist id="glasses"><option>Highball</option><option>Cocktail glass</option></datalist><span class="h">Wolny tekst, podpowiedzi z istniejących.</span></label>
+            </div>
+            <div class="sw"><span><b>Zawiera alkohol</b><span class="h" style="margin:0">Pole służy do filtra "z alkoholem" i "bez".</span></span><label class="switch"><span class="sr">Zawiera alkohol</span><input type="checkbox" checked></label></div>
+          </section>
+          <section><h3 class="sec" style="margin:0">Składniki</h3>
+            <div class="ings" data-ings="a"></div>
+            <button class="btn addrow" type="button"><i class="ph ph-plus"></i>Dodaj składnik</button>
+            <span class="h muted" style="font-size:.8125rem">Brakuje składnika na liście? <a class="lnk" href="#a">Dodaj nowy składnik</a> (zobaczą go wszyscy).</span>
+          </section>
+          <section><h3 class="sec" style="margin:0">Przygotowanie</h3>
+            <label class="f"><span class="l">Instrukcja</span><textarea class="in">Rozgnieć miętę z cukrem i wiśniami. Dodaj rum, sok z limonki i lód, dopełnij wodą gazowaną.</textarea></label>
+            <label class="f"><span class="l">Adres zdjęcia (https)</span><input class="in" value="https://" placeholder="https://"><span class="h">Zdjęcia z innych serwerów niż Solvro są pokazywane tylko, gdy adres zaczyna się od https.</span></label>
+          </section>
+          <div class="row"><button class="btn primary" type="submit"><i class="ph ph-check"></i>Opublikuj przepis</button><button class="btn ghost" type="button">Anuluj</button></div>
+        </form>
+        <aside class="prev" aria-label="Podgląd">
+          <h3 style="font-size:1rem">Tak wygląda na liście</h3>
+          <article class="card k1"><img src="https://cocktails.solvro.pl/images/cocktails/mojito.png" alt=""><div class="cap glass"><div class="top"><h3 class="name">Wiśniowy Mojito</h3></div><p class="meta">Koktajl</p></div></article>
+          <div class="panel"><h3 style="font-size:.95rem;margin-bottom:.5rem">Przed publikacją</h3>
+            <ul class="check"><li class="done"><i class="ph-fill ph-check-circle"></i>Nazwa</li><li class="done"><i class="ph-fill ph-check-circle"></i>Kategoria</li><li><i class="ph ph-warning-circle" style="color:var(--bad)"></i>Składniki powtarzają się (Lime juice)</li><li class="done"><i class="ph-fill ph-check-circle"></i>Instrukcja</li></ul></div>
+          <div class="safe"><i class="ph ph-seal-check"></i><span>Znaczek "zweryfikowany" nadaje administrator po sprawdzeniu przepisu. Do tego czasu przepis jest widoczny z napisem "Bez znaczka".</span></div>
+        </aside>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ===== B ===== -->
+  <section class="variant" id="b">
+    <h2>B: kreator w krokach</h2>
+    <p class="idea">Cztery ekrany: podstawy, składniki, przygotowanie, podgląd. Każdy ma tylko kilka pól i własną walidację, a pasek na górze mówi, gdzie jestem. Pokazany jest krok "Składniki".</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Mało pól na raz, więc nowa osoba się nie gubi.</li><li>Błędy pojawiają się tam, gdzie je da się naprawić (w tym kroku).</li><li>Dobrze działa na telefonie.</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Więcej kodu (stan kroków, zapamiętanie wpisanych danych przy wracaniu).</li><li>Doświadczona osoba klika więcej niż w jednym formularzu.</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div data-bar="user"></div>
+      <ol class="steps" aria-label="Postęp">
+        <li data-s="done"><span class="ball"><i class="ph ph-check"></i></span>Podstawy</li>
+        <li aria-current="step"><span class="ball"><i class="ph ph-flask"></i></span>Składniki</li>
+        <li><span class="ball"><i class="ph ph-list-numbers"></i></span>Przygotowanie</li>
+        <li><span class="ball"><i class="ph ph-eye"></i></span>Podgląd</li>
+      </ol>
+      <div class="pb">
+        <div><h2 style="font-size:1.75rem;letter-spacing:-.02em">Z czego to zrobić?</h2><p class="muted">Dodaj składniki i ilości. Ilość to zwykły tekst, np. "50 ml" albo "2 oz".</p></div>
+        <div class="ings" data-ings="b"></div>
+        <button class="btn addrow" type="button"><i class="ph ph-plus"></i>Dodaj składnik</button>
+        <div class="nav"><button class="btn" type="button"><i class="ph ph-arrow-left"></i>Wstecz</button><button class="btn primary" type="button">Dalej<i class="ph ph-arrow-right"></i></button></div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ===== C ===== -->
+  <section class="variant pc" id="c">
+    <h2>C: edycja na stronie koktajlu</h2>
+    <p class="idea">Formularz wygląda jak strona koktajlu (wariant A szczegółów): ten sam baner, te same składniki i instrukcja, tylko że pola są edytowalne. Zapis jest na przyklejonym, szklanym pasku na dole.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Widać wynik od pierwszej litery, bez osobnego podglądu.</li><li>Ten sam układ służy do dodawania i edycji.</li><li>Najbardziej "Solvro" ze wszystkich pięciu.</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Najtrudniejszy do zbudowania (komponenty strony koktajlu trzeba przerobić na edytowalne).</li><li>Mniej oczywiste, które pola są obowiązkowe (trzeba je oznaczyć i opisać).</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div data-bar="user"></div>
+      <form onsubmit="return false" style="margin-top:1.5rem">
+        <div class="banner glass">
+          <div class="dropzone"><i class="ph ph-image"></i><b>Wklej adres zdjęcia</b><span style="font-size:.8125rem;opacity:.9">https://cocktails.example/mojito.jpg</span></div>
+          <div class="stack">
+            <label class="f"><span class="l">Nazwa (wymagana)</span><input class="in big" value="Wiśniowy Mojito"></label>
+            <div class="grid2">
+              <label class="f"><span class="l">Kategoria</span><select class="in select"><option>Koktajl</option></select></label>
+              <label class="f"><span class="l">Rodzaj szkła</span><input class="in" value="Highball"></label>
+            </div>
+            <label class="switch" style="color:#fff"><input type="checkbox" checked>Zawiera alkohol</label>
+          </div>
+        </div>
+        <div class="cols">
+          <section class="panel"><h3>Składniki</h3><div class="ings" data-ings="c"></div><button class="btn addrow" type="button" style="margin-top:.75rem"><i class="ph ph-plus"></i>Dodaj składnik</button></section>
+          <section class="panel"><h3>Przygotowanie</h3><label class="f"><span class="sr">Instrukcja</span><textarea class="in" style="min-height:14rem">Rozgnieć miętę z cukrem i wiśniami. Dodaj rum, sok z limonki i lód, dopełnij wodą gazowaną.</textarea></label></section>
+        </div>
+        <div class="savebar glass"><span class="grow">Niezapisane zmiany. Znaczek zweryfikowany nadaje administrator.</span><button class="btn g" type="button">Anuluj</button><button class="btn w" type="submit"><i class="ph ph-check"></i>Opublikuj</button></div>
+      </form>
+    </div></div>
+  </section>
+
+  <!-- ===== D ===== -->
+  <section class="variant" id="d">
+    <h2>D: składniki najpierw</h2>
+    <p class="idea">Zamiast pisać nazwy składników wybiera się je z kafelków ze zdjęciami (wyszukiwarka i filtr "alkohol / bezalkoholowe" nad siatką). Wybrane trafiają do panelu "Twój przepis" po prawej, gdzie wpisuje się ilości. Reszta pól jest pod spodem.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Nie da się literówki ani dubla: składnik jest albo wybrany, albo nie.</li><li>Zdjęcia pomagają rozpoznać składnik (552 pozycje, wiele o podobnych nazwach).</li><li>Daje najlepsze dane: każdy przepis powiązany z prawdziwym składnikiem.</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Siatka z setkami zdjęć jest ciężka (potrzebne ładowanie na żądanie i stronicowanie).</li><li>Dla składnika, którego nie ma, trzeba osobnego, prostego przepływu "dodaj nowy".</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div data-bar="user"></div>
+      <h2 style="margin:1.5rem 0 1rem;font-size:1.75rem;letter-spacing:-.02em">Nowy przepis: wybierz składniki</h2>
+      <div class="pd">
+        <div class="stack">
+          <div class="row"><label class="f grow" style="min-width:14rem"><span class="sr">Szukaj składnika</span><input class="in pill" placeholder="Szukaj wśród 552 składników"></label>
+            <div class="seg" role="group" aria-label="Rodzaj"><button class="chip" aria-pressed="true">Wszystkie</button><button class="chip" aria-pressed="false">Alkohole</button><button class="chip" aria-pressed="false">Bezalkoholowe</button></div></div>
+          <div class="pick" data-pick></div>
+          <label class="f"><span class="l">Instrukcja</span><textarea class="in">Rozgnieć miętę z cukrem. Dodaj rum, sok z limonki i lód, dopełnij wodą gazowaną.</textarea></label>
+        </div>
+        <aside class="mine panel" aria-label="Twój przepis">
+          <label class="f"><span class="l">Nazwa</span><input class="in" value="Wiśniowy Mojito"></label>
+          <div class="grid2"><label class="f"><span class="l">Kategoria</span><select class="in select"><option>Koktajl</option></select></label><label class="f"><span class="l">Szkło</span><input class="in" value="Highball"></label></div>
+          <div><h3 style="font-size:.95rem;margin-bottom:.5rem">Składniki (<span data-n>4</span>)</h3><div class="ings" data-ings="d"></div></div>
+          <button class="btn primary" style="justify-content:center;padding:.7rem"><i class="ph ph-check"></i>Opublikuj przepis</button>
+          <p class="h muted" style="font-size:.8125rem;margin:0">Nie ma Twojego składnika? <a class="lnk" href="#d">Dodaj nowy</a>.</p>
+        </aside>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ===== E ===== -->
+  <section class="variant" id="e">
+    <h2>E: szybkie okno</h2>
+    <p class="idea">Przycisk "Dodaj przepis" na liście otwiera okno z minimum: nazwa, kategoria, składniki jako wpisywane znaczniki ("50 ml rum" zamienia się w pozycję) i instrukcja. Reszta (szkło, zdjęcie) jest w "Więcej pól". Pokazany jest błąd pustej nazwy.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Najkrótsza droga od pomysłu do przepisu, bez zmiany strony.</li><li>Znaczniki pozwalają wpisać składniki z klawiatury, bez klikania w każdy wiersz.</li><li>Okno z focus trap i zamykaniem przez Esc jest dobrze znanym wzorcem.</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Parsowanie "ilość + nazwa" z jednego pola jest zawodne ("2 oz of dry vermouth"), więc trzeba podpowiedzi i poprawek.</li><li>Dla długich przepisów okno jest za ciasne i potrzebny jest link do pełnej strony (B lub A).</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock pe">
+      <div class="behind"><div data-bar="user"></div><div class="cards k1" style="margin-top:1.5rem" data-cards="0,8"></div></div>
+      <div class="scrim"></div>
+      <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-t">
+        <header><h3 id="dlg-t">Szybki przepis</h3><button class="fav" aria-label="Zamknij"><i class="ph ph-x" style="font-size:1.2rem"></i></button></header>
+        <label class="f err"><span class="l">Nazwa</span><input class="in" aria-invalid="true" placeholder="np. Wiśniowy Mojito"><span class="e"><i class="ph-fill ph-warning-circle"></i>Podaj nazwę przepisu.</span></label>
+        <div class="grid2"><label class="f"><span class="l">Kategoria</span><select class="in select"><option>Koktajl</option></select></label>
+          <div class="sw" style="align-self:end"><b>Alkohol</b><label class="switch"><span class="sr">Zawiera alkohol</span><input type="checkbox" checked></label></div></div>
+        <div class="f"><span class="l">Składniki</span>
+          <div class="tags"><span class="tg">50 ml White rum<button aria-label="Usuń White rum"><i class="ph ph-x"></i></button></span><span class="tg">8 listków Mint<button aria-label="Usuń Mint"><i class="ph ph-x"></i></button></span><span class="tg">1 Lime<button aria-label="Usuń Lime"><i class="ph ph-x"></i></button></span><input placeholder="Wpisz ilość i nazwę, Enter dodaje" aria-label="Dodaj składnik"></div>
+          <span class="h">Nazwa jest dopasowywana do istniejących składników.</span></div>
+        <label class="f"><span class="l">Instrukcja</span><textarea class="in" style="min-height:5rem"></textarea></label>
+        <footer class="row" style="justify-content:space-between"><a class="lnk" href="#b">Więcej pól (szkło, zdjęcie)</a><span class="row"><button class="btn ghost">Anuluj</button><button class="btn primary"><i class="ph ph-check"></i>Opublikuj</button></span></footer>
+      </div>
+    </div></div>
+  </section>
+</div>
+<script src="proposals.js"></script>
+<script>
+  // przykładowe składniki (nazwy i zdjęcia z API Solvro; ilości wymyślone)
+  const I = [
+    { n: "White rum", m: "50 ml", s: "white-rum" },
+    { n: "Lime juice", m: "30 ml", s: "lime-juice" },
+    { n: "Mint", m: "8 listków", s: "mint" },
+    { n: "Sugar", m: "2 łyżeczki", s: "sugar" },
+  ];
+  const irow = (i, err) => `<div class="irow ${err ? "err" : ""}"><span class="thumb">${i.s ? `<img src="https://cocktails.solvro.pl/images/ingredients/${i.s}.png" alt="">` : i.n[0]}</span>
+    <label class="f"><span class="sr">Składnik</span><input class="in" value="${i.n}" ${err ? 'aria-invalid="true"' : ""}></label>
+    <label class="f"><span class="sr">Ilość</span><input class="in" value="${i.m}"></label>
+    <button class="rm" type="button" aria-label="Usuń ${i.n}"><i class="ph ph-trash"></i></button>
+    ${err ? `<span class="e"><i class="ph-fill ph-warning-circle"></i>${i.n} jest już na liście. Zmień ilość w pierwszym wierszu.</span>` : ""}</div>`;
+  const list = (rows, dup) => rows.map((r, k) => irow(r, dup && k === rows.length - 1)).join("");
+  const dupe = { n: "Lime juice", m: "10 ml", s: "lime-juice" };
+  document.querySelector("[data-ings=a]").innerHTML = list([...I, dupe], true);
+  document.querySelector("[data-ings=b]").innerHTML = list(I);
+  document.querySelector("[data-ings=c]").innerHTML = list(I);
+  document.querySelector("[data-ings=d]").innerHTML = list(I.slice(0, 3));
+  // siatka wyboru (D): wybrane kafelki mają znacznik i obwódkę
+  const P = [["White rum", "white-rum", 1], ["Lime juice", "lime-juice", 1], ["Mint", "mint", 1], ["Gin", "gin"], ["Vodka", "vodka"], ["Tequila", "tequila"], ["Triple sec", "triple-sec"], ["Campari", "campari"], ["Sugar", "sugar", 0], ["Lemon juice", "lemon-juice"], ["Sweet vermouth", "sweet-vermouth"], ["Orange juice", "orange-juice"]];
+  document.querySelector("[data-pick]").innerHTML = P.map(([n, s, on]) => `<button class="tile" aria-pressed="${on === 1}"><img src="https://cocktails.solvro.pl/images/ingredients/${s}.png" alt="" loading="lazy">${on === 1 ? '<span class="got" aria-hidden="true"><i class="ph ph-check"></i></span><span class="sr">wybrany</span>' : ""}<span class="cap glass">${n}</span></button>`).join("");
+  document.querySelector("[data-n]").textContent = 3;
+</script>
+</body>
+</html>

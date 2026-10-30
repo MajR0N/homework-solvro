@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strona użytkownika: pięć propozycji</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <link rel="stylesheet" href="proposals.css">
+  <style>
+    /* wspólne dla kilku wariantów: karta "mojego" przepisu ma status na zdjęciu i wyświetlenia na szkle */
+    .mine .cap .top { display: flex; justify-content: space-between; gap: 0.5rem; align-items: flex-start; }
+    .mine .cap .name { font-size: 1rem; line-height: 1.2; }
+    .mine .cap .meta { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.25rem; font-size: 0.8125rem; }
+    .mine .tag { position: absolute; top: 0.5rem; left: 0.5rem; max-width: calc(100% - 4rem); }
+    .mine .tools { position: absolute; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.35rem; }
+    .mine .tools button { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--bg) 88%, transparent); color: var(--fg); cursor: pointer; font-size: 1.1rem; }
+    .pill.plain { background: var(--bg); color: var(--fg); border-color: var(--edge); }
+    .add-tile { display: grid; place-items: center; align-content: center; gap: 0.5rem; aspect-ratio: 4 / 5; border: 2px dashed var(--edge); border-radius: 0.75rem; color: inherit; text-decoration: none; font-weight: 600; text-align: center; padding: 1rem; }
+    .add-tile i { font-size: 2rem; }
+    .add-tile:hover { background: var(--soft); }
+    .empty { display: grid; justify-items: center; gap: 0.5rem; padding: 2rem 1rem; text-align: center; border: 1px dashed var(--edge); border-radius: 0.75rem; }
+    .empty i { font-size: 2rem; color: var(--muted); }
+
+    /* A: wizytówka */
+    .pa .hero { display: grid; grid-template-columns: auto 1fr; gap: 1.25rem 1.5rem; align-items: center; padding: 1.5rem; border-radius: 1.25rem; }
+    .pa .hero h2 { font-size: 1.75rem; letter-spacing: -0.02em; line-height: 1.1; }
+    .pa .hero .stats { grid-column: 1 / -1; padding-top: 1rem; border-top: 1px solid rgb(255 255 255 / 0.2); }
+    .pa .hero .stat span { color: rgb(255 255 255 / 0.85); }
+    .pa .hero .role { border-color: rgb(255 255 255 / 0.6); }
+    .pa .tabs { margin-top: 1rem; }
+    .pa .pane { padding-top: 1.25rem; }
+
+    /* B: menu boczne */
+    .pb { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+    .pb .who { display: flex; align-items: center; gap: 0.75rem; padding: 0 0.5rem 0.75rem; }
+    .pb .feed li { display: flex; gap: 0.75rem; align-items: center; padding: 0.7rem 0; border-top: 1px solid var(--line); }
+    .pb .feed li:first-child { border-top: 0; }
+    .pb .feed img { width: 2.75rem; height: 2.75rem; border-radius: 0.5rem; object-fit: cover; }
+
+    /* C: półki */
+    .pc .shelf { margin-top: 1.5rem; }
+    .pc .shelf header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.6rem; }
+    .pc .shelf h3 { font-size: 1.25rem; }
+    .pc .shelf a { color: inherit; font-size: 0.875rem; }
+    .pc .rail { display: grid; grid-auto-flow: column; grid-auto-columns: 11.5rem; gap: 1rem; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 0.5rem; }
+    .pc .rail > * { scroll-snap-align: start; }
+    .pc .head { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+
+    /* D: panel autora */
+    .pd .bars { display: flex; align-items: flex-end; gap: 3px; height: 4.5rem; }
+    .pd .bars i { flex: 1; background: var(--primary); border-radius: 2px 2px 0 0; min-height: 2px; }
+    .pd .top { display: grid; gap: 1rem; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: stretch; }
+    .pd .top .panel { display: grid; gap: 0.75rem; align-content: start; }
+
+    /* E: telefon */
+    .pe .rowc { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.75rem; border: 1px solid var(--line); background: var(--soft); }
+    .pe .rowc img { width: 3.25rem; height: 3.25rem; border-radius: 0.5rem; object-fit: cover; flex: none; }
+    .pe .rowc b { display: block; line-height: 1.2; }
+    .pe .rowc small { color: var(--muted); }
+    .pe-wrap { display: grid; grid-template-columns: repeat(2, minmax(0, 22rem)); gap: 2rem; justify-content: center; }
+
+    @media (max-width: 52rem) { .pb, .pd .top, .pe-wrap { grid-template-columns: 1fr; } .pa .hero { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="doc">
+  <header>
+    <h1>Strona użytkownika: pięć propozycji</h1>
+    <p class="lead">Dziś zalogowany użytkownik widzi tylko przycisk z nazwą konta. Nie ma gdzie zobaczyć własnych przepisów, ulubionych ani opinii. Każda propozycja pokazuje tę samą osobę (kasia_mixuje, rola user, cztery własne przepisy) w innym układzie.</p>
+    <nav aria-label="Propozycje"><ul>
+      <li><a href="#a">A: wizytówka i zakładki</a></li>
+      <li><a href="#b">B: menu boczne konta</a></li>
+      <li><a href="#c">C: półki</a></li>
+      <li><a href="#d">D: panel autora</a></li>
+      <li><a href="#e">E: telefon</a></li>
+    </ul></nav>
+  </header>
+
+  <!-- ===== A ===== -->
+  <section class="variant pa" id="a">
+    <h2>A: wizytówka i zakładki</h2>
+    <p class="idea">Na górze szklany panel z nazwą, rolą i czterema liczbami. Pod nim zakładki: przepisy, ulubione, opinie, konto. Najprostszy wzorzec, który zna każdy.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Od razu widać, kim jestem i jak mi idzie.</li><li>Zakładki to jedna strona, więc jeden adres i łatwa implementacja.</li><li>Karty są te same co na liście, więc nie ma nowego wyglądu do utrzymania.</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Liczby w panelu zabierają około jednej czwartej ekranu.</li><li>Z czasem zakładki się zapchają (przepisy i opinie rosną).</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div data-bar="user"></div>
+      <div style="margin-top:1.5rem" class="hero glass">
+        <span class="av lg" aria-hidden="true">KM</span>
+        <div>
+          <h2>kasia_mixuje</h2>
+          <p class="row" style="margin-top:.4rem"><span class="role"><i class="ph ph-user"></i>Użytkownik</span><span>W Solvro Bar od 12 września 2026</span></p>
+        </div>
+        <dl class="stats" style="margin:0">
+          <div class="stat"><b>4</b><span>przepisy</span></div>
+          <div class="stat"><b>1 284</b><span>wyświetlenia przepisów</span></div>
+          <div class="stat"><b>4,3</b><span>średnia ocena (9 opinii)</span></div>
+          <div class="stat"><b>7</b><span>ulubionych</span></div>
+        </dl>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true"><i class="ph ph-martini"></i>Moje przepisy <span class="n">4</span></button>
+        <button class="tab" role="tab" aria-selected="false"><i class="ph ph-heart"></i>Ulubione <span class="n">7</span></button>
+        <button class="tab" role="tab" aria-selected="false"><i class="ph ph-chat-circle-text"></i>Moje opinie <span class="n">12</span></button>
+        <button class="tab" role="tab" aria-selected="false"><i class="ph ph-gear"></i>Konto</button>
+      </div>
+      <div class="pane cards" data-mine="all"></div>
+    </div></div>
+  </section>
+
+  <!-- ===== B ===== -->
+  <section class="variant" id="b">
+    <h2>B: menu boczne konta</h2>
+    <p class="idea">Konto jako osobny obszar z menu po lewej (przegląd, przepisy, ulubione, opinie, ustawienia). Przegląd pokazuje liczby i ostatnią aktywność, a przycisk "Dodaj przepis" jest zawsze pod ręką.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Ma miejsce na przyszłe ekrany (zmiana hasła, usunięcie konta).</li><li>Każda sekcja ma własny adres, więc można do niej linkować.</li><li>Strona "Przegląd" odpowiada na pytanie "co się u mnie dzieje?".</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Na telefonie menu trzeba schować do przycisku.</li><li>Więcej plików i tras do zbudowania niż w wariancie A.</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div data-bar="user"></div>
+      <div class="pb" style="margin-top:1.5rem">
+        <nav class="side" aria-label="Konto">
+          <div class="who"><span class="av" aria-hidden="true">KM</span><div><b>kasia_mixuje</b><br><span class="role"><i class="ph ph-user"></i>Użytkownik</span></div></div>
+          <a href="#b" aria-current="page"><i class="ph ph-squares-four"></i>Przegląd</a>
+          <a href="#b"><i class="ph ph-martini"></i>Moje przepisy</a>
+          <a href="#b"><i class="ph ph-heart"></i>Ulubione</a>
+          <a href="#b"><i class="ph ph-chat-circle-text"></i>Moje opinie</a>
+          <a href="#b"><i class="ph ph-gear"></i>Ustawienia</a>
+          <a href="#b"><i class="ph ph-sign-out"></i>Wyloguj</a>
+        </nav>
+        <div class="stack">
+          <div class="row"><h2 class="grow" style="font-size:1.75rem;letter-spacing:-.02em">Przegląd</h2><a class="btn primary" href="przepis.html"><i class="ph ph-plus"></i>Dodaj przepis</a></div>
+          <dl class="stats panel" style="margin:0">
+            <div class="stat"><b>4</b><span>przepisy</span></div>
+            <div class="stat"><b>1 284</b><span>wyświetlenia</span></div>
+            <div class="stat"><b>4,3</b><span>średnia ocena</span></div>
+            <div class="stat"><b>12</b><span>wystawione opinie</span></div>
+          </dl>
+          <div class="panel">
+            <h3>Ostatnia aktywność</h3>
+            <ul class="feed">
+              <li><img src="https://cocktails.solvro.pl/images/cocktails/mojito.png" alt=""><div class="grow"><b>Wiśniowy Mojito</b> dostał opinię 5 z 5<br><small class="muted">od tomek_barman, dziś</small></div><span class="st ok"><i class="ph-fill ph-star"></i>5,0</span></li>
+              <li><img src="https://cocktails.solvro.pl/images/cocktails/negroni.png" alt=""><div class="grow"><b>Negroni z grejpfrutem</b> ma 301 wyświetleń<br><small class="muted">20 w ostatnich 7 dniach</small></div><span class="st"><i class="ph ph-eye"></i>301</span></li>
+              <li><img src="https://cocktails.solvro.pl/images/cocktails/margarita.png" alt=""><div class="grow">Dodałaś opinię do <b>Margarity</b><br><small class="muted">wczoraj</small></div><span class="st"><i class="ph-fill ph-star"></i>4,0</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ===== C ===== -->
+  <section class="variant pc" id="c">
+    <h2>C: półki</h2>
+    <p class="idea">Zamiast zakładek jedna strona z poziomymi półkami: "Moje przepisy", "Ulubione", "Ostatnio oceniłam". Pierwszy kafelek na półce z przepisami to "Dodaj przepis". Nagłówek jest jednym rzędem.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Widać wszystko naraz, bez klikania w zakładki.</li><li>Dodawanie przepisu jest częścią półki, a nie osobnym przyciskiem.</li><li>Nagłówek zabiera mało miejsca.</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Poziome przewijanie jest gorsze dla myszy i czytników ekranu.</li><li>Przy dużej liczbie przepisów i tak potrzebna jest osobna strona "Zobacz wszystkie".</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div data-bar="user"></div>
+      <div class="head" style="margin-top:1.5rem">
+        <span class="av" aria-hidden="true">KM</span>
+        <h2 style="font-size:1.75rem;letter-spacing:-.02em">kasia_mixuje</h2>
+        <span class="role"><i class="ph ph-user"></i>Użytkownik</span>
+        <span class="muted grow">4 przepisy, 1 284 wyświetleń, średnia 4,3</span>
+        <button class="btn"><i class="ph ph-gear"></i>Konto</button>
+      </div>
+      <section class="shelf"><header><h3>Moje przepisy</h3><a href="#c">Zarządzaj (4)</a></header>
+        <div class="rail"><a class="add-tile" href="przepis.html"><i class="ph ph-plus-circle"></i>Dodaj przepis</a><span data-rail="mine"></span></div></section>
+      <section class="shelf"><header><h3>Ulubione</h3><a href="#c">Zobacz wszystkie (7)</a></header>
+        <div class="rail k1" data-cards="0,5"></div></section>
+      <section class="shelf"><header><h3>Ostatnio oceniłam</h3><a href="#c">Zobacz wszystkie (12)</a></header>
+        <div class="rail k1" data-cards="4,8"></div></section>
+    </div></div>
+  </section>
+
+  <!-- ===== D ===== -->
+  <section class="variant pd" id="d">
+    <h2>D: panel autora</h2>
+    <p class="idea">Profil jako narzędzie dla osoby, która publikuje: tabela własnych przepisów z wyświetleniami, oceną, etykietą popularności i akcjami. Wykres pokazuje wyświetlenia z ostatnich 30 dni. Ulubione i opinie są osobnymi zakładkami.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Edycja i usuwanie są o jedno kliknięcie, bez szukania karty.</li><li>Wykorzystuje dane, które backend już liczy (wyświetlenia, oceny, etykiety).</li><li>Zachęca do pisania lepszych przepisów, bo widać efekt.</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Dla kogoś, kto tylko ogląda i ocenia, strona jest pusta (potrzebny stan pusty).</li><li>Wykres z dziennymi wyświetleniami wymagałby nowego pola w backendzie (dziś są sumy).</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div data-bar="user"></div>
+      <div class="row" style="margin-top:1.5rem"><span class="av" aria-hidden="true">KM</span><div class="grow"><h2 style="font-size:1.75rem;letter-spacing:-.02em;line-height:1.1">Panel autora</h2><span class="muted">kasia_mixuje</span></div><a class="btn primary" href="przepis.html"><i class="ph ph-plus"></i>Dodaj przepis</a></div>
+      <div class="tabs" style="margin-top:1rem" role="tablist">
+        <button class="tab" role="tab" aria-selected="true"><i class="ph ph-martini"></i>Moje przepisy <span class="n">4</span></button>
+        <button class="tab" role="tab" aria-selected="false"><i class="ph ph-heart"></i>Ulubione <span class="n">7</span></button>
+        <button class="tab" role="tab" aria-selected="false"><i class="ph ph-chat-circle-text"></i>Opinie <span class="n">12</span></button>
+      </div>
+      <div class="top" style="margin-top:1.25rem">
+        <div class="panel">
+          <h3 style="margin:0">Wyświetlenia z 30 dni</h3>
+          <div class="bars" role="img" aria-label="Wykres słupkowy: wyświetlenia dzień po dniu, rosnące, najwięcej w ostatnim tygodniu"><i style="height:12%"></i><i style="height:18%"></i><i style="height:15%"></i><i style="height:22%"></i><i style="height:20%"></i><i style="height:30%"></i><i style="height:26%"></i><i style="height:28%"></i><i style="height:35%"></i><i style="height:33%"></i><i style="height:40%"></i><i style="height:38%"></i><i style="height:45%"></i><i style="height:42%"></i><i style="height:50%"></i><i style="height:47%"></i><i style="height:55%"></i><i style="height:52%"></i><i style="height:60%"></i><i style="height:58%"></i><i style="height:66%"></i><i style="height:63%"></i><i style="height:72%"></i><i style="height:70%"></i><i style="height:78%"></i><i style="height:74%"></i><i style="height:85%"></i><i style="height:92%"></i><i style="height:88%"></i><i style="height:100%"></i></div>
+          <span class="muted" style="font-size:.8125rem">Wykres jest przykładowy, backend liczy dziś tylko sumy.</span>
+        </div>
+        <div class="panel stats" style="align-content:center">
+          <div class="stat"><b>1 284</b><span>wyświetleń razem</span></div>
+          <div class="stat"><b>4,3</b><span>średnia ocena</span></div>
+        </div>
+      </div>
+      <div class="panel scroll-x" style="margin-top:1rem;padding:.5rem">
+        <table class="tbl">
+          <thead><tr><th>Przepis</th><th>Znaczek</th><th>Etykieta</th><th class="r">Wyświetlenia</th><th class="r">Ocena</th><th class="r">Akcje</th></tr></thead>
+          <tbody>
+            <tr><td><span class="t"><img src="https://cocktails.solvro.pl/images/cocktails/mojito.png" alt="">Wiśniowy Mojito</span></td><td><span class="st ok"><i class="ph-fill ph-seal-check"></i>Zweryfikowany</span></td><td>Popularny</td><td class="r">612</td><td class="r">4,6 (5)</td><td class="r"><button class="btn sm" aria-label="Edytuj Wiśniowy Mojito"><i class="ph ph-pencil-simple"></i>Edytuj</button> <button class="btn sm danger" aria-label="Usuń Wiśniowy Mojito"><i class="ph ph-trash"></i></button></td></tr>
+            <tr><td><span class="t"><img src="https://cocktails.solvro.pl/images/cocktails/negroni.png" alt="">Negroni z grejpfrutem</span></td><td><span class="st muted"><i class="ph ph-seal"></i>Bez znaczka</span></td><td>Na topie</td><td class="r">301</td><td class="r">4,0 (2)</td><td class="r"><button class="btn sm" aria-label="Edytuj Negroni z grejpfrutem"><i class="ph ph-pencil-simple"></i>Edytuj</button> <button class="btn sm danger" aria-label="Usuń Negroni z grejpfrutem"><i class="ph ph-trash"></i></button></td></tr>
+            <tr><td><span class="t"><img src="https://cocktails.solvro.pl/images/cocktails/daiquiri.png" alt="">Domowy Daiquiri</span></td><td><span class="st muted"><i class="ph ph-seal"></i>Bez znaczka</span></td><td class="muted">brak</td><td class="r">274</td><td class="r">4,3 (2)</td><td class="r"><button class="btn sm" aria-label="Edytuj Domowy Daiquiri"><i class="ph ph-pencil-simple"></i>Edytuj</button> <button class="btn sm danger" aria-label="Usuń Domowy Daiquiri"><i class="ph ph-trash"></i></button></td></tr>
+            <tr><td><span class="t"><img src="https://cocktails.solvro.pl/images/cocktails/old-fashioned.png" alt="">Old Fashioned po polsku</span></td><td><span class="st muted"><i class="ph ph-seal"></i>Bez znaczka</span></td><td class="muted">brak</td><td class="r">97</td><td class="r muted">brak opinii</td><td class="r"><button class="btn sm" aria-label="Edytuj Old Fashioned po polsku"><i class="ph ph-pencil-simple"></i>Edytuj</button> <button class="btn sm danger" aria-label="Usuń Old Fashioned po polsku"><i class="ph ph-trash"></i></button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ===== E ===== -->
+  <section class="variant pe" id="e">
+    <h2>E: telefon</h2>
+    <p class="idea">Układ zaczęty od telefonu: dolna szklana nawigacja (Profil, Przepisy, Ulubione, Dodaj), duży przycisk dodawania i przepisy jako wąskie wiersze. Na komputerze ta sama treść rozciąga się do wariantu B.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Kciuk sięga do wszystkich czterech miejsc.</li><li>Wiersze są czytelniejsze od kart na wąskim ekranie i mieszczą status w tekście.</li><li>Dodawanie przepisu ma stałe miejsce, więc nie ginie w menu.</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Na komputerze trzeba osobnego układu (dolny pasek tam nie pasuje).</li><li>Dwie nawigacje do zbudowania i przetestowania.</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock pe-wrap">
+      <div class="phone">
+        <div class="scr">
+          <div class="row"><span class="av" aria-hidden="true">KM</span><div class="grow"><b style="font-size:1.25rem">kasia_mixuje</b><br><span class="role"><i class="ph ph-user"></i>Użytkownik</span></div><button class="fav" aria-label="Ustawienia konta"><i class="ph ph-gear" style="font-size:1.25rem"></i></button></div>
+          <dl class="stats" style="margin:0;grid-template-columns:repeat(3,1fr)"><div class="stat"><b>4</b><span>przepisy</span></div><div class="stat"><b>1 284</b><span>wyświetleń</span></div><div class="stat"><b>4,3</b><span>ocena</span></div></dl>
+          <a class="btn primary" style="justify-content:center;padding:.75rem" href="przepis.html"><i class="ph ph-plus"></i>Dodaj przepis</a>
+          <h3>Moje przepisy</h3>
+          <div class="stack" style="gap:.5rem" data-rows="mine"></div>
+        </div>
+        <nav class="dock glass" aria-label="Główna"><a href="#e" aria-current="page"><i class="ph ph-user"></i>Profil</a><a href="#e"><i class="ph ph-martini"></i>Przepisy</a><a href="#e"><i class="ph ph-heart"></i>Ulubione</a><a href="#e"><i class="ph ph-plus-circle"></i>Dodaj</a></nav>
+      </div>
+      <div class="phone">
+        <div class="scr">
+          <h3 style="font-size:1.25rem">Moje przepisy</h3>
+          <div class="empty"><i class="ph ph-martini"></i><b>Brak przepisów</b><span class="muted">Pierwszy przepis może mieć tylko nazwę, składniki i instrukcję. Zdjęcie dodasz później.</span><a class="btn primary" href="przepis.html"><i class="ph ph-plus"></i>Dodaj pierwszy przepis</a></div>
+          <p class="muted" style="font-size:.8125rem">Stan pusty: od niego zaczyna każdy nowy użytkownik.</p>
+        </div>
+        <nav class="dock glass" aria-label="Główna"><a href="#e"><i class="ph ph-user"></i>Profil</a><a href="#e" aria-current="page"><i class="ph ph-martini"></i>Przepisy</a><a href="#e"><i class="ph ph-heart"></i>Ulubione</a><a href="#e"><i class="ph ph-plus-circle"></i>Dodaj</a></nav>
+      </div>
+    </div></div>
+  </section>
+</div>
+<script src="proposals.js"></script>
+<script>
+  // przykładowe przepisy użytkownika (nazwy własne, zdjęcia z API Solvro tylko jako zamienniki); etykiety, oceny i wyświetlenia są PRZYKŁADOWE
+  const MINE = [
+    { name: "Wiśniowy Mojito", slug: "mojito", views: 612, rating: "4,6 (5)", v: true, label: "Popularny" },
+    { name: "Negroni z grejpfrutem", slug: "negroni", views: 301, rating: "4,0 (2)", v: false, label: "Na topie" },
+    { name: "Domowy Daiquiri", slug: "daiquiri", views: 274, rating: "4,3 (2)", v: false, label: "" },
+    { name: "Old Fashioned po polsku", slug: "old-fashioned", views: 97, rating: "", v: false, label: "" },
+  ];
+  const img = (c) => `https://cocktails.solvro.pl/images/cocktails/${c.slug}.png`;
+  const mineCard = (c) => `<article class="card mine"><img src="${img(c)}" alt="" loading="lazy">
+    <div class="tag"><span class="pill ${c.v ? "status" : "plain"}">${c.v ? "Zweryfikowany" : "Bez znaczka"}</span></div>
+    <div class="tools"><button aria-label="Edytuj ${c.name}"><i class="ph ph-pencil-simple"></i></button></div>
+    <div class="cap glass"><div class="top"><h3 class="name">${c.name}</h3></div>
+    <p class="meta"><span><i class="ph ph-eye"></i> ${c.views}</span><span>${c.rating ? `<i class="ph-fill ph-star"></i> ${c.rating}` : "brak opinii"}</span></p></div></article>`;
+  const row = (c) => `<div class="rowc"><img src="${img(c)}" alt=""><div class="grow"><b>${c.name}</b><small>${c.views} wyświetleń, ${c.rating ? "ocena " + c.rating : "brak opinii"}</small></div><span class="st ${c.v ? "ok" : "muted"}"><i class="${c.v ? "ph-fill ph-seal-check" : "ph ph-seal"}"></i><span class="sr">${c.v ? "Zweryfikowany" : "Bez znaczka"}</span></span></div>`;
+  document.querySelectorAll("[data-mine]").forEach((el) => (el.innerHTML = MINE.map(mineCard).join("")));
+  document.querySelectorAll("[data-rail='mine']").forEach((el) => el.replaceWith(...new DOMParser().parseFromString(MINE.map(mineCard).join(""), "text/html").body.children));
+  document.querySelectorAll("[data-rows]").forEach((el) => (el.innerHTML = MINE.map(row).join("")));
+</script>
+<style>.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }</style>
+</body>
+</html>

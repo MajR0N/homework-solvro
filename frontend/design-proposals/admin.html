@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel administratora: pięć propozycji</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <link rel="stylesheet" href="proposals.css">
+  <style>
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    /* panel jest gęstszy niż reszta aplikacji: małe odstępy, liczby tabelaryczne, kontenery bez zbędnych kart */
+    .abar { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 0.6rem 0.4rem 1rem; border-radius: 999px; }
+    .abar img { width: 118px; height: 25px; }
+    .abar .title { font-weight: 700; padding-left: 0.75rem; border-left: 1px solid rgb(255 255 255 / 0.4); }
+    .abar .btn, .abar .field { border-color: rgb(255 255 255 / 0.4); background-color: rgb(255 255 255 / 0.1); }
+    .abar .nav { display: flex; gap: 0.15rem; margin-left: 0.5rem; }
+    .abar .nav a { color: #fff; text-decoration: none; padding: 0.35rem 0.8rem; border-radius: 999px; font-size: 0.875rem; font-weight: 500; }
+    .abar .nav a[aria-current="page"] { background: #fff; color: #203560; font-weight: 700; }
+    .glass .side a { color: #fff; }
+    .glass .side a:hover { background: rgb(255 255 255 / 0.12); }
+    .glass .side a[aria-current="page"] { background: #fff; color: #203560; }
+    .glass .side h4 { color: rgb(255 255 255 / 0.8); }
+    .glass .side .cnt { background: #ff7aa8; color: #0f1a30; }
+    .shell { display: grid; grid-template-columns: 14.5rem minmax(0, 1fr); gap: 1rem; margin-top: 1rem; align-items: start; }
+    .shell > .glass { padding: 0.75rem; border-radius: 1.25rem; position: sticky; top: 1rem; }
+    .who { display: flex; align-items: center; gap: 0.6rem; padding: 0.25rem 0.5rem 0.75rem; border-bottom: 1px solid rgb(255 255 255 / 0.2); margin-bottom: 0.5rem; }
+    .who small { display: block; opacity: 0.85; font-size: 0.75rem; }
+    .page-h { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 0.9rem; }
+    .page-h h2 { font-size: 1.5rem; letter-spacing: -0.02em; line-height: 1.1; }
+    .toolbar2 { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .toolbar2 .f { min-width: 14rem; }
+    .toolbar2 .f .in { padding: 0.4rem 0.9rem; border-radius: 999px; }
+    .bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem 0.5rem 1.1rem; border-radius: 999px; margin-bottom: 0.75rem; }
+    .bulk .btn { border-color: rgb(255 255 255 / 0.55); background: rgb(255 255 255 / 0.1); }
+    .bulk .btn.w { background: #fff; color: #203560; border-color: transparent; font-weight: 700; }
+    .pager { display: flex; align-items: center; justify-content: space-between; margin-top: 0.75rem; font-size: 0.875rem; }
+    .tbl .chips2 { display: flex; gap: 0.35rem; }
+
+    /* B: kolejka */
+    .queue { display: grid; grid-template-columns: 22rem minmax(0, 1fr); gap: 1rem; margin-top: 1rem; align-items: start; }
+    .qlist { display: grid; gap: 0.25rem; }
+    .qi { display: grid; gap: 0.2rem; padding: 0.7rem 0.85rem; border: 1px solid var(--line); border-radius: 0.75rem; background: transparent; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+    .qi[aria-current="true"] { background: var(--primary); color: var(--on-primary); border-color: transparent; }
+    .qi .k { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.75rem; font-weight: 700; }
+    .qi .t { font-weight: 600; }
+    .qi .s { font-size: 0.8125rem; opacity: 0.85; }
+    .qd { display: grid; gap: 1rem; }
+    .quote { margin: 0; padding: 0.9rem 1.1rem; border-left: 4px solid var(--bad); background: var(--soft); border-radius: 0 0.75rem 0.75rem 0; font-size: 1.0625rem; }
+    .kbd { display: inline-block; min-width: 1.4rem; padding: 0 0.35rem; text-align: center; border: 1px solid var(--edge); border-bottom-width: 2px; border-radius: 0.35rem; font-size: 0.75rem; font-weight: 700; }
+    .reasons li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.4rem 0; border-top: 1px solid var(--line); font-size: 0.875rem; }
+
+    /* C: pulpit (4 kafelki, każdy ma treść; dwa mają tło inne niż zwykła karta) */
+    .kpis { display: grid; gap: 0.75rem; grid-template-columns: repeat(4, 1fr); margin-top: 1rem; }
+    .kpi { padding: 0.9rem 1rem; border-top: 3px solid var(--primary); background: var(--soft); border-radius: 0 0 0.75rem 0.75rem; }
+    .kpi .d { font-size: 0.8125rem; font-weight: 600; }
+    .bento { display: grid; gap: 0.75rem; grid-template-columns: 1.3fr 1fr 1fr; grid-template-rows: auto auto; margin-top: 0.75rem; }
+    .bento .cell { padding: 1rem; border-radius: 0.75rem; border: 1px solid var(--line); background: var(--soft); }
+    .bento .todo { grid-column: 1; grid-row: 1 / 3; }
+    .bento .views { grid-column: 2 / 4; background: var(--primary); color: var(--on-primary); border-color: transparent; }
+    .bento .top1 { position: relative; overflow: hidden; min-height: 14rem; padding: 0; }
+    .bento .top1 > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .bento .top1 .cap { position: absolute; left: 0.5rem; right: 0.5rem; bottom: 0.5rem; padding: 0.7rem 0.85rem; border-radius: 0.5rem; }
+    .bento h3 { font-size: 1rem; margin-bottom: 0.6rem; }
+    .todo li { display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 0; border-top: 1px solid var(--line); }
+    .todo li:first-child { border-top: 0; }
+    .todo li i { font-size: 1.4rem; }
+    .todo .n { margin-left: auto; font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .vbars { display: flex; align-items: flex-end; gap: 0.5rem; height: 9rem; margin-top: 0.5rem; }
+    .vbars div { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 0.25rem; height: 100%; font-size: 0.75rem; }
+    .vbars i { width: 100%; background: var(--on-primary); border-radius: 3px 3px 0 0; opacity: 0.9; }
+    .newu li { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; font-size: 0.875rem; }
+
+    /* D: użytkownicy i role */
+    .rail { display: grid; grid-template-columns: 4.25rem minmax(0, 1fr); gap: 1rem; margin-top: 1rem; align-items: start; }
+    .rail > .glass { padding: 0.5rem; border-radius: 1.25rem; position: sticky; top: 1rem; display: grid; gap: 0.25rem; justify-items: center; }
+    .rail > .glass a { display: grid; place-items: center; width: 2.9rem; height: 2.9rem; border-radius: 0.9rem; color: #fff; font-size: 1.4rem; }
+    .rail > .glass a[aria-current="page"] { background: #fff; color: #203560; }
+    .rolesel { display: inline-flex; align-items: center; gap: 0.3rem; }
+    .rolesel .select { padding: 0.25rem 2rem 0.25rem 0.7rem; font-size: 0.8125rem; border-color: var(--edge); }
+    .locked { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8125rem; color: var(--muted); }
+    .d-cols { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr) 20rem; align-items: start; }
+    .matrix { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+    .matrix th, .matrix td { padding: 0.4rem 0.3rem; text-align: center; border-top: 1px solid var(--line); }
+    .matrix th:first-child, .matrix td:first-child { text-align: left; }
+    .matrix thead th { border-top: 0; font-weight: 700; }
+    .matrix .y { color: var(--ok); }
+    .matrix .no { color: var(--muted); }
+
+    /* E: galeria weryfikacji */
+    .gal { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); }
+    .gal .g { position: relative; aspect-ratio: 1; border-radius: 0.75rem; overflow: hidden; background: var(--soft); }
+    .gal .g > img { width: 100%; height: 100%; object-fit: cover; }
+    .gal .g .pk { position: absolute; top: 0.5rem; left: 0.5rem; width: 1.5rem; height: 1.5rem; accent-color: var(--primary); }
+    .gal .g .v { position: absolute; top: 0.5rem; right: 0.5rem; }
+    .gal .g .cap { position: absolute; left: 0.4rem; right: 0.4rem; bottom: 0.4rem; padding: 0.4rem 0.6rem; border-radius: 0.5rem; font-size: 0.8125rem; }
+    .gal .g .cap b { display: block; font-size: 0.9375rem; line-height: 1.2; }
+    .gal .g.sel { outline: 3px solid var(--primary); outline-offset: 2px; }
+    .gal .g.warn::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 3px var(--bad); border-radius: inherit; pointer-events: none; }
+    .floatbar { position: sticky; bottom: 0.75rem; margin-top: 1rem; }
+
+    @media (max-width: 62rem) { .shell, .queue, .rail, .d-cols, .bento { grid-template-columns: 1fr; } .bento .todo, .bento .views { grid-column: auto; grid-row: auto; } .kpis { grid-template-columns: repeat(2, 1fr); } .shell > .glass, .rail > .glass { position: static; } .abar .nav { display: none; } }
+  </style>
+</head>
+<body>
+<div class="doc">
+  <header>
+    <h1>Panel administratora: pięć propozycji</h1>
+    <p class="lead">Dziś administrator pracuje w panelu Django (<code>/admin/</code>), który ma inny wygląd niż aplikacja. Panel we frontendzie ma te same możliwości: koktajle i składniki, nadawanie znaczka "zweryfikowany", opinie i zgłoszenia, użytkownicy i role. Każda propozycja pokazuje inny układ i inny ekran główny. Panel jest gęstszy niż reszta aplikacji.</p>
+    <nav aria-label="Propozycje"><ul>
+      <li><a href="#a">A: menu boczne i tabela</a></li>
+      <li><a href="#b">B: kolejka moderacji</a></li>
+      <li><a href="#c">C: pulpit</a></li>
+      <li><a href="#d">D: użytkownicy i role</a></li>
+      <li><a href="#e">E: galeria weryfikacji</a></li>
+    </ul></nav>
+  </header>
+
+  <!-- ===== A ===== -->
+  <section class="variant" id="a">
+    <h2>A: menu boczne i tabela</h2>
+    <p class="idea">Klasyczny panel: szklane menu po lewej, na środku tabela koktajli z filtrami i akcjami grupowymi (oznacz jako zweryfikowane, usuń znaczek). Najbliższy temu, co robi dzisiejszy panel Django.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Znany układ, nikt nie musi się uczyć.</li><li>Tabela zmieści 20 i więcej wierszy naraz, z sortowaniem i filtrami.</li><li>Ten sam szkielet obsłuży składniki, kategorie i opinie.</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Najmniej charakterystyczny z pięciu.</li><li>Na telefonie tabela wymaga przewijania w bok.</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div class="abar glass" data-abar></div>
+      <div class="shell">
+        <nav class="glass side" aria-label="Panel administratora" data-side="koktajle"></nav>
+        <div>
+          <div class="page-h"><h2>Koktajle</h2><span class="count num">220 w bazie, 3 zaznaczone</span><span class="grow"></span><a class="btn primary" href="przepis.html"><i class="ph ph-plus"></i>Dodaj koktajl</a></div>
+          <div class="toolbar2">
+            <label class="f"><span class="sr">Szukaj</span><input class="in" placeholder="Szukaj po nazwie lub autorze"></label>
+            <div class="seg" role="group" aria-label="Znaczek"><button class="chip" aria-pressed="false">Wszystkie</button><button class="chip" aria-pressed="true">Bez znaczka (41)</button><button class="chip" aria-pressed="false">Zweryfikowane</button></div>
+            <select class="select" aria-label="Autor"><option>Autor: wszyscy</option></select>
+            <select class="select" aria-label="Kategoria"><option>Kategoria: wszystkie</option></select>
+          </div>
+          <div class="bulk glass"><span><b>3 zaznaczone</b></span><span class="grow"></span><button class="btn"><i class="ph ph-x"></i>Wyczyść</button><button class="btn"><i class="ph ph-seal"></i>Usuń znaczek</button><button class="btn w"><i class="ph-fill ph-seal-check"></i>Oznacz jako zweryfikowane</button></div>
+          <div class="panel scroll-x" style="padding:.25rem"><table class="tbl" data-tbl></table></div>
+          <div class="pager"><span class="muted num">1 do 8 z 41</span><span class="seg"><button class="chip" aria-pressed="false" aria-label="Poprzednia strona"><i class="ph ph-caret-left"></i></button><button class="chip" aria-pressed="true">1</button><button class="chip" aria-pressed="false">2</button><button class="chip" aria-pressed="false">3</button><button class="chip" aria-pressed="false" aria-label="Następna strona"><i class="ph ph-caret-right"></i></button></span></div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ===== B ===== -->
+  <section class="variant" id="b">
+    <h2>B: kolejka moderacji</h2>
+    <p class="idea">Panel pracy, nie przeglądania: po lewej kolejka spraw (zgłoszone opinie, nowe przepisy bez znaczka), po prawej szczegóły wybranej sprawy i przyciski decyzji. Skróty J i K przechodzą po kolejce, jak w skrzynce pocztowej.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Skupia się na tym, co wymaga decyzji, a nie na całej bazie.</li><li>Decyzja zajmuje jedno kliknięcie, z pełnym kontekstem obok.</li><li>Dobrze pasuje do reguły "admin usuwa opinie, ale ich nie edytuje".</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Do ogólnej edycji bazy i tak potrzebna jest tabela jak w A.</li><li>Wymaga kolejki w backendzie (dziś są zgłoszenia opinii, ale nie ma "przepisów do sprawdzenia", tylko filtr bez znaczka).</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div class="abar glass" data-abar="kolejka"></div>
+      <div class="queue">
+        <div class="qlist" role="list" aria-label="Kolejka">
+          <div class="row" style="justify-content:space-between;padding:0 .25rem .25rem"><b>Do zrobienia (7)</b><span class="muted" style="font-size:.8125rem"><span class="kbd">J</span> <span class="kbd">K</span> przechodzi</span></div>
+          <button class="qi" aria-current="true"><span class="k"><span><i class="ph ph-flag"></i> Zgłoszona opinia</span><span class="num">4 zgłoszenia</span></span><span class="t">Opinia do: Margarita</span><span class="s">marek_88, dziś 09:41</span></button>
+          <button class="qi"><span class="k"><span><i class="ph ph-flag"></i> Zgłoszona opinia</span><span class="num">2 zgłoszenia</span></span><span class="t">Opinia do: Black Russian</span><span class="s">kuba_p, wczoraj</span></button>
+          <button class="qi"><span class="k"><span><i class="ph ph-seal"></i> Bez znaczka</span><span>nowy</span></span><span class="t">Wiśniowy Mojito</span><span class="s">kasia_mixuje, 3 godziny temu</span></button>
+          <button class="qi"><span class="k"><span><i class="ph ph-seal"></i> Bez znaczka</span><span>nowy</span></span><span class="t">Negroni z grejpfrutem</span><span class="s">kasia_mixuje, 2 dni temu</span></button>
+          <button class="qi"><span class="k"><span><i class="ph ph-flag"></i> Zgłoszona opinia</span><span class="num">1 zgłoszenie</span></span><span class="t">Opinia do: Blackthorn</span><span class="s">anon_barman, 3 dni temu</span></button>
+        </div>
+        <article class="qd">
+          <div class="page-h" style="margin:0"><h2>Opinia do: Margarita</h2><span class="st bad"><i class="ph-fill ph-flag"></i>4 zgłoszenia</span></div>
+          <p class="row muted" style="font-size:.9rem"><span class="av sm" aria-hidden="true">M8</span><b style="color:var(--fg)">marek_88</b><span>Ocena 1 z 5, dziś 09:41</span></p>
+          <blockquote class="quote">Najlepsza wódka z dostawą pod drzwi na tanie-trunki.example, kod ZNIZKA10 daje 10 procent.</blockquote>
+          <div class="panel"><h3 style="font-size:.95rem">Powody zgłoszeń</h3><ul class="reasons"><li><span>tomek_barman</span><span>"To reklama, nie opinia."</span></li><li><span>ola.shaker</span><span>"Spam."</span></li><li><span>kasia_mixuje</span><span>(bez powodu)</span></li><li><span>kuba_p</span><span>"Link do sklepu."</span></li></ul></div>
+          <div class="row"><button class="btn danger"><i class="ph ph-trash"></i>Usuń opinię</button><button class="btn"><i class="ph ph-x-circle"></i>Odrzuć zgłoszenia</button><span class="grow"></span><span class="muted" style="font-size:.8125rem">Administrator usuwa opinie, ale nie zmienia cudzych słów.</span></div>
+        </article>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ===== C ===== -->
+  <section class="variant" id="c">
+    <h2>C: pulpit</h2>
+    <p class="idea">Strona startowa panelu: cztery liczby u góry, a pod nimi cztery kafelki o różnej wielkości: lista spraw do zrobienia, wyświetlenia z tygodnia, najpopularniejszy koktajl ze zdjęciem i nowi użytkownicy. Nawigacja jest w górnym pasku.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Od razu widać, co się dzieje i co jest do zrobienia.</li><li>Pasuje do etykiet popularności, które backend już liczy.</li><li>Najbardziej "wizytówkowy": dobrze wygląda w opisie zadania.</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Pulpit rzadko jest miejscem, w którym się pracuje, więc potrzebne są i tak inne ekrany.</li><li>Wykres z wyświetleniami dziennymi wymaga nowych danych w backendzie.</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div class="abar glass" data-abar="pulpit"></div>
+      <div class="kpis">
+        <div class="kpi"><div class="stat"><b>220</b><span>koktajle w bazie</span></div></div>
+        <div class="kpi"><div class="stat"><b>41</b><span>bez znaczka</span></div></div>
+        <div class="kpi"><div class="stat"><b>6 318</b><span>wyświetleń w tym tygodniu</span></div><span class="d st ok"><i class="ph ph-trend-up"></i>o 12,4% więcej niż tydzień temu</span></div>
+        <div class="kpi"><div class="stat"><b>58</b><span>użytkowników</span></div></div>
+      </div>
+      <div class="bento">
+        <section class="cell todo"><h3>Do zrobienia</h3><ul>
+          <li><i class="ph ph-flag"></i><span>Zgłoszone opinie</span><span class="n">3</span></li>
+          <li><i class="ph ph-seal"></i><span>Przepisy bez znaczka od użytkowników</span><span class="n">4</span></li>
+          <li><i class="ph ph-image-broken"></i><span>Koktajle bez zdjęcia</span><span class="n">9</span></li></ul>
+          <a class="btn primary" style="margin-top:.75rem" href="#c">Otwórz kolejkę</a></section>
+        <section class="cell views"><h3>Wyświetlenia, ostatnie 7 dni</h3>
+          <div class="vbars" role="img" aria-label="Wyświetlenia dzień po dniu: poniedziałek 742, wtorek 805, środa 861, czwartek 938, piątek 1204, sobota 1010, niedziela 758">
+            <div><span class="num">742</span><i style="height:48%"></i><span>pn</span></div><div><span class="num">805</span><i style="height:55%"></i><span>wt</span></div><div><span class="num">861</span><i style="height:60%"></i><span>śr</span></div><div><span class="num">938</span><i style="height:68%"></i><span>cz</span></div><div><span class="num">1 204</span><i style="height:100%"></i><span>pt</span></div><div><span class="num">1 010</span><i style="height:80%"></i><span>sb</span></div><div><span class="num">758</span><i style="height:50%"></i><span>nd</span></div></div></section>
+        <section class="cell top1"><img src="https://cocktails.solvro.pl/images/cocktails/margarita.png" alt=""><div class="cap glass"><span style="font-size:.8125rem">Najpopularniejszy</span><br><b>Margarita</b> <span class="num">1 204 wyświetleń</span></div></section>
+        <section class="cell newu"><h3>Nowi użytkownicy</h3><ul>
+          <li><span class="av sm" aria-hidden="true">KP</span><span class="grow">kuba_p</span><span class="role">user</span></li>
+          <li><span class="av sm warm" aria-hidden="true">AB</span><span class="grow">anon_barman</span><span class="role">user</span></li>
+          <li><span class="av sm" aria-hidden="true">M8</span><span class="grow">marek_88</span><span class="role">user</span></li>
+          <li><span class="av sm warm" aria-hidden="true">OS</span><span class="grow">ola.shaker</span><span class="role">admin</span></li></ul></section>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ===== D ===== -->
+  <section class="variant" id="d">
+    <h2>D: użytkownicy i role</h2>
+    <p class="idea">Wąski pasek ikon po lewej oszczędza miejsce, a główny ekran to zarządzanie kontami. Rola zmienia się listą rozwijaną, która pokazuje tylko role niższe od mojej (zasada z backendu). Konto własne i konto ownera są zablokowane, z napisem dlaczego. Obok tabela uprawnień, czyli reguły widoczne w interfejsie.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Reguły uprawnień są widoczne, więc nikt nie próbuje zrobić czegoś, czego nie może.</li><li>Pasek ikon zostawia dużo miejsca na dane.</li><li>Pokazuje, że interfejs rozumie model ról z backendu (user, admin, staff, owner).</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Same ikony w pasku bywają niejasne (potrzebne podpisy dla czytnika i podpowiedzi).</li><li>Ten ekran obsługuje tylko użytkowników, resztę panelu trzeba zaprojektować osobno.</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div class="abar glass" data-abar></div>
+      <div class="rail">
+        <nav class="glass" aria-label="Panel administratora">
+          <a href="#d" aria-label="Pulpit" title="Pulpit"><i class="ph ph-squares-four"></i></a>
+          <a href="#d" aria-label="Koktajle" title="Koktajle"><i class="ph ph-martini"></i></a>
+          <a href="#d" aria-label="Składniki" title="Składniki"><i class="ph ph-flask"></i></a>
+          <a href="#d" aria-label="Opinie" title="Opinie"><i class="ph ph-chat-circle-text"></i></a>
+          <a href="#d" aria-label="Użytkownicy" title="Użytkownicy" aria-current="page"><i class="ph ph-users"></i></a>
+        </nav>
+        <div class="d-cols">
+          <div>
+            <div class="page-h"><h2>Użytkownicy</h2><span class="count num">58 kont</span><span class="grow"></span><label class="f" style="min-width:14rem"><span class="sr">Szukaj konta</span><input class="in pill" placeholder="Szukaj nazwy użytkownika" style="padding:.4rem .9rem"></label></div>
+            <div class="panel scroll-x" style="padding:.25rem"><table class="tbl" data-users></table></div>
+            <div class="pager"><span class="muted num">1 do 6 z 58</span><span class="muted" style="font-size:.8125rem">Zalogowano jako jan_kowalczyk (staff)</span></div>
+          </div>
+          <aside class="panel" aria-label="Kto co może"><h3 style="font-size:1rem">Kto co może</h3>
+            <table class="matrix"><thead><tr><th><span class="sr">Uprawnienie</span></th><th>user</th><th>admin</th><th>staff</th><th>owner</th></tr></thead><tbody data-matrix></tbody></table>
+            <p class="muted" style="font-size:.8125rem;margin-top:.75rem">Rolę można nadać tylko niższą od własnej. Własnego konta i konta ownera nie da się zmienić z panelu.</p></aside>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ===== E ===== -->
+  <section class="variant" id="e">
+    <h2>E: galeria weryfikacji</h2>
+    <p class="idea">Weryfikacja przepisu to w dużej mierze ocena zdjęcia i nazwy, więc ekran jest siatką zdjęć z polem wyboru na każdym. Zaznaczone koktajle dostają znaczek jednym kliknięciem z przyklejonego paska. Koktajle z problemem (np. brak zdjęcia, wpis podejrzany) mają czerwoną obwódkę i opis.</p>
+    <div class="tradeoffs">
+      <div><h3>Zalety</h3><ul><li>Szybka kontrola wzrokowa: 8 do 16 koktajli na ekranie.</li><li>Zaznaczanie wielu i jedno kliknięcie znaczka to najczęstsza praca moderatora.</li><li>Używa tych samych zdjęć co aplikacja, więc widać, jak naprawdę wyglądają.</li></ul></div>
+      <div class="minus"><h3>Wady</h3><ul><li>Słabo pokazuje szczegóły (składniki, instrukcja), więc potrzebne jest okno podglądu.</li><li>Zdjęcia zwiększają ruch sieciowy (ładowanie na żądanie i stronicowanie).</li></ul></div>
+    </div>
+    <div class="stage"><div class="mock">
+      <div class="abar glass" data-abar="galeria"></div>
+      <div class="page-h" style="margin-top:1rem"><h2>Do weryfikacji</h2><span class="count num">41 bez znaczka</span><span class="grow"></span>
+        <div class="seg" role="group" aria-label="Widok"><button class="chip" aria-pressed="true"><i class="ph ph-squares-four"></i> Galeria</button><button class="chip" aria-pressed="false"><i class="ph ph-list"></i> Tabela</button></div></div>
+      <div class="gal" data-gal></div>
+      <div class="bulk glass floatbar"><b class="num">3 zaznaczone</b><span class="grow"></span><button class="btn"><i class="ph ph-x"></i>Wyczyść</button><button class="btn w"><i class="ph-fill ph-seal-check"></i>Oznacz jako zweryfikowane</button></div>
+    </div></div>
+  </section>
+</div>
+<script src="proposals.js"></script>
+<script>
+  // dane PRZYKŁADOWE (nazwy i zdjęcia z API Solvro, konta, liczby i zgłoszenia wymyślone)
+  const logo = '<img src="../public/solvro/KN_Solvro_White.svg" alt="Solvro">';
+  const NAV = ["Pulpit", "Koktajle", "Składniki", "Opinie", "Użytkownicy"];
+  const abar = (cur) => `${logo}<span class="title">Panel administratora</span>
+    ${cur ? `<nav class="nav" aria-label="Panel">${NAV.map((n) => `<a href="#${n}" ${n.toLowerCase() === cur || (cur === "kolejka" && n === "Opinie") || (cur === "galeria" && n === "Koktajle") ? 'aria-current="page"' : ""}>${n}</a>`).join("")}</nav>` : ""}
+    <span class="grow"></span><button class="btn" aria-label="Konto: jan_kowalczyk, rola staff"><span class="av sm" aria-hidden="true">JK</span>jan_kowalczyk<span class="role staff">staff</span></button>`;
+  document.querySelectorAll("[data-abar]").forEach((el) => (el.innerHTML = abar(el.dataset.abar)));
+  const SIDE = [["squares-four", "Pulpit"], ["martini", "Koktajle"], ["flask", "Składniki"], ["tag", "Kategorie"], ["chat-circle-text", "Opinie i zgłoszenia", 3], ["users", "Użytkownicy"]];
+  document.querySelectorAll("[data-side]").forEach((el) => (el.innerHTML = `<div class="who"><span class="av" aria-hidden="true">JK</span><div><b>jan_kowalczyk</b><small>Rola: staff</small></div></div>` +
+    SIDE.map(([i, n, c]) => `<a href="#a" ${n.toLowerCase() === el.dataset.side ? 'aria-current="page"' : ""}><i class="ph ph-${i}"></i>${n}${c ? `<span class="cnt">${c}</span>` : ""}</a>`).join("") + `<h4>Szybkie</h4><a href="#a"><i class="ph ph-arrow-square-out"></i>Wróć do aplikacji</a><a href="#a"><i class="ph ph-sign-out"></i>Wyloguj</a>`));
+
+  const C = [
+    { n: "Wiśniowy Mojito", s: "mojito", a: "kasia_mixuje", c: "Koktajl", v: 612, r: "4,6 (5)", sel: 1 },
+    { n: "Negroni z grejpfrutem", s: "negroni", a: "kasia_mixuje", c: "Koktajl", v: 301, r: "4,0 (2)", sel: 1 },
+    { n: "Domowy Daiquiri", s: "daiquiri", a: "tomek_barman", c: "Zwykły drink", v: 274, r: "4,3 (2)", sel: 1 },
+    { n: "Old Fashioned po polsku", s: "old-fashioned", a: "kasia_mixuje", c: "Koktajl", v: 97, r: "brak" },
+    { n: "Manhattan bez lodu", s: "manhattan", a: "ola.shaker", c: "Koktajl", v: 58, r: "brak" },
+    { n: "Blackthorn", s: "blackthorn", a: "Solvro (import)", c: "Zwykły drink", v: 41, r: "5,0 (1)" },
+    { n: "Archbishop", s: "archbishop", a: "Solvro (import)", c: "Zwykły drink", v: 33, r: "brak" },
+    { n: "Angel Face", s: "angel-face", a: "Solvro (import)", c: "Zwykły drink", v: 29, r: "brak" },
+  ];
+  document.querySelector("[data-tbl]").innerHTML = `<thead><tr><th><input type="checkbox" aria-label="Zaznacz wszystkie"></th><th>Koktajl</th><th>Autor</th><th>Kategoria</th><th>Znaczek</th><th class="r">Wyświetlenia</th><th class="r">Ocena</th><th class="r">Akcje</th></tr></thead><tbody>` +
+    C.map((c) => `<tr><td><input type="checkbox" ${c.sel ? "checked" : ""} aria-label="Zaznacz ${c.n}"></td><td><span class="t"><img src="https://cocktails.solvro.pl/images/cocktails/${c.s}.png" alt="">${c.n}</span></td><td>${c.a}</td><td>${c.c}</td><td><span class="st muted"><i class="ph ph-seal"></i>Bez znaczka</span></td><td class="r">${c.v}</td><td class="r">${c.r}</td><td class="r"><button class="btn sm" aria-label="Edytuj ${c.n}"><i class="ph ph-pencil-simple"></i></button> <button class="btn sm danger" aria-label="Usuń ${c.n}"><i class="ph ph-trash"></i></button></td></tr>`).join("") + "</tbody>";
+
+  // D: użytkownicy; lista ról zawiera tylko role niższe od roli zalogowanego (staff -> user, admin)
+  const U = [
+    { u: "kasia_mixuje", i: "KM", r: "user", p: 4, o: 12, d: "12.09.2026" },
+    { u: "tomek_barman", i: "TB", r: "user", p: 7, o: 31, d: "02.09.2026" },
+    { u: "ola.shaker", i: "OS", r: "admin", p: 2, o: 19, d: "28.08.2026" },
+    { u: "marek_88", i: "M8", r: "user", p: 0, o: 3, d: "30.10.2026", flag: "4 zgłoszenia opinii" },
+    { u: "jan_kowalczyk", i: "JK", r: "staff", p: 1, o: 5, d: "10.08.2026", self: 1 },
+    { u: "solvro_owner", i: "SO", r: "owner", p: 0, o: 0, d: "01.08.2026", own: 1 },
+  ];
+  const sel = (x) => x.self || x.own
+    ? `<span class="locked"><i class="ph ph-lock-simple"></i>${x.self ? "To Twoje konto" : "Owner: tylko z konsoli"}</span>`
+    : `<span class="rolesel"><select class="select" aria-label="Rola konta ${x.u}"><option ${x.r === "user" ? "selected" : ""}>user</option><option ${x.r === "admin" ? "selected" : ""}>admin</option></select></span>`;
+  document.querySelector("[data-users]").innerHTML = `<thead><tr><th>Konto</th><th>Rola</th><th class="r">Przepisy</th><th class="r">Opinie</th><th>Od</th><th>Zmień rolę</th></tr></thead><tbody>` +
+    U.map((x) => `<tr><td><span class="t"><span class="av sm ${x.flag ? "warm" : ""}" aria-hidden="true">${x.i}</span><span>${x.u}${x.flag ? `<br><span class="st bad"><i class="ph-fill ph-flag"></i>${x.flag}</span>` : ""}</span></span></td><td><span class="role ${x.r}">${x.r}</span></td><td class="r">${x.p}</td><td class="r">${x.o}</td><td class="num">${x.d}</td><td>${sel(x)}</td></tr>`).join("") + "</tbody>";
+  const Y = '<i class="ph ph-check y" aria-hidden="true"></i><span class="sr">tak</span>', N = '<i class="ph ph-minus no" aria-hidden="true"></i><span class="sr">nie</span>';
+  const M = [["Dodaje przepisy i opinie", 1, 1, 1, 1], ["Edytuje własne przepisy", 1, 1, 1, 1], ["Edytuje cudze przepisy", 0, 1, 1, 1], ["Nadaje znaczek", 0, 1, 1, 1], ["Usuwa cudze opinie", 0, 1, 1, 1], ["Nadaje rolę user", 0, 1, 1, 1], ["Nadaje rolę admin", 0, 0, 1, 1], ["Nadaje rolę staff", 0, 0, 0, 1]];
+  document.querySelector("[data-matrix]").innerHTML = M.map(([t, ...v]) => `<tr><td>${t}</td>${v.map((x) => `<td>${x ? Y : N}</td>`).join("")}</tr>`).join("");
+
+  // E: galeria; pierwsze trzy są zaznaczone, jedna karta ma problem (brak zdjęcia)
+  document.querySelector("[data-gal]").innerHTML = C.concat([{ n: "Bez nazwy 2", s: "", a: "anon_barman", v: 4, r: "brak", warn: "Brak zdjęcia" }]).map((c) => `<div class="g ${c.sel ? "sel" : ""} ${c.warn ? "warn" : ""}">${c.s ? `<img src="https://cocktails.solvro.pl/images/cocktails/${c.s}.png" alt="" loading="lazy">` : `<div style="height:100%;display:grid;place-items:center;color:var(--muted)"><i class="ph ph-image-broken" style="font-size:2.5rem"></i></div>`}
+    <input class="pk" type="checkbox" ${c.sel ? "checked" : ""} aria-label="Zaznacz ${c.n}">
+    ${c.warn ? `<span class="pill status v" style="background:var(--bad);color:var(--on-bad)"><i class="ph-fill ph-warning-circle"></i>${c.warn}</span>` : ""}
+    <div class="cap glass"><b>${c.n}</b><span>${c.a}</span></div></div>`).join("");
+</script>
+</body>
+</html>

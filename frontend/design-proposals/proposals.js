@@ -28,13 +28,14 @@ const card = (c) => {
   <button class="fav" aria-label="Ulubione: ${c.name}">${ICON.heart}</button><div class="tag">${status}</div>
   <div class="cap glass"><div class="top"><h3 class="name">${c.name}${c.tag === "v" || c.tag === "t" ? vtick : ""}</h3>${rate}</div><p class="meta">Zwykły drink</p></div></article>`;
 };
-const BAR = `<header class="bar glass"><img src="../public/solvro/KN_Solvro_White.svg" alt="Solvro">
+// data-bar="user": pasek zalogowanego użytkownika (przycisk konta zamiast "Zaloguj"); data-bar="" to pasek gościa
+const bar = (user) => `<header class="bar glass"><img src="../public/solvro/KN_Solvro_White.svg" alt="Solvro">
   <div class="search"><input class="field" placeholder="Szukaj koktajlu" aria-label="Szukaj koktajlu"></div>
   <button class="btn"><span class="heart">${ICON.heart}</span>Ulubione (1)</button>
   <select class="select" aria-label="Źródło danych"><option>Własny backend</option></select>
-  <button class="btn">Zaloguj</button></header>`;
+  ${user ? `<button class="btn" aria-label="Konto: kasia_mixuje"><span class="av sm" aria-hidden="true">KM</span>kasia_mixuje</button>` : `<button class="btn">Zaloguj</button>`}</header>`;
 
-document.querySelectorAll("[data-bar]").forEach((el) => (el.innerHTML = BAR));
+document.querySelectorAll("[data-bar]").forEach((el) => (el.innerHTML = bar(el.dataset.bar)));
 document.querySelectorAll("[data-cards]").forEach((el) => {
   const [a, b] = el.dataset.cards.split(",").map(Number);
   el.innerHTML = DATA.slice(a, b).map(card).join("");

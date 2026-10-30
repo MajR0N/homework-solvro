@@ -12,6 +12,9 @@ Wystarczy otworzyć plik w przeglądarce (dwuklik). Potrzebne jest połączenie 
 | [`szczegoly.html`](szczegoly.html) | strona jednego koktajlu | puste miejsce pod zdjęciem, fakty w osobnych pudełkach, składniki wciśnięte w wąski pas |
 | [`karta.html`](karta.html) | pojedyncza karta na liście | szklany panel zasłania około połowy zdjęcia, a znaczki "Zweryfikowany" i ocena zawijają się do osobnych linii |
 | [`filtry.html`](filtry.html) | filtry listy (po wyborze układu C) | filtry ściśnięte w pasku, brak informacji, co jest włączone, brak "Wyczyść filtry" |
+| [`profil.html`](profil.html) | strona zalogowanego użytkownika (pięć propozycji) | po zalogowaniu jest tylko przycisk z nazwą konta, nie ma gdzie zobaczyć własnych przepisów, ulubionych i opinii |
+| [`przepis.html`](przepis.html) | formularz dodawania przepisu (pięć propozycji) | aplikacja nie pozwala jeszcze dodać własnego koktajlu |
+| [`admin.html`](admin.html) | panel administratora we frontendzie (pięć propozycji) | administrator pracuje dziś w panelu Django (`/admin/`), który wygląda inaczej niż aplikacja |
 | [`proposals.css`](proposals.css) | wspólne style makiet | kopia kolorów i kształtów z `src/app/globals.css` |
 | [`proposals.js`](proposals.js) | wspólny skrypt makiet | ikony, przykładowe karty i pasek (używa go `filtry.html`) |
 
@@ -51,3 +54,34 @@ Każda makieta ma przy sobie listę zalet i wad. Karty w `lista.html` używają 
 - Nazwy koktajli, zdjęcia, składniki i ilości to **prawdziwe dane z API Solvro**. Etykiety popularności, oceny i opinia są **przykładowe**, bo własny backend nie ma jeszcze danych demonstracyjnych.
 - Makiety nie są podłączone do aplikacji i nie były sprawdzane czytnikiem ekranu ani na prawdziwym telefonie (tylko na zrzutach z przeglądarki Edge przy szerokości 1500 px).
 - Wdrożone w aplikacji (`src/`) są karta A i strona koktajlu A (opisane w `STEPS.md`, sekcja 28). Układ listy C i filtry czekają na wybór jednego z trzech wariantów filtrów.
+
+## Pięć pomysłów na konto, formularz i panel admina (dodane później)
+
+Te trzy pliki mają po **pięć** propozycji. Potrzebują internetu także do ikon (Phosphor, z `unpkg.com`). Liczby, konta, opinie i zgłoszenia są **przykładowe**; nazwy koktajli, składników i zdjęcia pochodzą z API Solvro (przepisy "kasia_mixuje" mają własne nazwy, ale zdjęcia podobnych drinków z Solvro).
+
+**Strona użytkownika (`profil.html`)**
+- **A: wizytówka i zakładki.** Szklany panel z nazwą, rolą i liczbami, pod nim zakładki przepisy, ulubione, opinie, konto.
+- **B: menu boczne konta.** Osobny obszar z menu i stroną "Przegląd" (liczby i ostatnia aktywność).
+- **C: półki.** Jedna strona z poziomymi półkami; pierwszy kafelek "Moje przepisy" to "Dodaj przepis".
+- **D: panel autora.** Tabela własnych przepisów z wyświetleniami, oceną, etykietą i akcjami.
+- **E: telefon.** Dolna szklana nawigacja, przepisy jako wiersze, stan pusty dla nowego użytkownika.
+
+**Dodawanie przepisu (`przepis.html`)**
+- **A: jeden formularz i podgląd.** Trzy bloki i przyklejony podgląd karty; pokazany błąd powtórzonego składnika.
+- **B: kreator w krokach.** Podstawy, składniki, przygotowanie, podgląd.
+- **C: edycja na stronie koktajlu.** Układ strony koktajlu z edytowalnymi polami i szklanym paskiem zapisu.
+- **D: składniki najpierw.** Wybór składników z kafelków ze zdjęciami, ilości w panelu obok.
+- **E: szybkie okno.** Okno z minimum pól i składnikami jako znacznikami; pokazany błąd pustej nazwy.
+
+**Panel administratora (`admin.html`)**: każda propozycja pokazuje inny ekran główny.
+- **A: menu boczne i tabela.** Tabela koktajli z filtrami i akcją grupową "oznacz jako zweryfikowane".
+- **B: kolejka moderacji.** Lista spraw po lewej, szczegóły i decyzja po prawej (zgłoszone opinie, przepisy bez znaczka).
+- **C: pulpit.** Cztery liczby i cztery kafelki (do zrobienia, wyświetlenia, najpopularniejszy koktajl, nowi użytkownicy).
+- **D: użytkownicy i role.** Zmiana roli tylko na niższą od własnej, zablokowane konto własne i ownera, tabela "kto co może".
+- **E: galeria weryfikacji.** Siatka zdjęć z polami wyboru i paskiem akcji grupowej.
+
+**Zasady zgodne z backendem:** autor nie ustawia znaczka "zweryfikowany" (robi to administrator), zdjęcie musi mieć adres `https`, składnik może wystąpić w przepisie raz, ilość jest zwykłym tekstem, administrator usuwa opinie, ale ich nie edytuje, a rolę można nadać tylko niższą od własnej.
+
+**Czego nie sprawdzono:** makiety obejrzano tylko na zrzutach z przeglądarki Edge (szerokość 1500 px, **tylko motyw ciemny**; jasnego nie udało się wymusić, kolory mają jednak sprawdzone pary z `globals.css`). Nie sprawdzono ich na telefonie ani czytnikiem ekranu. Poziom 3:1 dla obwódek pól wyliczono, ale nie zmierzono narzędziem.
+
+**Uwaga o gęstości:** panel admina jest gęstszy niż reszta aplikacji (małe odstępy, liczby tabelaryczne). Zasady Solvro (jedna paleta, kształty, szkło) zostały te same.

@@ -54,9 +54,9 @@ ul { padding: 0; list-style: none; }
 .doc > header { max-width: 46rem; margin-bottom: 2.5rem; }
 .doc h1 { font-size: 2.25rem; letter-spacing: -0.02em; line-height: 1.15; }
 .doc .lead { margin-top: 0.75rem; color: var(--muted); font-size: 1.125rem; }
-.doc nav ul { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.25rem; }
-.doc nav a { display: inline-block; padding: 0.4rem 1rem; border: 1px solid var(--line); border-radius: 999px; color: inherit; text-decoration: none; }
-.doc nav a:hover { background: var(--soft); }
+.doc > header nav ul { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.25rem; }
+.doc > header nav a { display: inline-block; padding: 0.4rem 1rem; border: 1px solid var(--line); border-radius: 999px; color: inherit; text-decoration: none; }
+.doc > header nav a:hover { background: var(--soft); }
 .variant { margin-top: 4.5rem; }
 .variant > h2 { font-size: 1.75rem; letter-spacing: -0.01em; }
 .variant .idea { margin-top: 0.5rem; max-width: 46rem; font-size: 1.0625rem; }
@@ -170,3 +170,89 @@ label.lbl .select, label.lbl .field { display: block; width: 100%; margin-top: 0
   .bar { flex-wrap: wrap; border-radius: 1.5rem; }
   .bar .search { order: 5; flex-basis: 100%; }
 }
+
+/* ---------- dodatki dla profil.html, przepis.html i admin.html ---------- */
+:root { --edge: rgb(32 53 96 / 0.55); --ok: #1f7a4d; --bad: #b3261e; --on-bad: #ffffff; }
+@media (prefers-color-scheme: dark) { :root { --edge: rgb(255 255 255 / 0.55); --ok: #6fd6a0; --bad: #ff8a80; --on-bad: #0f1a30; } }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+.grow { flex: 1; min-width: 0; }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--bad); border-color: currentColor; }
+.btn svg, .ic { width: 1rem; height: 1rem; }
+.btn i, .tab i, .nav a i { font-size: 1.1rem; }
+.btn.sm { padding: 0.3rem 0.75rem; font-size: 0.8125rem; }
+
+/* pola formularza: etykieta nad polem, podpowiedź i błąd pod polem; obwódka ma 3:1 */
+.f { display: block; }
+.f > .l { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.3rem; }
+.f .in { display: block; width: 100%; font: inherit; font-size: 0.9375rem; color: inherit; padding: 0.55rem 0.8rem; border: 1px solid var(--edge); border-radius: 0.75rem; background: transparent; }
+.f textarea.in { min-height: 8rem; resize: vertical; line-height: 1.5; }
+.f select.in { border-radius: 999px; padding: 0.55rem 2.5rem 0.55rem 1rem; appearance: none; background-image: var(--chevron); background-repeat: no-repeat; background-position: right 0.85rem center; background-size: 1rem; }
+.lnk { color: var(--primary); text-decoration: underline; }
+.h { display: block; margin-top: 0.3rem; font-size: 0.8125rem; color: var(--muted); }
+.e { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.3rem; font-size: 0.8125rem; font-weight: 600; color: var(--bad); }
+.f.err .in { border-color: var(--bad); box-shadow: 0 0 0 1px var(--bad); }
+.f .in.pill { border-radius: 999px; }
+.grid2 { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.stack { display: grid; gap: 1rem; }
+
+/* awatar z inicjałami (bez zdjęć profilowych: backend nie ma takiego pola) */
+.av { display: grid; place-items: center; flex: none; width: 3rem; height: 3rem; border-radius: 50%; background: linear-gradient(135deg, #274276, #6583c8); color: #fff; font-weight: 700; letter-spacing: 0.02em; }
+.av.lg { width: 5rem; height: 5rem; font-size: 1.75rem; }
+.av.sm { width: 2rem; height: 2rem; font-size: 0.75rem; }
+.av.warm { background: linear-gradient(135deg, #8a1342, #c2185b); }
+
+/* rola i status: zawsze tekst i ikona, nie sam kolor */
+.role { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.1rem 0.55rem; border: 1px solid var(--edge); border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+.role.owner, .role.staff { background: var(--primary); color: var(--on-primary); border-color: transparent; }
+.st { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.8125rem; font-weight: 600; white-space: nowrap; }
+.st.ok { color: var(--ok); }
+.st.bad { color: var(--bad); }
+
+/* zakładki */
+.tabs { display: flex; gap: 0.25rem; overflow-x: auto; border-bottom: 1px solid var(--line); }
+.tab { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.7rem 1rem; font: inherit; font-weight: 500; color: var(--muted); background: none; border: 0; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; }
+.tab[aria-selected="true"] { color: var(--fg); font-weight: 700; border-bottom-color: var(--primary); }
+.tab .n { padding: 0 0.45rem; border-radius: 999px; background: var(--soft); font-size: 0.75rem; }
+
+/* liczby */
+.stat b { display: block; font-size: 1.75rem; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 0.8125rem; color: var(--muted); }
+.stats { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); }
+
+/* tabela i lista */
+.tbl { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.tbl th { text-align: left; font-weight: 600; color: var(--muted); padding: 0.5rem 0.75rem; white-space: nowrap; }
+.tbl td { padding: 0.55rem 0.75rem; border-top: 1px solid var(--line); vertical-align: middle; }
+.tbl tr:hover td { background: var(--soft); }
+.tbl .r { text-align: right; font-variant-numeric: tabular-nums; }
+.tbl .t { display: flex; align-items: center; gap: 0.6rem; font-weight: 600; }
+.tbl .t img { width: 2.25rem; height: 2.25rem; border-radius: 0.5rem; object-fit: cover; flex: none; }
+.tbl input[type="checkbox"], .chk { width: 1.1rem; height: 1.1rem; accent-color: var(--primary); }
+.scroll-x { overflow-x: auto; }
+
+/* menu boczne */
+.side { display: grid; gap: 0.15rem; align-content: start; }
+.side a { display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.8rem; border-radius: 0.75rem; color: inherit; text-decoration: none; font-weight: 500; }
+.side a:hover { background: var(--soft); }
+.side a[aria-current="page"] { background: var(--primary); color: var(--on-primary); font-weight: 700; }
+.side a i { font-size: 1.2rem; }
+.side .cnt { margin-left: auto; font-size: 0.75rem; padding: 0 0.45rem; border-radius: 999px; background: var(--warm); color: var(--on-warm); font-weight: 700; }
+.side h4 { margin: 1rem 0.8rem 0.25rem; font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+
+/* ramka telefonu (makiety mobilne) */
+.phone { width: 22rem; max-width: 100%; margin: 0 auto; border: 1px solid var(--line); border-radius: 2rem; overflow: hidden; background: var(--bg); background-image: radial-gradient(24rem 16rem at 10% -8%, var(--glow-a), transparent 70%); }
+.phone .scr { padding: 1rem; display: grid; gap: 1rem; min-height: 38rem; align-content: start; }
+.phone .dock { position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); padding: 0.4rem; margin: 0.5rem; border-radius: 999px; }
+.phone .dock a { display: grid; justify-items: center; gap: 0.1rem; padding: 0.35rem 0; font-size: 0.6875rem; color: #fff; text-decoration: none; border-radius: 999px; }
+.phone .dock a i { font-size: 1.3rem; }
+.phone .dock a[aria-current="page"] { background: #fff; color: #203560; font-weight: 700; }
+
+@media (max-width: 52rem) { .grid2 { grid-template-columns: 1fr; } }
+.btn { text-decoration: none; }
+.glass .f select.in { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+.f .in::placeholder { color: var(--muted); opacity: 1; }
+.tbl td { white-space: nowrap; }
+.tbl .t { white-space: normal; min-width: 11rem; }
