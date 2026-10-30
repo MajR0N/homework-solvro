@@ -424,3 +424,13 @@ The owner chose list layout C but said the filters need changes, and asked for t
 
 **Waiting for the owner:** A, B or C for the filters (my recommendation: **B**, because it needs no pop-ups, no focus handling and no extra clicks, so it is the cheapest to build correctly before tomorrow's deadline). Then the list (featured "Na topie" tiles, which only exist for the own backend, plus the chosen filter bar) is built in one step.
 
+## 30. List layout C with filters A (30 October 2026)
+
+Owner picked filters **A** (buttons with pop-up windows on the glass bar). Built the list as agreed in section 28/29.
+
+**Built:** `components/Filters.tsx` (glass pill: Kategoria button with a chip pop-up, a three-way Alkohol toggle, a Sortuj select, a "Filtry (n)" button with Składnik and Zweryfikowane for the own backend, result count; removable chips for active filters and "Wyczyść filtry"), `components/Featured.tsx` ("Na topie teraz": five trending cocktails as one big and four compact tiles, fewer than five as a normal row, none = no section; own backend only and only on a clean list), `CocktailCard` gets a `size` prop. The old filter form and its state were removed from `page.tsx`. The pop-ups sit next to the pill, not inside it (nested backdrop blur does not work), close on Esc (focus returns to the button) and on a click outside, and use `aria-expanded` / `aria-pressed`; the ingredient field keeps its 300 ms debounce and restarts from the URL value each time the pop-up opens (this also satisfied the `set-state-in-effect` lint rule). On phones the filter pill is not sticky (it would cover half the screen).
+
+**Simplifications against the mock:** Sortuj is a styled native select, not a pop-up button (keeps keyboard and screen-reader behaviour for free).
+
+**Checked:** tsc, lint, build. Driven in headless Edge through the DevTools protocol against the live API via a local pass-through proxy (the live backend does not allow localhost origins): opening the category pop-up, Esc closing it and returning focus, choosing a category and alcohol (URL: `?category=Cocktail&alcohol=true`, chips shown), the Filtry pop-up and the verified checkbox (`verified=1`), "Wyczyść filtry" (URL empty, no chips); screenshots at 1400 px and 390 px (found and fixed: rating cut off on long names, sticky pill too tall on phones). The live data already shows trending tiles, ratings and verified icons, so `seed_demo` has been run. **Not checked:** light theme, the ingredient field typing, keyboard Tab order inside the pop-ups, a screen reader, the Solvro source in a real browser session after these changes.
+

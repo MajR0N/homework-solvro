@@ -1,12 +1,13 @@
 "use client";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense } from "react";
 import CocktailCard from "@/components/CocktailCard";
+import Featured from "@/components/Featured";
+import FilterBar from "@/components/Filters";
 import { getCategories, listCocktails, type Filters } from "@/lib/api";
 import { useFavorites } from "@/lib/favorites";
 import { patchParams } from "@/lib/params";
-import { pl } from "@/lib/pl";
 import { useSource } from "@/lib/source";
 
 // API sortuje tylko z prefiksem + lub - (samo "name" jest po cichu ignorowane)
@@ -23,9 +24,6 @@ const OWN_SORTS = [
   { value: "-top_rated", label: "Najlepiej oceniane" },
 ];
 
-// pola jak w pasku: pigułki; listy mają własną strzałkę (klasa select z globals.css)
-const field = "mt-1 w-full rounded-full border border-foreground/25 bg-foreground/5 px-4 py-2 hover:bg-foreground/10 [&>option]:bg-background [&>option]:text-foreground";
-const label = "block text-sm font-medium";
 const button = "rounded-full border border-foreground/30 px-5 py-2 hover:bg-foreground/10 disabled:opacity-40";
 
 // Filtry żyją w URL-u (?q=...&category=...), więc odświeżenie, link i "wstecz" je zachowują.
@@ -51,11 +49,6 @@ function Cocktails() {
   // Zmienia parametry URL-a (patrz lib/params.ts); wyszukiwarka i przycisk ulubionych są w pasku u góry (TopBar).
   const update = (patch: Record<string, string>) => router.replace(patchParams(patch), { scroll: false });
 
-  // pole składnika ma własny stan (płynne pisanie), do URL-a trafia po 300 ms przerwy
-  const [ingText, setIngText] = useState(sp.get("ing") ?? "");
-  const ingTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => () => clearTimeout(ingTimer.current), []);
-
   // Bez id[] API zwraca WSZYSTKIE koktajle, więc przy pustej liście nie wolno pytać.
   const noFavs = onlyFav && favs.length === 0;
 
@@ -73,70 +66,21 @@ function Cocktails() {
     <main id="content" className="mx-auto w-full max-w-7xl p-4">
       <h1 className="mb-6 text-3xl font-bold">Koktajle</h1>
 
-      <form
-        role="search"
-        onSubmit={(e) => e.preventDefault()}
-        className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        <label className={label}>
-          Kategoria
-          <select value={category} onChange={(e) => update({ category: e.target.value })} className={`select ${field}`}>
-            <option value="">Wszystkie</option>
-            {categories.data?.map((c) => (
-              <option key={c} value={c}>
-                {pl(c)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={label}>
-          Alkohol
-          <select value={alcoholic} onChange={(e) => update({ alcohol: e.target.value })} className={`select ${field}`}>
-            <option value="">Wszystkie</option>
-            <option value="true">Z alkoholem</option>
-            <option value="false">Bezalkoholowe</option>
-          </select>
-        </label>
-        <label className={label}>
-          Sortuj
-          <select value={sort} onChange={(e) => update({ sort: e.target.value })} className={`select ${field}`}>
-            {sorts.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        {source === "own" && (
-          <label className={label}>
-            Składnik
-            <input
-              type="search"
-              value={ingText}
-              onChange={(e) => {
-                const v = e.target.value;
-                setIngText(v);
-                clearTimeout(ingTimer.current);
-                ingTimer.current = setTimeout(() => update({ ing: v.trim() }), 300);
-              }}
-              placeholder="np. mint, lime"
-              aria-describedby="ing-hint"
-              className={field}
-            />
-            <span id="ing-hint" className="mt-1 block px-1 text-xs font-normal text-foreground/70">
-              Nazwy po angielsku; po przecinku: koktajl musi mieć wszystkie.
-            </span>
-          </label>
-        )}
-        {source === "own" && (
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm sm:col-span-2 lg:col-span-4">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={verified} onChange={(e) => update({ verified: e.target.checked ? "1" : "" })} className="size-4 accent-primary" />
-              Tylko zweryfikowane
-            </label>
-          </div>
-        )}
-      </form>
+      {/* kafelki "Na topie" tylko przy własnym backendzie i tylko na czystej liście (bez filtrów, szukania i ulubionych) */}
+      {source === "own" && page === 1 && !name && !category && !alcoholic && !verified && !ingredient && !onlyFav && <Featured />}
+
+      <FilterBar
+        category={category}
+        categories={categories.data ?? []}
+        alcoholic={alcoholic}
+        sort={sort}
+        sorts={sorts}
+        ingredient={ingredient}
+        verified={verified}
+        total={data?.meta.total}
+        own={source === "own"}
+        update={update}
+      />
 
       {noFavs ? (
         <p className="py-12 text-center text-foreground/70">Nie masz jeszcze ulubionych koktajli. Kliknij serce na karcie.</p>
@@ -157,9 +101,6 @@ function Cocktails() {
         <p className="py-12 text-center text-foreground/70">Brak koktajli spełniających kryteria.</p>
       ) : (
         <>
-          <p className="mb-3 text-sm text-foreground/70" aria-live="polite">
-            Znaleziono: {data.meta.total}
-          </p>
           <ul
             className={`grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 ${isPlaceholderData ? "opacity-60" : ""}`}
           >

@@ -7,14 +7,16 @@ import FavoriteButton from "./FavoriteButton";
 
 // Zdjęcie na całą kartę. Status (Na topie, Popularny) leży na zdjęciu, a wąski panel z ciemnego szkła ma stałą wysokość:
 // nazwa z ikoną weryfikacji, ocena po prawej, pod spodem kategoria. Pełny zestaw znaczków jest na stronie szczegółów.
-export default function CocktailCard({ cocktail }: { cocktail: Cocktail }) {
+// size: normal = karta 4:5; big i compact wypełniają komórkę siatki (kafelki "Na topie"), compact bez linii z kategorią
+export default function CocktailCard({ cocktail, size = "normal" }: { cocktail: Cocktail; size?: "normal" | "compact" | "big" }) {
   const { verified, status, ratingAvg, ratingCount } = cocktail;
+  const fill = size !== "normal";
   return (
     // przycisk obok linku, nie w środku - interaktywne elementy nie mogą się zagnieżdżać
-    <div className="relative">
+    <div className={`relative ${fill ? "h-full" : ""}`}>
       <Link
         href={`/cocktails/${cocktail.id}`}
-        className="group relative block aspect-4/5 overflow-hidden rounded-xl bg-foreground/10 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+        className={`group relative block ${fill ? "h-full" : "aspect-4/5"} overflow-hidden rounded-xl bg-foreground/10 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg`}
       >
         {cocktail.imageUrl && (
           <Image
@@ -30,16 +32,16 @@ export default function CocktailCard({ cocktail }: { cocktail: Cocktail }) {
             <StatusPill status={status} />
           </div>
         )}
-        <div className="glass absolute inset-x-2 bottom-2 rounded-lg px-3 py-2.5">
-          <div className="flex items-start justify-between gap-2">
-            <h2 className="flex items-center gap-1.5 font-semibold leading-tight">
+        <div className={`glass absolute inset-x-2 bottom-2 rounded-lg ${size === "big" ? "px-4 py-3.5" : "px-3 py-2.5"}`}>
+          <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-0.5">
+            <h2 className={`flex items-center gap-1.5 font-semibold leading-tight ${size === "big" ? "text-2xl" : ""}`}>
               {cocktail.name}
               {verified && <VerifiedIcon />}
             </h2>
             {ratingAvg != null && (ratingCount ?? 0) > 0 && <RatingInline avg={ratingAvg} count={ratingCount ?? 0} />}
           </div>
           {/* "Z alkoholem" to norma, więc na karcie zaznaczamy tylko wyjątek */}
-          <p className="mt-0.5 text-sm opacity-90">{`${pl(cocktail.category)}${cocktail.alcoholic ? "" : " · Bezalkoholowy"}`}</p>
+          <p className={`mt-0.5 text-sm opacity-90 ${size === "compact" ? "hidden" : ""}`}>{`${pl(cocktail.category)}${cocktail.alcoholic ? "" : " · Bezalkoholowy"}`}</p>
         </div>
       </Link>
       <FavoriteButton id={cocktail.id} name={cocktail.name} className="absolute right-2 top-2" />
