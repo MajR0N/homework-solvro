@@ -89,7 +89,7 @@ export default function IngredientPicker({
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onKeyDown={onKeyDown}
-        className={`w-full rounded-full border bg-background px-4 py-2 ${invalid ? "border-red-600 ring-1 ring-red-600" : row.ingredientId != null ? "border-primary" : "border-foreground/35"}`}
+        className={`w-full rounded-full border bg-background px-4 py-2 max-md:min-h-11 ${invalid ? "border-red-600 ring-1 ring-red-600" : row.ingredientId != null ? "border-primary" : "border-foreground/35"}`}
       />
       {show && (
         <ul
@@ -112,7 +112,7 @@ export default function IngredientPicker({
                 onMouseDown={(e) => e.preventDefault()} // klik nie zabiera fokusu polu, więc lista nie zniknie przed wyborem
                 onClick={() => choose(item)}
                 onMouseEnter={() => setActive(i)}
-                className={`cursor-pointer rounded-xl px-3 py-2 text-sm ${i === active ? "bg-primary text-on-primary" : "hover:bg-foreground/10"} ${isTaken ? "cursor-not-allowed opacity-50" : ""}`}
+                className={`cursor-pointer rounded-xl px-3 py-2 text-sm max-md:flex max-md:min-h-11 max-md:items-center max-md:text-base ${i === active ? "bg-primary text-on-primary" : "hover:bg-foreground/10"} ${isTaken ? "cursor-not-allowed opacity-50" : ""}`}
               >
                 {item.kind === "option" ? (
                   <>

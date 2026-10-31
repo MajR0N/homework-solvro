@@ -18,6 +18,8 @@ const ITEMS = [
 export default function BottomDock() {
   const pathname = usePathname();
   const typing = useTyping();
+  // w edytorze przepisu dolny pasek ma własny pasek zapisu (zasada M7), więc dok nie jest potrzebny
+  if (pathname.startsWith("/recipes")) return null;
   return (
     <nav aria-label="Główna nawigacja" className={`glass fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 grid-cols-4 gap-1 rounded-full p-1.5 md:hidden ${typing ? "hidden" : "grid"}`}>
       {ITEMS.map(({ href, label, Icon, active }) => {
