@@ -1,5 +1,5 @@
 "use client";
-import { GearSixIcon, MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
+import { CaretLeftIcon, GearSixIcon, MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -48,12 +48,28 @@ const Logo = () => (
 // Telefon (poniżej 768 px, zasada M1): jeden wąski rząd z logo i dwiema ikonami. Wyszukiwanie rozwija się po dotknięciu lupy,
 // a źródło danych, tryb demo i wylogowanie są w arkuszu ustawień pod zębatką. Cele dotyku mają po 44 px.
 function PhoneBar({ search }: { search: Search }) {
+  const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (expanded) input.current?.focus();
   }, [expanded]);
   const icon = "grid size-11 shrink-0 place-items-center rounded-full";
+
+  // Panel administratora (zasada M3): zamiast logo i wyszukiwarki napis panelu i droga powrotna do konta; ekrany panelu są w dolnej nawigacji
+  if (pathname.startsWith("/admin"))
+    return (
+      <div className="glass flex items-center gap-1 rounded-full py-1.5 pl-1.5 pr-1.5 md:hidden">
+        <Link href="/account" className="inline-flex min-h-11 shrink-0 items-center gap-0.5 rounded-full pl-2 pr-3 hover:bg-white/15">
+          <CaretLeftIcon size={20} aria-hidden="true" />
+          Konto
+        </Link>
+        <span className="min-w-0 flex-1 truncate text-center font-bold">Panel administratora</span>
+        <button type="button" onClick={openSettings} aria-label="Ustawienia" className={`${icon} hover:bg-white/15`}>
+          <GearSixIcon size={22} aria-hidden="true" />
+        </button>
+      </div>
+    );
 
   return (
     <div className="glass flex items-center gap-2 rounded-full py-1.5 pl-4 pr-1.5 md:hidden">

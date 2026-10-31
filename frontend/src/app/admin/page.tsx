@@ -8,6 +8,7 @@ import { ROLE_PL } from "@/lib/roles";
 
 // Pulpit (propozycja C z design-proposals/admin.html): cztery liczby, lista spraw do zrobienia, wyświetlenia z tygodnia,
 // najpopularniejszy koktajl i nowi użytkownicy. Wszystko liczone z aktualnych danych (nic na sztywno).
+// Telefon (zasada M12): "Do zrobienia" na górze, pod nim liczby 2 x 2, wykres, najpopularniejszy koktajl i nowi użytkownicy.
 export default function AdminDashboard() {
   const { data: s, error, refetch } = useAdminStats();
 
@@ -15,7 +16,7 @@ export default function AdminDashboard() {
     return (
       <div role="alert" className="rounded-xl border border-red-500/40 p-6 text-center">
         Nie udało się pobrać danych pulpitu.{" "}
-        <button type="button" onClick={() => refetch()} className="underline underline-offset-4">
+        <button type="button" onClick={() => refetch()} className="underline underline-offset-4 max-md:inline-flex max-md:min-h-11 max-md:items-center">
           Spróbuj ponownie
         </button>
       </div>
@@ -51,22 +52,22 @@ export default function AdminDashboard() {
         ))}
       </dl>
 
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">
-        <section className={`${panel} lg:row-span-2`} aria-labelledby="todo-h">
+      <div className="grid gap-4 max-md:contents lg:grid-cols-[1.2fr_1fr_1fr]">
+        <section className={`${panel} max-md:order-first lg:row-span-2`} aria-labelledby="todo-h">
           <h3 id="todo-h" className="mb-2 text-lg font-semibold">
             Do zrobienia
           </h3>
           <ul className="divide-y divide-foreground/15">
             {todo.map((t) => (
               <li key={t.label}>
-                <Link href={t.href} className="flex items-center gap-3 py-3 hover:underline">
+                <Link href={t.href} className="flex min-h-11 items-center gap-3 py-3 hover:underline">
                   <span className="flex-1">{t.label}</span>
                   <span className={`text-xl font-bold tabular-nums ${t.n ? "" : "text-foreground/50"}`}>{t.n}</span>
                 </Link>
               </li>
             ))}
           </ul>
-          <Link href="/admin/moderation" className="mt-3 inline-block rounded-full bg-primary px-5 py-2 font-semibold text-on-primary hover:opacity-90">
+          <Link href="/admin/moderation" className="mt-3 inline-block rounded-full bg-primary px-5 py-2 font-semibold text-on-primary hover:opacity-90 max-md:inline-flex max-md:min-h-11 max-md:items-center">
             Otwórz kolejkę
           </Link>
         </section>

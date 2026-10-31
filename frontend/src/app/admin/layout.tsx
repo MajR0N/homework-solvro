@@ -64,7 +64,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const queue = (stats.data?.reportedReviews ?? 0) + (stats.data?.pendingRecipes ?? 0);
   return (
     <main id="content" className="mx-auto w-full max-w-7xl p-4">
-      <header className="glass mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-3xl px-4 py-2 md:rounded-full md:pr-3">
+      {/* telefon: napis panelu jest na górnym pasku, a ekrany w dolnej nawigacji (BottomDock), więc ta pigułka jest tylko od 768 px */}
+      <h1 className="sr-only md:hidden">Panel administratora</h1>
+      <header className="glass mt-2 hidden flex-wrap items-center gap-x-4 gap-y-2 rounded-3xl px-4 py-2 md:flex md:rounded-full md:pr-3">
         <h1 className="text-lg font-bold">Panel administratora</h1>
         <nav aria-label="Panel administratora" className="-mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1 py-0.5">
           {NAV.map((n) => {
