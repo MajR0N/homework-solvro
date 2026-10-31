@@ -57,7 +57,7 @@ export default function UsersPage() {
         ))}
       </select>
     ) : (
-      <span className="text-foreground/65">{lockReason(u)}</span>
+      <span className="text-foreground/75">{lockReason(u)}</span>
     );
   const pill = (u: AdminUser) => (
     <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${u.role === "staff" || u.role === "owner" ? "border-transparent bg-primary text-on-primary" : "border-foreground/40"}`}>{u.role}</span>
@@ -207,12 +207,12 @@ export default function UsersPage() {
                   <td key={r} className={`py-1.5 ${r === access.role ? "bg-foreground/10" : ""}`}>
                     {i >= min ? (
                       <>
-                        <span aria-hidden="true" className="font-bold text-emerald-700 dark:text-emerald-300">✓</span>
+                        <span aria-hidden="true" className="font-bold text-emerald-800 dark:text-emerald-300">✓</span>
                         <span className="sr-only">tak</span>
                       </>
                     ) : (
                       <>
-                        <span aria-hidden="true" className="text-foreground/50">–</span>
+                        <span aria-hidden="true" className="text-foreground/80">–</span>
                         <span className="sr-only">nie</span>
                       </>
                     )}

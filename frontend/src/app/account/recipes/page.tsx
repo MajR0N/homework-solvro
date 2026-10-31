@@ -102,7 +102,7 @@ export default function MyRecipesPage() {
                       </Link>
                     </td>
                     <td className="px-3 py-2">{mark(r)}</td>
-                    <td className="px-3 py-2">{r.status ? <StatusPill status={r.status} /> : <span className="text-foreground/60">brak</span>}</td>
+                    <td className="px-3 py-2">{r.status ? <StatusPill status={r.status} /> : <span className="text-foreground/75">brak</span>}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{fmt(r.views30d)}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{rating(r)}</td>
                     <td className="px-3 py-2 text-right">{del(r)}</td>

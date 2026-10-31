@@ -141,7 +141,7 @@ export default function CocktailPage() {
                     {ing.imageUrl ? (
                       <Image src={ing.imageUrl} alt="" fill sizes="(min-width: 768px) 64px, 48px" className="object-cover" />
                     ) : (
-                      <span aria-hidden="true" className="grid size-full place-items-center text-xl font-semibold text-foreground/60">
+                      <span aria-hidden="true" className="grid size-full place-items-center text-xl font-semibold text-foreground/75">
                         {ing.name.charAt(0).toUpperCase()}
                       </span>
                     )}

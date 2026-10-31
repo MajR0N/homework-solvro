@@ -30,6 +30,14 @@ Wygląd opiera się na identyfikacji Solvro: kolory z oficjalnej palety (#FFF, #
 - **Jeden ciepły akcent**, używany oszczędnie: serduszko ulubionych i etykieta „Na topie”. Nigdy nie jest jedynym nośnikiem informacji (jest też ikona, tekst i `aria-pressed`).
 - Dostępność: link „Przejdź do treści”, widoczny fokus klawiatury, etykiety dla czytników ekranu, szanowanie ustawienia ograniczenia animacji.
 
+## Telefon (poniżej 768 px)
+
+Na telefonie każda strona ma własny układ, a nie ściśnięty układ komputerowy. Progi: telefon do 767 px, tablet 768 do 1023 px (układ komputerowy z płynnymi siatkami), komputer od 1024 px. Decyzje M1 do M15 są w `STEPS.md` (sekcje 41 do 47).
+
+- Górny pasek to jeden wąski rząd (logo, lupa rozwijająca wyszukiwanie, zębatka z ustawieniami); dolna nawigacja ma cztery miejsca, chowa się podczas pisania i omija dolny pas bezpieczny telefonu. W panelu administratora te same cztery miejsca to ekrany panelu, a ekrany z własnym paskiem akcji (edytor, zaznaczone koktajle, sprawa w moderacji) zastępują nawigację swoim paskiem.
+- Lista: jeden rząd „Filtry, Sortuj, liczba”, filtry w arkuszu od dołu z liczbą wyników na żywo, dwie kolumny kart, „Na topie” jako rząd przewijany palcem. Konto to „centrum” z listą sekcji, panel administratora ma karty kont, listę koktajli z paskiem zaznaczenia i moderację jako kolejkę z osobnym ekranem sprawy.
+- Zasady: cele dotyku co najmniej 44 x 44 px, pola tekstowe 16 px (bez powiększania na iOS), tekst co najmniej 12 px, brak przewijania w poziomie, paski przestają się kleić na niskim ekranie. Sprawdzone skryptem mierzącym w Edge (360, 390, 430, 768, 1024 px) i kontrastem tekstu w obu motywach; **nie** sprawdzane na prawdziwym telefonie.
+
 ## Własny backend (przełącznik źródła)
 
 Frontend umie czytać dane z API Solvro (domyślnie) albo z własnego backendu z katalogu `backend/`. Przełącznik „Źródło danych” pojawia się tylko wtedy, gdy ustawiona jest zmienna z adresem backendu. Wybór jest zapamiętany w przeglądarce. Na wersji online zmienna jest ustawiona, więc przełącznik jest widoczny.
@@ -91,7 +99,7 @@ Strony używają tylko hooków z `src/lib/data/account.ts` (`useMyRecipes`, `use
 
 ### Edytor przepisu (`/recipes/new`, `/recipes/<id>/edit`)
 
-Układ jak strona koktajlu (propozycja C z `design-proposals/recipe.html`): szklany baner (zdjęcie, nazwa, kategoria, szklanka, adres zdjęcia, alkohol), panele „Składniki” i „Przygotowanie” oraz przyklejony szklany pasek zapisu. Ten sam ekran dodaje i edytuje; na telefonie pasek jest nad dolną nawigacją.
+Układ jak strona koktajlu (propozycja C z `design-proposals/recipe.html`): szklany baner (zdjęcie, nazwa, kategoria, szklanka, adres zdjęcia, alkohol), panele „Składniki” i „Przygotowanie” oraz przyklejony szklany pasek zapisu. Ten sam ekran dodaje i edytuje; na telefonie edytor ma trzy zwijane sekcje (Podstawy, Składniki, Przygotowanie) i własny dolny pasek zamiast nawigacji.
 
 - **Składniki to prawdziwe składniki z bazy.** Backend łączy je po id, więc samo wpisanie nazwy nie wystarcza: pole działa jak lista podpowiedzi (wzorzec ARIA combobox: strzałki, Enter, Esc), a gdy nic nie pasuje, pojawia się „Dodaj „…” jako nowy składnik” (`POST /ingredients/`, może każdy zalogowany). Każdy składnik tylko raz, miara to dowolny tekst.
 - **Walidacja** w `src/lib/recipe/form.ts` (czyste funkcje z testami, te same limity co backend): nazwa i kategoria wymagane, zdjęcie tylko `https`, najwyżej 50 składników. Po nieudanej próbie zapisu fokus trafia na pierwsze błędne pole, a błędy z backendu (400) trafiają do właściwych pól (`serverErrors`).

@@ -62,7 +62,7 @@ export default function AdminDashboard() {
               <li key={t.label}>
                 <Link href={t.href} className="flex min-h-11 items-center gap-3 py-3 hover:underline">
                   <span className="flex-1">{t.label}</span>
-                  <span className={`text-xl font-bold tabular-nums ${t.n ? "" : "text-foreground/50"}`}>{t.n}</span>
+                  <span className={`text-xl font-bold tabular-nums ${t.n ? "" : "text-foreground/60"}`}>{t.n}</span>
                 </Link>
               </li>
             ))}
@@ -103,7 +103,7 @@ export default function AdminDashboard() {
             {s.newUsers.map((u) => (
               <li key={u.username} className="flex items-center gap-3 py-2 text-sm">
                 <span className="flex-1 truncate font-medium">{u.username}</span>
-                <span className="text-foreground/65">{shortDate(u.joined)}</span>
+                <span className="text-foreground/75">{shortDate(u.joined)}</span>
                 <span className="rounded-full border border-foreground/35 px-2 py-0.5 text-xs">{ROLE_PL[u.role]}</span>
               </li>
             ))}

@@ -28,6 +28,8 @@ import IngredientPicker from "./IngredientPicker";
 const glassInput = "w-full rounded-full border border-white/40 bg-white/10 px-4 py-2 text-white placeholder:text-white/75 max-md:min-h-11";
 const panelInput = "w-full rounded-full border border-foreground/35 bg-background px-4 py-2 max-md:min-h-11";
 const errText = "mt-1 flex items-center gap-1 text-sm font-semibold text-red-700 dark:text-red-300";
+// na szklanym banerze (ciemnym w obu motywach) czerwony musi być jasny także w motywie jasnym
+const errGlass = "mt-1 flex items-center gap-1 text-sm font-semibold text-red-100";
 
 type Sec = "basics" | "ings" | "how";
 
@@ -214,9 +216,9 @@ function EditorForm({ id, initial, owner, authorName, demo, canVerify, initialVe
 
   const preview = allowedImage(form.imageUrl.trim());
   const foreignImage = !preview && !errors.imageUrl && form.imageUrl.trim() !== "";
-  const err = (text?: string, fid?: string) =>
+  const err = (text?: string, fid?: string, glass = false) =>
     text ? (
-      <p id={fid} className={errText}>
+      <p id={fid} className={glass ? errGlass : errText}>
         {text}
       </p>
     ) : null;
@@ -287,7 +289,7 @@ function EditorForm({ id, initial, owner, authorName, demo, canVerify, initialVe
                 onChange={(e) => change({ name: e.target.value })}
                 className={`${glassInput} text-2xl font-bold tracking-tight`}
               />
-              {err(errors.name, `${uid}-name-e`)}
+              {err(errors.name, `${uid}-name-e`, true)}
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
@@ -309,8 +311,8 @@ function EditorForm({ id, initial, owner, authorName, demo, canVerify, initialVe
                     </option>
                   ))}
                 </select>
-                {err(errors.category, `${uid}-category-e`)}
-                {categories.isError && <p className={errText}>Nie udało się pobrać kategorii. Odśwież stronę.</p>}
+                {err(errors.category, `${uid}-category-e`, true)}
+                {categories.isError && <p className={errGlass}>Nie udało się pobrać kategorii. Odśwież stronę.</p>}
               </div>
               <div>
                 <label htmlFor={`${uid}-glass`} className="mb-1 block text-sm font-semibold">
@@ -322,7 +324,7 @@ function EditorForm({ id, initial, owner, authorName, demo, canVerify, initialVe
                     <option key={g} value={g} />
                   ))}
                 </datalist>
-                {err(errors.glass)}
+                {err(errors.glass, undefined, true)}
               </div>
             </div>
             <div>
@@ -340,7 +342,7 @@ function EditorForm({ id, initial, owner, authorName, demo, canVerify, initialVe
                 onChange={(e) => change({ imageUrl: e.target.value })}
                 className={glassInput}
               />
-              {errors.imageUrl ? err(errors.imageUrl, `${uid}-image-e`) : <p id={`${uid}-image-h`} className="mt-1 text-sm text-white/85">Może być pusty, zdjęcie dodasz później.</p>}
+              {errors.imageUrl ? err(errors.imageUrl, `${uid}-image-e`, true) : <p id={`${uid}-image-h`} className="mt-1 text-sm text-white/85">Może być pusty, zdjęcie dodasz później.</p>}
             </div>
             <label className="flex items-center gap-2.5 text-sm font-medium max-md:min-h-11 max-md:text-base">
               <input type="checkbox" checked={form.alcoholic} onChange={(e) => change({ alcoholic: e.target.checked })} className="size-4 accent-[#80b3ff] max-md:size-6" />
@@ -414,7 +416,7 @@ function EditorForm({ id, initial, owner, authorName, demo, canVerify, initialVe
               className="w-full rounded-2xl border border-foreground/35 bg-background px-4 py-3 leading-relaxed"
             />
             {err(errors.instructions)}
-            <p className="mt-1 text-right text-xs text-foreground/60">
+            <p className="mt-1 text-right text-xs text-foreground/75">
               {form.instructions.length} / {LIMITS.instructions}
             </p>
             </div>

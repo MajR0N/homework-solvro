@@ -170,7 +170,7 @@ export default function ModerationPage() {
                 <Stars rating={cur.review.rating} />
                 <span>{new Date(cur.review.createdAt).toLocaleString("pl-PL", { dateStyle: "medium", timeStyle: "short" })}</span>
               </p>
-              <blockquote className="rounded-r-xl border-l-4 border-red-600 bg-foreground/5 px-4 py-3 text-lg [overflow-wrap:anywhere]">{cur.review.text || <i className="text-foreground/60">(bez treści)</i>}</blockquote>
+              <blockquote className="rounded-r-xl border-l-4 border-red-600 bg-foreground/5 px-4 py-3 text-lg [overflow-wrap:anywhere]">{cur.review.text || <i className="text-foreground/75">(bez treści)</i>}</blockquote>
               <section className={panel} aria-labelledby="reasons-h">
                 <h4 id="reasons-h" className="mb-2 font-semibold">
                   Powody zgłoszeń

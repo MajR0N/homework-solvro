@@ -6,7 +6,7 @@ import { useLogin } from "@/lib/auth";
 import { useDemo } from "@/lib/demo/mode";
 import { ownAvailable } from "@/lib/source";
 
-const field = "mt-1 w-full rounded-full border border-foreground/25 bg-foreground/5 px-4 py-2 hover:bg-foreground/10";
+const field = "mt-1 w-full rounded-full border border-foreground/25 bg-foreground/5 px-4 py-2 hover:bg-foreground/10 max-md:min-h-11 max-md:text-base";
 
 function message(e: unknown): string {
   if (e instanceof HttpError && e.status === 429) return "Za dużo nieudanych prób. Spróbuj ponownie za kilka minut.";
