@@ -102,3 +102,24 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Paski przyklejone do góry. Na niskim ekranie (np. telefon poziomo, poniżej 480 px wysokości) zajęłyby pół widoku, więc
+   wtedy przestają się kleić i przewijają się z treścią (zasada M14 z STEPS.md). */
+.bar-sticky {
+  position: sticky;
+}
+@media (max-height: 479px) {
+  .bar-sticky {
+    position: static;
+  }
+}
+
+/* Arkusz z dołu (ustawienia na telefonie): wjeżdża od dołu; przy ograniczonych animacjach reguła wyżej skraca czas do zera. */
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+.sheet {
+  animation: sheet-in 0.2s ease-out;
+}
