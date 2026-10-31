@@ -120,6 +120,16 @@ body {
     transform: translateY(100%);
   }
 }
+/* Wjazd rzędu kart (rail): lekkie pojawienie się, gdy rząd się wyrenderuje (czyli gdy dojadą dane). */
+@keyframes rail-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.rail-in {
+  animation: rail-in 0.4s ease-out;
+}
 .sheet {
   animation: sheet-in 0.2s ease-out;
 }
