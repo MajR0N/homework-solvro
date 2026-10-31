@@ -1,34 +1,14 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import type { Filters as Query, Status } from "@/lib/api";
+import type { Status } from "@/lib/api";
 import { pl, STATUS_PL } from "@/lib/pl";
+import PhoneFilters, { BY, type By, type PhoneFilterProps } from "./PhoneFilters";
 
-// Kto dodał koktajl: wszyscy, import z Solvro, użytkownicy albo ja (tylko po zalogowaniu)
-export type By = "" | "import" | "users" | "mine";
-const BY: { value: By; label: string }[] = [
-  { value: "", label: "Wszyscy" },
-  { value: "import", label: "Import Solvro" },
-  { value: "users", label: "Użytkownicy" },
-  { value: "mine", label: "Moje" },
-];
+export type { By };
 
-type Props = {
-  category: string;
-  categories: string[];
-  alcoholic: Query["alcoholic"];
-  sort: string;
-  sorts: { value: string; label: string }[];
-  ingredient: string;
-  verified: boolean;
-  by: By;
-  canMine: boolean; // "Moje" ma sens tylko dla zalogowanego (nie w trybie demo, bo jego przepisy nie są w backendzie)
-  glass: string;
-  glasses: string[];
-  status: Status | "";
-  total?: number;
-  own: boolean; // składnik i "zweryfikowane" istnieją tylko we własnym backendzie
-  update: (patch: Record<string, string>) => void;
-};
+// Te same właściwości co w wersji na telefon (PhoneFilters); "canMine": "Moje" ma sens tylko dla zalogowanego (nie w trybie demo),
+// "own": składnik i "zweryfikowane" istnieją tylko we własnym backendzie.
+type Props = PhoneFilterProps;
 
 const ALCOHOL = [
   { value: "", label: "Wszystkie" },
@@ -81,7 +61,7 @@ function IngredientField({ value, onCommit }: { value: string; onCommit: (v: str
 
 // Filtry listy: kategoria i "Filtry" otwierają okna, alkohol i sortowanie są od razu w pasku. Wszystko działa od razu (URL),
 // a włączone filtry widać dwa razy: wartość w przycisku i chip z krzyżykiem pod paskiem.
-export default function Filters({ category, categories, alcoholic, sort, sorts, ingredient, verified, by, canMine, glass, glasses, status, total, own, update }: Props) {
+export default function Filters({ category, categories, alcoholic, sort, sorts, ingredient, verified, by, canMine, glass, glasses, status, total, own, update, countFor }: Props) {
   const [open, setOpen] = useState<"category" | "more" | null>(null);
   const root = useRef<HTMLDivElement>(null);
 
@@ -116,9 +96,10 @@ export default function Filters({ category, categories, alcoholic, sort, sorts, 
 
   return (
     <div>
-      {/* na telefonie pasek ma kilka linii, więc przyklejony zasłaniałby pół ekranu; przykleja się dopiero od sm */}
-      <div ref={root} className="relative z-20 mb-3 sm:sticky sm:top-20">
-        <div role="search" className="glass flex flex-wrap items-center gap-2 rounded-3xl px-3 py-2 sm:rounded-full">
+      {/* telefon: jeden wąski rząd i arkusz z filtrami (PhoneFilters); od 768 px pasek poniżej */}
+      <PhoneFilters {...{ category, categories, alcoholic, sort, sorts, ingredient, verified, by, canMine, glass, glasses, status, total, own, update, countFor }} />
+      <div ref={root} className="bar-sticky relative z-20 mb-3 hidden md:top-20 md:block">
+        <div role="search" className="glass flex flex-wrap items-center gap-2 rounded-full px-3 py-2">
           <button
             type="button"
             data-trigger="category"
@@ -265,7 +246,7 @@ export default function Filters({ category, categories, alcoholic, sort, sorts, 
               type="button"
               onClick={() => update(a.clear)}
               aria-label={`Wyłącz filtr: ${a.label}`}
-              className="inline-flex items-center gap-1.5 rounded-full border border-foreground/25 bg-foreground/5 py-1 pl-3 pr-2 hover:bg-foreground/10"
+              className="inline-flex items-center gap-1.5 rounded-full border border-foreground/25 bg-foreground/5 py-1 pl-3 pr-2 hover:bg-foreground/10 max-md:min-h-11"
             >
               {a.label}
               <svg viewBox="0 0 24 24" className="size-3.5" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -276,7 +257,7 @@ export default function Filters({ category, categories, alcoholic, sort, sorts, 
           <button
             type="button"
             onClick={() => update({ category: "", alcohol: "", verified: "", ing: "", by: "", glass: "", status: "" })}
-            className="px-2 py-1 text-foreground/70 underline underline-offset-4 hover:text-foreground"
+            className="px-2 py-1 text-foreground/70 underline underline-offset-4 hover:text-foreground max-md:min-h-11"
           >
             Wyczyść filtry
           </button>

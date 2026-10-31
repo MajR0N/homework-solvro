@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import CocktailCard from "@/components/CocktailCard";
 import Featured from "@/components/Featured";
 import FilterBar, { type By } from "@/components/Filters";
+import type { Draft } from "@/components/PhoneFilters";
 import { getCategories, getGlasses, listCocktails, type Filters } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { STATUS_PL } from "@/lib/pl";
@@ -26,7 +27,7 @@ const OWN_SORTS = [
   { value: "-top_rated", label: "Najlepiej oceniane" },
 ];
 
-const button = "rounded-full border border-foreground/30 px-5 py-2 hover:bg-foreground/10 disabled:opacity-40";
+const button = "min-h-11 rounded-full border border-foreground/30 px-5 py-2 hover:bg-foreground/10 disabled:opacity-40";
 
 // Filtry żyją w URL-u (?q=...&category=...), więc odświeżenie, link i "wstecz" je zachowują.
 function Cocktails() {
@@ -70,6 +71,18 @@ function Cocktails() {
     glass: glass || undefined,
     status: status || undefined,
   };
+  // Ile wyników dałby zestaw filtrów z arkusza na telefonie (sama liczba: strona 1, tylko meta.total). Szukanie i ulubione zostają z adresu.
+  const countFor = async (d: Draft) => {
+    const f: Filters = {
+      ...filters, page: 1,
+      category: d.category, alcoholic: d.alcohol, verified: d.verified, ingredient: d.ing.trim(),
+      origin: d.by === "import" || d.by === "users" ? d.by : undefined,
+      author: d.by === "mine" ? session?.username : undefined,
+      glass: d.glass || undefined,
+      status: d.status || undefined,
+    };
+    return (await listCocktails(f, source)).meta.total;
+  };
   const { data, isPending, isError, isPlaceholderData, refetch } = useQuery({
     queryKey: ["cocktails", source, filters], // zmiana filtrów albo źródła = nowy klucz = nowe zapytanie
     queryFn: () => listCocktails(filters, source),
@@ -81,7 +94,7 @@ function Cocktails() {
 
   return (
     <main id="content" className="mx-auto w-full max-w-7xl p-4">
-      <h1 className="mb-6 text-3xl font-bold">Koktajle</h1>
+      <h1 className="mb-3 text-2xl font-bold md:mb-6 md:text-3xl">Koktajle</h1>
 
       {/* kafelki "Na topie" tylko przy własnym backendzie i tylko na czystej liście (bez filtrów, szukania i ulubionych) */}
       {source === "own" && page === 1 && !name && !category && !alcoholic && !verified && !ingredient && !by && !glass && !status && !onlyFav && <Featured />}
@@ -102,6 +115,7 @@ function Cocktails() {
         total={data?.meta.total}
         own={source === "own"}
         update={update}
+        countFor={countFor}
       />
 
       {noFavs ? (
@@ -114,7 +128,7 @@ function Cocktails() {
           </button>
         </div>
       ) : isPending ? (
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" aria-busy="true" aria-label="Ładowanie">
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5" aria-busy="true" aria-label="Ładowanie">
           {Array.from({ length: 12 }, (_, i) => (
             <li key={i} className="aspect-4/5 animate-pulse rounded-xl bg-foreground/10" />
           ))}
@@ -124,7 +138,7 @@ function Cocktails() {
       ) : (
         <>
           <ul
-            className={`grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 ${isPlaceholderData ? "opacity-60" : ""}`}
+            className={`grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5 ${isPlaceholderData ? "opacity-60" : ""}`}
           >
             {data.data.map((c) => (
               <li key={c.id}>
@@ -133,7 +147,7 @@ function Cocktails() {
             ))}
           </ul>
 
-          <nav className="mt-8 flex items-center justify-center gap-4" aria-label="Paginacja">
+          <nav className="mt-8 flex items-center justify-center gap-3 md:gap-4" aria-label="Paginacja">
             <button onClick={() => update({ page: String(page - 1) })} disabled={page <= 1} className={button}>
               Poprzednia
             </button>

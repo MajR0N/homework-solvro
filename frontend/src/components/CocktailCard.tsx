@@ -7,6 +7,7 @@ import FavoriteButton from "./FavoriteButton";
 
 // Zdjęcie na całą kartę. Status (Na topie, Popularny) leży na zdjęciu, a wąski panel z ciemnego szkła ma stałą wysokość:
 // nazwa z ikoną weryfikacji, ocena po prawej, pod spodem kategoria. Pełny zestaw znaczków jest na stronie szczegółów.
+// Na telefonie (2 kolumny) panel jest węższy, a linia z kategorią znika (kategoria jest w filtrach i na stronie szczegółów).
 // size: normal = karta 4:5; big i compact wypełniają komórkę siatki (kafelki "Na topie"), compact bez linii z kategorią
 export default function CocktailCard({ cocktail, size = "normal" }: { cocktail: Cocktail; size?: "normal" | "compact" | "big" }) {
   const { verified, status, ratingAvg, ratingCount } = cocktail;
@@ -32,16 +33,16 @@ export default function CocktailCard({ cocktail, size = "normal" }: { cocktail: 
             <StatusPill status={status} />
           </div>
         )}
-        <div className={`glass absolute inset-x-2 bottom-2 rounded-lg ${size === "big" ? "px-4 py-3.5" : "px-3 py-2.5"}`}>
+        <div className={`glass absolute inset-x-2 bottom-2 rounded-lg ${size === "big" ? "px-3 py-2.5 md:px-4 md:py-3.5" : "px-2.5 py-2 md:px-3 md:py-2.5"}`}>
           <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-0.5">
-            <h2 className={`flex items-center gap-1.5 font-semibold leading-tight ${size === "big" ? "text-2xl" : ""}`}>
+            <h2 className={`flex items-center gap-1.5 font-semibold leading-tight ${size === "big" ? "md:text-2xl" : ""}`}>
               {cocktail.name}
               {verified && <VerifiedIcon />}
             </h2>
             {ratingAvg != null && (ratingCount ?? 0) > 0 && <RatingInline avg={ratingAvg} count={ratingCount ?? 0} />}
           </div>
           {/* "Z alkoholem" to norma, więc na karcie zaznaczamy tylko wyjątek */}
-          <p className={`mt-0.5 text-sm opacity-90 ${size === "compact" ? "hidden" : ""}`}>{`${pl(cocktail.category)}${cocktail.alcoholic ? "" : " · Bezalkoholowy"}`}</p>
+          <p className={`mt-0.5 text-sm opacity-90 ${size === "compact" ? "hidden" : size === "big" ? "max-md:hidden" : "max-sm:hidden"}`}>{`${pl(cocktail.category)}${cocktail.alcoholic ? "" : " · Bezalkoholowy"}`}</p>
         </div>
       </Link>
       <FavoriteButton id={cocktail.id} name={cocktail.name} className="absolute right-2 top-2" />

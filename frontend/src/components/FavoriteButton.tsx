@@ -11,7 +11,7 @@ export default function FavoriteButton({ id, name, className = "" }: { id: numbe
       onClick={() => toggleFavorite(id)}
       aria-pressed={active}
       aria-label={`Ulubione: ${name}`}
-      className={`grid size-10 place-items-center rounded-full bg-background/85 backdrop-blur hover:bg-background ${active ? "text-warm" : "text-foreground"} ${className}`}
+      className={`grid size-11 place-items-center rounded-full bg-background/85 backdrop-blur hover:bg-background ${active ? "text-warm" : "text-foreground"} ${className}`}
     >
       {/* ikona SVG (nie znak tekstowy), a stan jest też w aria-pressed, więc nie zależy od samego koloru */}
       <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">

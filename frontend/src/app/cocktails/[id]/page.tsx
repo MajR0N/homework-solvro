@@ -14,7 +14,7 @@ import { rank } from "@/lib/roles";
 import { useSource } from "@/lib/source";
 
 const button = "rounded-full border border-foreground/30 px-5 py-2 hover:bg-foreground/10";
-const heading = "text-2xl font-semibold tracking-tight";
+const heading = "text-xl font-semibold tracking-tight md:text-2xl";
 
 // "Wstecz" przywraca listę razem z filtrami z URL-a; po wejściu bezpośrednim (brak historii) idziemy na /
 function Back() {
@@ -22,7 +22,7 @@ function Back() {
   return (
     <button
       onClick={() => (window.history.length > 1 ? router.back() : router.push("/"))}
-      className="mb-6 inline-block rounded-full py-1 pr-2 underline underline-offset-4 hover:text-primary"
+      className="mb-3 inline-flex rounded-full py-1 pr-2 underline underline-offset-4 hover:text-primary max-md:min-h-11 max-md:items-center md:mb-6"
     >
       ← Wróć do listy
     </button>
@@ -84,27 +84,28 @@ export default function CocktailPage() {
     <main id="content" className="mx-auto w-full max-w-7xl p-4">
       <Back />
 
-      {/* Baner: rozmyte zdjęcie w tle pod ciemną nakładką (dlatego tekst jest zawsze biały, w obu motywach), ostre zdjęcie obok. */}
-      <section aria-labelledby="tytul" className="relative isolate overflow-hidden rounded-3xl text-white">
+      {/* Baner: rozmyte zdjęcie w tle pod ciemną nakładką (dlatego tekst jest zawsze biały, w obu motywach), ostre zdjęcie obok.
+          Telefon (zasada M8): zdjęcie na całą szerokość w proporcji 4:3, a pod nim tytuł, rząd przycisków, znaczki i fakty. */}
+      <section aria-labelledby="tytul" className="relative isolate -mx-4 overflow-hidden text-white md:mx-0 md:rounded-3xl">
         <div aria-hidden="true" className="absolute inset-0 -z-20 bg-[#203560]">
           {data.imageUrl && <Image src={data.imageUrl} alt="" fill sizes="100vw" className="scale-125 object-cover blur-3xl" />}
         </div>
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-r from-[#0f1a30]/90 to-[#0f1a30]/70" />
-        <div className="grid items-end gap-6 p-5 sm:p-8 md:grid-cols-[minmax(0,17rem)_1fr] md:gap-8">
-          <div className="relative aspect-square max-w-64 overflow-hidden rounded-2xl bg-white/10 shadow-2xl shadow-black/50 md:max-w-none">
+        <div className="grid items-end md:grid-cols-[minmax(0,17rem)_1fr] md:gap-8 md:p-8">
+          <div className="relative aspect-4/3 overflow-hidden bg-white/10 md:aspect-square md:rounded-2xl md:shadow-2xl md:shadow-black/50">
             {data.imageUrl && (
-              <Image src={data.imageUrl} alt={data.name} fill priority sizes="(min-width: 768px) 17rem, 16rem" className="object-cover" />
+              <Image src={data.imageUrl} alt={data.name} fill priority sizes="(min-width: 768px) 17rem, 100vw" className="object-cover" />
             )}
           </div>
-          <div>
-            <div className="flex items-start justify-between gap-3">
-              <h1 id="tytul" className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+          <div className="p-4 pb-5 md:p-0">
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <h1 id="tytul" className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-5xl">
                 {data.name}
               </h1>
               <div className="flex shrink-0 items-center gap-2">
                 {/* edytować może autor i administrator wzwyż (backend i tak to sprawdza); przepis demo tylko w trybie demo */}
                 {session && (demo ? isDemoId(id) : source === "own") && (data.authorName === session.username || rank(session.role) >= rank("admin")) && (
-                  <Link href={`/recipes/${data.id}/edit`} className="rounded-full border border-white/50 px-4 py-2 text-sm hover:bg-white/15">
+                  <Link href={`/recipes/${data.id}/edit`} className="inline-flex items-center rounded-full border border-white/50 px-4 py-2 text-sm hover:bg-white/15 max-md:min-h-11 max-md:text-base">
                     Edytuj
                   </Link>
                 )}
@@ -115,11 +116,11 @@ export default function CocktailPage() {
               <Badges cocktail={data} />
             </div>
             {/* fakty w jednym rzędzie rozdzielone cienkimi liniami (bez pudełek) */}
-            <dl className="mt-6 flex flex-wrap gap-y-3">
+            <dl className="mt-4 grid grid-cols-2 gap-2 md:mt-6 md:flex md:flex-wrap md:gap-x-0 md:gap-y-3">
               {facts.map(([term, value]) => (
-                <div key={term} className="border-l border-white/35 px-6 first:border-l-0 first:pl-0">
+                <div key={term} className="rounded-xl bg-white/10 px-3 py-2 odd:last:col-span-2 md:rounded-none md:border-l md:border-white/35 md:bg-transparent md:px-6 md:py-0 md:first:border-l-0 md:first:pl-0">
                   <dt className="text-sm text-white/80">{term}</dt>
-                  <dd className="text-lg font-semibold">{value}</dd>
+                  <dd className="text-base font-semibold md:text-lg">{value}</dd>
                 </div>
               ))}
             </dl>
@@ -136,9 +137,9 @@ export default function CocktailPage() {
             {data.ingredients.map((ing) => (
               <li key={ing.id} className="rounded-xl border border-foreground/15 bg-foreground/5 p-3">
                 <div className="flex items-center gap-3">
-                  <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-foreground/10">
+                  <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-foreground/10 md:size-16">
                     {ing.imageUrl ? (
-                      <Image src={ing.imageUrl} alt="" fill sizes="64px" className="object-cover" />
+                      <Image src={ing.imageUrl} alt="" fill sizes="(min-width: 768px) 64px, 48px" className="object-cover" />
                     ) : (
                       <span aria-hidden="true" className="grid size-full place-items-center text-xl font-semibold text-foreground/60">
                         {ing.name.charAt(0).toUpperCase()}
@@ -146,7 +147,7 @@ export default function CocktailPage() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-lg font-semibold leading-tight">{ing.name}</p>
+                    <p className="text-base font-semibold leading-tight md:text-lg">{ing.name}</p>
                     {ing.type && <p className="text-sm text-foreground/70">{ing.type}</p>}
                   </div>
                   {/* measure z API ma spację na końcu; null = brak ilości */}
@@ -154,7 +155,7 @@ export default function CocktailPage() {
                 </div>
                 {ing.description && (
                   <details className="mt-2 text-sm text-foreground/80">
-                    <summary className="cursor-pointer py-1 hover:text-foreground">O składniku</summary>
+                    <summary className="cursor-pointer py-1 hover:text-foreground max-md:flex max-md:min-h-11 max-md:items-center">O składniku</summary>
                     <p className="mt-2 whitespace-pre-line">{ing.description}</p>
                   </details>
                 )}
@@ -167,8 +168,8 @@ export default function CocktailPage() {
           <h2 id="przygotowanie" className={`mb-4 ${heading}`}>
             Przygotowanie
           </h2>
-          <div className="rounded-xl border border-foreground/15 bg-foreground/5 p-5">
-            <p className="max-w-prose text-lg leading-relaxed">{data.instructions}</p>
+          <div className="rounded-xl border border-foreground/15 bg-foreground/5 p-4 md:p-5">
+            <p className="max-w-prose text-base leading-relaxed md:text-lg">{data.instructions}</p>
           </div>
         </section>
       </div>
