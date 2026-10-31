@@ -145,11 +145,11 @@ function DesktopBar({ search }: { search: Search }) {
   const { session, loading, demo } = useSession();
   const favs = useFavorites();
   return (
-    <div className="glass hidden items-center gap-3 rounded-full py-2 pl-4 pr-3 md:flex">
+    <div className="glass hidden items-center gap-2 rounded-full py-2 pl-4 pr-3 md:flex lg:gap-3">
       <Link href="/" aria-label="Solvro, strona główna" className="shrink-0 rounded-md">
         <Logo />
       </Link>
-      <form role="search" onSubmit={(e) => e.preventDefault()} className="min-w-0 flex-1">
+      <form role="search" onSubmit={(e) => e.preventDefault()} className="min-w-20 flex-1">
         <label htmlFor="top-search" className="sr-only">
           Szukaj koktajlu
         </label>
@@ -167,12 +167,12 @@ function DesktopBar({ search }: { search: Search }) {
         type="button"
         onClick={() => search.go({ fav: search.onlyFav ? "" : "1" })}
         aria-pressed={search.onlyFav}
-        className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm ${search.onlyFav ? "border-transparent bg-warm text-on-warm" : "border-current/35"}`}
+        className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-2 text-sm ${search.onlyFav ? "border-transparent bg-warm text-on-warm" : "border-current/35"}`}
       >
         <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true" fill={search.onlyFav ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
           <path d={HEART} />
         </svg>
-        Ulubione ({favs.length})
+        <span className="max-lg:sr-only">Ulubione </span>({favs.length})
       </button>
       <SourceSwitch compact />
       <DemoToggle />

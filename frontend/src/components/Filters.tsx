@@ -13,7 +13,7 @@ type Props = PhoneFilterProps;
 const ALCOHOL = [
   { value: "", label: "Wszystkie" },
   { value: "true", label: "Z alkoholem" },
-  { value: "false", label: "Bez" },
+  { value: "false", label: "Bez alkoholu" },
 ];
 
 // Pasek filtrów jest ciemnym szkłem (jak pasek u góry), więc kolory są stałe: biały tekst, a włączony element jest biały z granatowym tekstem.
@@ -84,7 +84,7 @@ export default function Filters({ category, categories, alcoholic, sort, sorts, 
     };
   }, [open]);
 
-  const moreCount = [verified, ingredient, by, glass, status].filter(Boolean).length;
+  const moreCount = [alcoholic, verified, ingredient, by, glass, status].filter(Boolean).length;
   const active: { label: string; clear: Record<string, string> }[] = [];
   if (category) active.push({ label: `Kategoria: ${pl(category)}`, clear: { category: "" } });
   if (alcoholic) active.push({ label: alcoholic === "true" ? "Z alkoholem" : "Bezalkoholowe", clear: { alcohol: "" } });
@@ -112,20 +112,6 @@ export default function Filters({ category, categories, alcoholic, sort, sorts, 
             <Chevron />
           </button>
 
-          <div role="group" aria-label="Alkohol" className="inline-flex rounded-full border border-white/35 bg-white/10 p-0.5">
-            {ALCOHOL.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                aria-pressed={alcoholic === o.value}
-                onClick={() => update({ alcohol: o.value })}
-                className={`rounded-full px-3 py-1 text-sm ${alcoholic === o.value ? "bg-white font-semibold text-[#203560]" : "hover:bg-white/20"}`}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-
           <label className="inline-flex items-center gap-1.5 text-sm">
             <span className="opacity-80">Sortuj:</span>
             <select
@@ -141,24 +127,22 @@ export default function Filters({ category, categories, alcoholic, sort, sorts, 
             </select>
           </label>
 
-          {own && (
-            <button
-              type="button"
-              data-trigger="more"
-              aria-expanded={open === "more"}
-              aria-controls="filter-more"
-              onClick={() => setOpen(open === "more" ? null : "more")}
-              className={`${btn} ${moreCount ? on : off}`}
-            >
-              <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M4 7h10M18 7h2M4 17h2M10 17h10" />
-                <circle cx="16" cy="7" r="2" />
-                <circle cx="8" cy="17" r="2" />
-              </svg>
-              Filtry
-              {moreCount > 0 && <span className="rounded-full bg-[#203560] px-1.5 text-xs font-bold text-white">{moreCount}</span>}
-            </button>
-          )}
+          <button
+            type="button"
+            data-trigger="more"
+            aria-expanded={open === "more"}
+            aria-controls="filter-more"
+            onClick={() => setOpen(open === "more" ? null : "more")}
+            className={`${btn} ${moreCount ? on : off}`}
+          >
+            <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M4 7h10M18 7h2M4 17h2M10 17h10" />
+              <circle cx="16" cy="7" r="2" />
+              <circle cx="8" cy="17" r="2" />
+            </svg>
+            Filtry
+            {moreCount > 0 && <span className="rounded-full bg-[#203560] px-1.5 text-xs font-bold text-white">{moreCount}</span>}
+          </button>
 
           <p className="ml-auto pr-2 text-sm text-white/85" aria-live="polite">
             {total != null && `Znaleziono: ${total}`}
@@ -188,51 +172,66 @@ export default function Filters({ category, categories, alcoholic, sort, sorts, 
         )}
         {open === "more" && (
           <div id="filter-more" role="group" aria-label="Więcej filtrów" className="glass absolute right-0 top-full mt-2 w-80 max-w-full space-y-4 rounded-2xl p-4">
-            <IngredientField value={ingredient} onCommit={(v) => update({ ing: v })} />
-            <label className="flex cursor-pointer items-center gap-2.5 text-sm font-medium">
-              <input
-                type="checkbox"
-                checked={verified}
-                onChange={(e) => update({ verified: e.target.checked ? "1" : "" })}
-                className="size-4 accent-[#80b3ff]"
-              />
-              Tylko zweryfikowane
-            </label>
             <fieldset>
-              <legend className="mb-1 text-sm font-medium">Autor</legend>
+              <legend className="mb-1 text-sm font-medium">Alkohol</legend>
               <div className="flex flex-wrap gap-2">
-                {BY.filter((o) => o.value !== "mine" || canMine).map((o) => (
-                  <button key={o.value} type="button" aria-pressed={by === o.value} onClick={() => update({ by: o.value })} className={`${chip} ${by === o.value ? "border-transparent bg-white font-semibold text-[#203560]" : "border-white/35 hover:bg-white/20"}`}>
+                {ALCOHOL.map((o) => (
+                  <button key={o.value} type="button" aria-pressed={alcoholic === o.value} onClick={() => update({ alcohol: o.value })} className={`${chip} ${alcoholic === o.value ? "border-transparent bg-white font-semibold text-[#203560]" : "border-white/35 hover:bg-white/20"}`}>
                     {o.label}
                   </button>
                 ))}
               </div>
             </fieldset>
-            <fieldset>
-              <legend className="mb-1 text-sm font-medium">Etykieta popularności</legend>
-              <div className="flex flex-wrap gap-2">
-                {([["", "Dowolna"], ...Object.entries(STATUS_PL)] as [Status | "", string][]).map(([value, label]) => (
-                  <button key={value} type="button" aria-pressed={status === value} onClick={() => update({ status: value })} className={`${chip} ${status === value ? "border-transparent bg-white font-semibold text-[#203560]" : "border-white/35 hover:bg-white/20"}`}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            <label className="block text-sm font-medium">
-              Rodzaj szklanki
-              <select
-                value={glass}
-                onChange={(e) => update({ glass: e.target.value })}
-                className="select mt-1 w-full rounded-full border border-white/35 bg-white/10 py-2 pl-4 text-sm font-normal [&>option]:bg-background [&>option]:text-foreground"
-              >
-                <option value="">Dowolna</option>
-                {glasses.map((g) => (
-                  <option key={g} value={g}>
-                    {pl(g)}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {/* składnik, znaczek, autor, etykieta i szklanka istnieją tylko we własnym backendzie */}
+            {own && (
+              <>
+              <IngredientField value={ingredient} onCommit={(v) => update({ ing: v })} />
+              <label className="flex cursor-pointer items-center gap-2.5 text-sm font-medium">
+                <input
+                  type="checkbox"
+                  checked={verified}
+                  onChange={(e) => update({ verified: e.target.checked ? "1" : "" })}
+                  className="size-4 accent-[#80b3ff]"
+                />
+                Tylko zweryfikowane
+              </label>
+              <fieldset>
+                <legend className="mb-1 text-sm font-medium">Autor</legend>
+                <div className="flex flex-wrap gap-2">
+                  {BY.filter((o) => o.value !== "mine" || canMine).map((o) => (
+                    <button key={o.value} type="button" aria-pressed={by === o.value} onClick={() => update({ by: o.value })} className={`${chip} ${by === o.value ? "border-transparent bg-white font-semibold text-[#203560]" : "border-white/35 hover:bg-white/20"}`}>
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend className="mb-1 text-sm font-medium">Etykieta popularności</legend>
+                <div className="flex flex-wrap gap-2">
+                  {([["", "Dowolna"], ...Object.entries(STATUS_PL)] as [Status | "", string][]).map(([value, label]) => (
+                    <button key={value} type="button" aria-pressed={status === value} onClick={() => update({ status: value })} className={`${chip} ${status === value ? "border-transparent bg-white font-semibold text-[#203560]" : "border-white/35 hover:bg-white/20"}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <label className="block text-sm font-medium">
+                Rodzaj szklanki
+                <select
+                  value={glass}
+                  onChange={(e) => update({ glass: e.target.value })}
+                  className="select mt-1 w-full rounded-full border border-white/35 bg-white/10 py-2 pl-4 text-sm font-normal [&>option]:bg-background [&>option]:text-foreground"
+                >
+                  <option value="">Dowolna</option>
+                  {glasses.map((g) => (
+                    <option key={g} value={g}>
+                      {pl(g)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              </>
+            )}
           </div>
         )}
       </div>

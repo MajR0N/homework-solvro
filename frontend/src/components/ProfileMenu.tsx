@@ -1,4 +1,5 @@
 "use client";
+import { initials } from "@/lib/format";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -90,7 +91,11 @@ export default function ProfileMenu() {
         title={`${session.username} (${session.role})`}
         className={`inline-flex max-w-48 items-center gap-1.5 rounded-full border px-4 py-2 text-sm ${open || pathname.startsWith("/account") ? "border-transparent bg-white font-semibold text-[#203560]" : "border-current/35"}`}
       >
-        <span className="truncate">{session.username}</span>
+        {/* poniżej 1024 px pasek jest ciasny: inicjały zamiast nazwy (nazwa zostaje dla czytnika ekranu i w tytule) */}
+        <span className="truncate max-lg:sr-only">{session.username}</span>
+        <span aria-hidden="true" className="lg:hidden">
+          {initials(session.username)}
+        </span>
         <CaretDownIcon size={14} weight="bold" aria-hidden="true" className={open ? "rotate-180" : ""} />
       </button>
 
