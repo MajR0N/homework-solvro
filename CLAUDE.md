@@ -6,9 +6,9 @@ Task specs: https://github.com/Solvro/rekrutacja (cocktails theme). Cocktails AP
 
 ## Scope
 - `frontend/` — Next.js (App Router), TypeScript, Tailwind CSS, TanStack Query. UI text and code comments in **Polish**, identifiers in English.
-- `backend/` — Django (+ Django REST Framework), PostgreSQL. **Built**: CRUD, pagination, validation, filters, Swagger, JWT accounts with four roles, CMS, reviews, views and popularity labels, tests. See `backend/README.md`. It is deployed on Vercel (database on Neon) and also runs locally; the frontend reads from it through the source switch when `NEXT_PUBLIC_BACKEND_URL` is set. Login exists; the write forms, account page and admin panel are being built (plan: `STEPS.md` section 35).
-- UI/UX homework (`uiux/`) — **skipped by the user on 30 October 2026**; the folder was removed. The palette and its contrast check live in `frontend/design-proposals/palette.html` (Solvro blues, see `STEPS.md` section 22). Design proposals are in `frontend/design-proposals/`; the accepted ones are being built into `frontend/`.
-- Not doing: Mobile, DevOps, AI/ML, PM, Promotion.
+- `backend/` — Django (+ Django REST Framework), PostgreSQL. **Built**: CRUD, pagination, validation, filters, Swagger, JWT accounts with four roles, CMS, reviews, views and popularity labels, tests. See `backend/README.md`. It is deployed on Vercel (database on Neon) and also runs locally; the frontend reads from it through the source switch when `NEXT_PUBLIC_BACKEND_URL` is set. The frontend has login (httpOnly cookies), the account page, the recipe editor, the admin panel, a demo mode, a phone layout and the Odkrywaj/Wszystkie main page (see `STEPS.md` sections 35 to 52). No review form yet.
+- The palette and its contrast check live in `frontend/design-proposals/palette.html` (Solvro blues, see `STEPS.md` section 22). Design proposals are in `frontend/design-proposals/`; the accepted ones are built into `frontend/`.
+- Not doing: the UI/UX, Mobile (native app), DevOps, AI/ML, PM and Promotion tracks. (Phone layout of the web app is done: it is part of the Frontend track.)
 - README files (root, `frontend/`, `backend/`) are written in **Polish**; `STEPS.md` stays in English.
 - **Design decisions D1–D26 and the order of work are in `STEPS.md` (sections 11–12), later decisions in sections 14–16, and the current status in section 17.** Follow them; don't re-decide without asking the user. Deadline: 31 October 2026. Use simple language when explaining.
 

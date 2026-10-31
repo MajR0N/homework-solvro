@@ -325,7 +325,7 @@ function Cocktails() {
             </tbody>
           </table>
         </div>
-        <ul className={`grid gap-2 md:hidden ${isPlaceholderData ? "opacity-60" : ""}`}>
+        <ul className={`grid grid-cols-[minmax(0,1fr)] gap-2 md:hidden ${isPlaceholderData ? "opacity-60" : ""}`}>
           <li>
             <label className="flex min-h-11 items-center gap-1 pr-3 text-sm text-foreground/75">
               <span className="grid size-11 place-items-center">

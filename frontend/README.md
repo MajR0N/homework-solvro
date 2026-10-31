@@ -6,26 +6,40 @@ Next.js (App Router) · TypeScript · Tailwind CSS · TanStack Query.
 **Wersja online:** <https://homework-solvro.vercel.app/>. Domyślnie dane pochodzą z publicznego API Solvro, a przełącznik „Źródło danych” pozwala wybrać własny backend z katalogu `backend/` (wdrożony: <https://homework-solvro-backend-fsuaihda.vercel.app/api/docs/>).
 
 ## Funkcje
-- lista koktajli z paginacją
+- strona główna z dwoma widokami: „Odkrywaj” (rzędy tematyczne) i „Wszystkie” (siatka z numerowaną paginacją, 20 koktajli na stronę); opis niżej
 - wyszukiwanie po nazwie (z opóźnieniem 300 ms), filtr kategorii i alkoholu, sortowanie — po stronie API; filtry są w URL-u (odświeżenie, link i „wstecz” je zachowują)
 - ulubione zapisywane w `localStorage` + widok „Tylko ulubione”
 - szczegóły koktajlu ze składnikami i ilościami
 - przełącznik źródła danych: API Solvro albo własny backend w Django (po włączeniu, patrz niżej)
 - przy źródle „Własny backend”: znaczki na kartach i w szczegółach (zweryfikowany, etykieta popularności „Na topie” / „Popularny” / „Najpopularniejszy”, średnia ocena), dodatkowe sortowania (najpopularniejsze, na topie, najlepiej oceniane), filtry „Tylko zweryfikowane” i „Składnik” oraz lista opinii na stronie szczegółów (konto usunięte pokazuje się jako „usunięty użytkownik”)
-- responsywny układ, obsługa klawiatury i czytników ekranu, stany ładowania / błędu / braku wyników
+- konta (logowanie, ciasteczka `httpOnly`), strona konta, edytor przepisów, panel administratora i tryb demo (opisy niżej)
+- osobny układ na telefon, układ szeroki do 1600 px, obsługa klawiatury i czytników ekranu, stany ładowania / błędu / braku wyników
 
 ## Uruchomienie
 ```bash
 npm install
 npm run dev     # http://localhost:3000
 npm run build   # build produkcyjny
+npm test        # testy (Vitest)
+npm run lint
 ```
+
+## Strona główna: Odkrywaj i Wszystkie
+
+Przełącznik w nagłówku listy ma dwa widoki (decyzje U1 do U9 w `STEPS.md`, sekcje 48 do 52):
+
+- **Odkrywaj** (domyślny, tylko na czystej liście): rząd chipów kategorii, potem rzędy kart przewijane w poziomie (`Rail`: przyciąganie do karty, strzałki od 768 px, pojawiają się tylko gdy jest co przewijać). Przy własnym backendzie pierwszy jest rząd „Na topie teraz” (etykieta popularności z backendu). Dalej idą rzędy tematyczne, które ładują się dopiero, gdy zbliżą się do ekranu (`useInView`); rząd z mniej niż trzema wynikami jest ukryty. Każdy rząd ma link „Zobacz wszystkie (n)” do zwykłej listy z tym samym filtrem.
+- **Wszystkie**: płaska siatka (2, 3, 4, 5 i od 1536 px 6 kolumn) z paskiem filtrów i numerowaną paginacją („1 … 4 5 6 … 11”; na telefonie zwarte „Strona 4 z 11” ze strzałkami). Szukanie, filtr, sortowanie, ulubione, strona 2 i dalsze oraz `?view=all` zawsze pokazują siatkę.
+- **Tematy** to zwykłe zapytania zapisane w `src/lib/themes.ts` (bez zmian w backendzie): „Kwaśno i rześko” (nazwa zawiera *sour*), „Bąbelki i lekkość” (*fizz*), „Zero procent” (bez alkoholu), „Kawa w kieliszku” (*coffee*), „Rumowe klasyki” (*daiquiri*), „Na imprezę” (*punch*) oraz, tylko przy własnym backendzie, „Z miętą” i „Cytrusowy zastrzyk” (filtr składnika). **Uczciwie:** to rodziny nazw, a nie dane o smaku (API nie ma opisu smaku), więc „Zero procent” obejmuje też np. gorącą czekoladę, a „Kwaśno i rześko” to po prostu nazwy zawierające „sour”.
+- **Pasek filtrów** (od 768 px) to Kategoria, Sortuj, „Filtry (n)” i liczba wyników. W oknie „Filtry” jest alkohol (dla obu źródeł) oraz, tylko przy własnym backendzie, składnik, znaczek, autor, etykieta i szklanka. Na telefonie te same filtry są w arkuszu od dołu.
+- **Szerokość**: pasek u góry, nagłówek, pasek filtrów, rzędy i siatka mają wspólny kontener 1600 px (`max-w-400`), więc krawędzie się pokrywają; ten sam kontener mają strona koktajlu, konto i panel administratora.
+- **Paginacja** to `src/lib/pager.ts` (które numery pokazać, z testami) i `src/components/Pager.tsx`; tego samego używa galeria w panelu administratora. Rozmiar strony (`PER_PAGE = 20`) jest w `src/lib/api.ts` i dotyczy obu źródeł; przy 6 kolumnach ostatni rząd ma 2 karty (20 = 3 × 6 + 2).
 
 ## Wygląd
 
 Wygląd opiera się na identyfikacji Solvro: kolory z oficjalnej palety (#FFF, #D9E8FF, #80B3FF, #6583C8, #274276, #203560), oficjalne logo KN Solvro **bez zmian** (kopie plików w `public/solvro/`, to samo co w repozytorium Solvro) i krój **Space Grotesk**, który zalecają materiały Solvro (ładowany przez `next/font`, więc z własnej domeny).
 
-- **Własny pomysł: ciemne szkło.** Pasek u góry i opisy na kartach to półprzezroczyste, rozmyte panele w granacie Solvro, z białym tekstem i białym logo w obu motywach (w ciemnym motywie szkło jest jaśniejsze, #274276, żeby odcinało się od strony). Pasek jest wspólny dla wszystkich stron i zawiera logo, wyszukiwarkę, przycisk „Ulubione” i wybór źródła danych. Karta to zdjęcie na całą wysokość z wąskim panelem szkła o stałej wysokości (nazwa z ikoną weryfikacji, ocena, kategoria); etykieta popularności leży na zdjęciu. Strona koktajlu ma baner z rozmytym zdjęciem w tle i siatkę składników. Lista ma szklany pasek filtrów (przyciski Kategoria i Filtry otwierają okna, alkohol i sortowanie są w pasku), chipy z włączonymi filtrami i przyciskiem „Wyczyść filtry”, a przy własnym backendzie sekcję „Na topie teraz”. Układy wybrano spośród makiet z folderu `design-proposals/`.
+- **Własny pomysł: ciemne szkło.** Pasek u góry i opisy na kartach to półprzezroczyste, rozmyte panele w granacie Solvro, z białym tekstem i białym logo w obu motywach (w ciemnym motywie szkło jest jaśniejsze, #274276, żeby odcinało się od strony). Pasek jest wspólny dla wszystkich stron i zawiera logo, wyszukiwarkę, przycisk „Ulubione”, wybór źródła danych, tryb demo i konto. Karta to zdjęcie na całą wysokość z wąskim panelem szkła o stałej wysokości (nazwa z ikoną weryfikacji, ocena, kategoria); etykieta popularności leży na zdjęciu. Strona koktajlu ma baner z rozmytym zdjęciem w tle i siatkę składników. Lista ma szklany pasek filtrów (Kategoria i Filtry otwierają okna, sortowanie jest w pasku), chipy z włączonymi filtrami i przyciskiem „Wyczyść filtry”, a widok „Odkrywaj” rzędy kart (patrz wyżej). Układy wybrano spośród makiet z folderu `design-proposals/`.
 - **Motyw jasny i ciemny** wynika z ustawienia systemu. Kolory są zmiennymi CSS w `src/app/globals.css`, a każda para tekst i tło ma policzony kontrast WCAG: tekst co najmniej 4,5:1, elementy graficzne co najmniej 3:1 (komentarze w pliku podają wartości, także dla najgorszego przypadku szkła).
 - **Jeden ciepły akcent**, używany oszczędnie: serduszko ulubionych i etykieta „Na topie”. Nigdy nie jest jedynym nośnikiem informacji (jest też ikona, tekst i `aria-pressed`).
 - Dostępność: link „Przejdź do treści”, widoczny fokus klawiatury, etykiety dla czytników ekranu, szanowanie ustawienia ograniczenia animacji.
@@ -35,7 +49,7 @@ Wygląd opiera się na identyfikacji Solvro: kolory z oficjalnej palety (#FFF, #
 Na telefonie każda strona ma własny układ, a nie ściśnięty układ komputerowy. Progi: telefon do 767 px, tablet 768 do 1023 px (układ komputerowy z płynnymi siatkami), komputer od 1024 px. Decyzje M1 do M15 są w `STEPS.md` (sekcje 41 do 47).
 
 - Górny pasek to jeden wąski rząd (logo, lupa rozwijająca wyszukiwanie, zębatka z ustawieniami); dolna nawigacja ma cztery miejsca, chowa się podczas pisania i omija dolny pas bezpieczny telefonu. W panelu administratora te same cztery miejsca to ekrany panelu, a ekrany z własnym paskiem akcji (edytor, zaznaczone koktajle, sprawa w moderacji) zastępują nawigację swoim paskiem.
-- Lista: jeden rząd „Filtry, Sortuj, liczba”, filtry w arkuszu od dołu z liczbą wyników na żywo, dwie kolumny kart, „Na topie” jako rząd przewijany palcem. Konto to „centrum” z listą sekcji, panel administratora ma karty kont, listę koktajli z paskiem zaznaczenia i moderację jako kolejkę z osobnym ekranem sprawy.
+- Lista: przełącznik Odkrywaj / Wszystkie, jeden rząd „Filtry, Sortuj, liczba”, filtry w arkuszu od dołu z liczbą wyników na żywo, dwie kolumny kart, rzędy („Na topie” i tematy) przewijane palcem, zwarta paginacja. Konto to „centrum” z listą sekcji, panel administratora ma karty kont, listę koktajli z paskiem zaznaczenia i moderację jako kolejkę z osobnym ekranem sprawy.
 - Zasady: cele dotyku co najmniej 44 x 44 px, pola tekstowe 16 px (bez powiększania na iOS), tekst co najmniej 12 px, brak przewijania w poziomie, paski przestają się kleić na niskim ekranie. Sprawdzone skryptem mierzącym w Edge (360, 390, 430, 768, 1024 px) i kontrastem tekstu w obu motywach; **nie** sprawdzane na prawdziwym telefonie.
 
 ## Własny backend (przełącznik źródła)
@@ -76,7 +90,7 @@ Znane ograniczenia: po wylogowaniu token access (ważny 10 minut) działa do wyg
 
 ### Tryb demo
 
-Przycisk „Tryb demo” na pasku (i na stronie logowania) włącza przykładowy profil `kasia_mixuje`: aplikacja udaje zalogowaną osobę bez backendu i bez logowania, a nad treścią widać baner z wyborem roli (user, admin, staff, owner). Zmiany zapisują się tylko w `localStorage` tej przeglądarki, więc nic nie trafia do prawdziwej bazy. Wyłączone demo = prawdziwe logowanie i prawdziwy backend. Strony nie wiedzą, w którym trybie są: wybiera to warstwa danych (hooki), a nie komponenty. Magazyn danych demo to `src/lib/demo/store.ts` (z testami), stan trybu to `src/lib/demo/mode.ts`. Na razie tryb demo daje tylko sesję; przykładowe przepisy, opinie i statystyki dochodzą w fazie 1.
+Przycisk „Tryb demo” na pasku (i na stronie logowania) włącza przykładowy profil `kasia_mixuje`: aplikacja udaje zalogowaną osobę bez backendu i bez logowania. Włączone demo to biała pigułka „Tryb demo · rola” na górnym pasku (od 1024 px z rolą, niżej samo „Demo”), która otwiera panel z wyborem roli (user, admin, staff, owner), przyciskiem „Przywróć dane” i „Wyłącz demo”; na telefonie to samo robi wąski pasek pod górnym paskiem. Zmiany zapisują się tylko w `localStorage` tej przeglądarki, więc nic nie trafia do prawdziwej bazy. Wyłączone demo = prawdziwe logowanie i prawdziwy backend. Strony nie wiedzą, w którym trybie są: wybiera to warstwa danych (hooki), a nie komponenty. Magazyn danych demo to `src/lib/demo/store.ts` (z testami), stan trybu to `src/lib/demo/mode.ts`. Tryb demo daje sesję oraz przykładowe przepisy, opinie, statystyki i dane panelu administratora (`src/lib/demo/fixtures.ts`, `src/lib/admin/demo.ts`); lista główna w demo czyta API Solvro.
 
 ### Konto użytkownika (`/account/...`)
 
@@ -125,7 +139,7 @@ W edytorze przepisu administrator wzwyż ma dodatkowo przełącznik „Znaczek z
 
 **Reguły ról** (`src/lib/roles.ts`: `canManage`, `grantableRoles`) są lustrem `backend/accounts/policy.py`: interfejs nie pokazuje tego, czego i tak nie wolno, ale rozstrzyga backend (403). Test `src/lib/admin/demo.test.ts` sprawdza wszystkie 3 × 4 × 4 kombinacje aktor, konto i nowa rola tak samo jak testy backendu.
 
-**Tryb demo.** Panel działa w całości bez backendu: `src/lib/admin/demo.ts` to czyste funkcje, które liczą to samo, co API (katalog z importu i przepisów użytkowników, kolejka zgłoszeń, konta, role, pulpit), a dane leżą w `localStorage` (`demo-admin` i `demo-data`; „Przywróć dane” w banerze je resetuje). Rolę demo ustawia się w banerze (user, admin, staff, owner), więc można obejrzeć uprawnienia każdej roli. W demo „Edytuj” działa tylko dla przepisów demo (import Solvro da się edytować tylko z prawdziwym backendem).
+**Tryb demo.** Panel działa w całości bez backendu: `src/lib/admin/demo.ts` to czyste funkcje, które liczą to samo, co API (katalog z importu i przepisów użytkowników, kolejka zgłoszeń, konta, role, pulpit), a dane leżą w `localStorage` (`demo-admin` i `demo-data`; „Przywróć dane” w panelu pigułki demo je resetuje). Rolę demo ustawia się w tym panelu (user, admin, staff, owner), więc można obejrzeć uprawnienia każdej roli. W demo „Edytuj” działa tylko dla przepisów demo (import Solvro da się edytować tylko z prawdziwym backendem).
 
 ## Struktura
 - `src/app/globals.css` — kolory marki i wyprowadzone z nich zmienne (jasny i ciemny motyw), szkło, fokus
@@ -143,7 +157,8 @@ W edytorze przepisu administrator wzwyż ma dodatkowo przełącznik „Znaczek z
 - `src/app/account/`, `src/components/account/`, `src/components/BottomDock.tsx` — strona konta i dolna nawigacja
 - `src/lib/roles.ts` — role i ich kolejność
 - `src/lib/favorites.ts` — ulubione (`localStorage` + `useSyncExternalStore`)
-- `src/app/page.tsx` — lista, wyszukiwanie, filtry, paginacja
+- `src/app/page.tsx` — lista: przełącznik Odkrywaj / Wszystkie, filtry, siatka
+- `src/components/` Odkrywaj: `Discover` (chipy kategorii i rzędy), `Rail` (przewijany rząd), `Featured` (Na topie), `ThemeRail` (rząd tematyczny, ładowany leniwie), `Pager`; `src/lib/themes.ts` (tematy), `src/lib/pager.ts` (numery stron), `src/lib/useInView.ts`
 - `src/app/cocktails/[id]/page.tsx` — szczegóły koktajlu
 - `src/lib/pl.ts` — polskie nazwy kategorii i szklanek
 - `src/components/` — `CocktailCard`, `FavoriteButton`, `SourceSwitch`, `Badges` (znaczki i gwiazdki), `TopBar` (szklany pasek)
@@ -153,9 +168,10 @@ W edytorze przepisu administrator wzwyż ma dodatkowo przełącznik „Znaczek z
 - **Własny backend działa na darmowych planach** (Vercel i Neon), więc pierwsze zapytanie po dłuższej przerwie może trwać dłużej. Gdy backend jest niedostępny, a wybrano go jako źródło, strona pokazuje zwykły komunikat o błędzie pobierania.
 - Zdjęcia z własnego backendu pokazujemy tylko z adresów `https://cocktails.solvro.pl` (inne hosty `next/image` odrzuca, a pozwolenie na wszystkie otworzyłoby optymalizator dla obcych). Własne koktajle z innym adresem zdjęcia dostają puste miejsce.
 - Własny backend ma 9 kategorii (tylko te w użyciu), a Solvro 10 (jedna pusta). Kolejność nazw z interpunkcją (spacja i myślnik) może się minimalnie różnić, bo bazy mają inne reguły sortowania. W obrębie jednej kategorii Solvro nie gwarantuje żadnej kolejności, nasz backend sortuje alfabetycznie.
-- Logowanie oraz dodawanie opinii i koktajli nie mają jeszcze formularzy w interfejsie (backend to obsługuje: Swagger i panel CMS). Opinie na razie można czytać, nie pisać.
+- Opinie można w interfejsie tylko czytać i usuwać swoje: formularza dodawania opinii nie ma (backend to obsługuje: Swagger i panel CMS).
 - Dopóki nikt nie doda opinii ani nie otworzy koktajli, oceny i etykiety popularności są puste, więc znaczki widać tylko przy „zweryfikowany”.
-- Nie ma automatycznych testów frontendu. Adapter był sprawdzony skryptem na prawdziwych API. Wygląd był oglądany na zrzutach ekranu z Edge (motyw jasny i ciemny, szerokość 1280 i 390 px), ale obsługa samą klawiaturą i czytnik ekranu nie były sprawdzane.
+- Testy automatyczne to Vitest (`npm test`, 138 testów: czyste funkcje, adapter, tryb demo, reguły ról, formularz, tematy, paginacja); **nie ma** testów całej aplikacji w przeglądarce. Wygląd i zachowanie sprawdzano skryptami w bezgłowym Edge (motyw jasny i ciemny, szerokości od 360 do 1920 px), ale obsługa samą klawiaturą, czytnik ekranu, prawdziwy telefon i ograniczenie animacji w przeglądarce nie były sprawdzane.
+- Rzędy w „Odkrywaj” z jednym lub dwoma wynikami (np. „Na topie” przy prawie pustej bazie) pokazują się bez strzałek; tematy to rodziny nazw, nie dane o smaku (patrz wyżej).
 - Nie użyto biblioteki komponentów (shadcn/ui, decyzja D16 i F4): przy krótkim czasie wystarczył Tailwind z własnymi zmiennymi, bez nowych zależności.
 - Treści przepisów (nazwy, instrukcje, opisy składników) pochodzą z API w języku angielskim i nie są tłumaczone; przetłumaczone są tylko kategorie i rodzaje szklanek.
 - Dla nieistniejącego id strona szczegółów zwraca HTTP 200 z komunikatem (renderowanie po stronie klienta).

@@ -8,7 +8,7 @@ Source: <https://github.com/Solvro/rekrutacja>. Theme: **cocktails** — a share
 
 The repo has eight tracks (Frontend, Backend, Mobile, DevOps, UI/UX, AI/ML, Project Management, Promotion), each with its own document.
 
-**Chosen:** Frontend + Backend (full stack). **UI/UX at the very end.** **Skipped:** the rest. DevOps was considered; it is skipped, and its report must be written without an LLM anyway.
+**Chosen:** Frontend + Backend (full stack). UI/UX was planned for the very end and later **skipped** (section 34). **Skipped:** the rest. DevOps was considered; it is skipped, and its report must be written without an LLM anyway.
 
 **Stack decisions**
 - Frontend: Next.js (App Router), TypeScript, Tailwind CSS, TanStack Query. UI text and code comments in Polish, identifiers in English.
@@ -94,9 +94,9 @@ List filters: `name` (substring), `category`, `alcoholic`, `sort`, `page`, `perP
 
 The design came from the grilling session (section 11) and was extended later (sections 14-17). It is documented in `backend/README.md` (run it, schema diagram, endpoints, roles, tests, known limits). Status: **Django + DRF + PostgreSQL, full CRUD, filters, Swagger, accounts with four roles, CMS, reviews, views and popularity labels, 206 tests.** It runs locally and is **not deployed**; the frontend does not use it yet.
 
-## 7. UI/UX — in progress
+## 7. UI/UX — skipped (30 October 2026, section 34)
 
-**In progress.** Variant 3 (a landing-page design), delivered as HTML in `uiux/`. So far: the colour palette page (`palette.html`, `tokens.css`) and the font choice. Decisions are in section 13; the open items are listed at its end.
+**Skipped by the owner; `uiux/` was removed.** The text below is the historical state. Variant 3 (a landing-page design), delivered as HTML in `uiux/`. So far: the colour palette page (`palette.html`, `tokens.css`) and the font choice. Decisions are in section 13; the open items are listed at its end.
 
 ## 8. Security note
 
@@ -116,7 +116,7 @@ The remote is `origin` (`github.com/MajR0N/homework-solvro`). Later work (the UI
 
 ## 10. What's next
 
-See section 17 for what is finished and what remains, section 14 for the frontend restyle, and section 12 for the order of work with its current status.
+**Final status (31 October 2026): see section 53.** Older pointer: see section 17 for what was finished then, section 14 for the frontend restyle, and section 12 for the order of work with its current status.
 
 ## 11. Grilling results — decisions D1–D26
 
@@ -698,3 +698,13 @@ Owner's goals: fix the half-empty "Na topie" row, use the page width, replace th
 **Checked.** `tsc`, lint, `npm run build`, Vitest 138 pass (4 new, one old expectation updated from `page_size` 12 to 20). Headless Edge on the production build (`t35.mjs`, 17 checks, all pass): 20 cards on the first, a middle and the last page (Solvro, 220 cocktails = 11 pages), the numbers, `aria-current`, a click on a number changes `?page=`, Previous disabled on page 1 and Next on the last, 6 columns at 1536 and 1920 px, 5 at 1280, 4 at 1024, 3 at 768, 2 on a phone, the bar, container and grid share 1600 px at 1920 px (grid 16 px inside), the phone shows "Strona 1 z 11" with arrows of at least 44 px and no sideways scroll, the own backend returns 20, the admin gallery (demo) has the new pager. Older scripts still pass (`t26`, `t33` with one expectation updated to the new pager, `t34`), the measuring script (dark and light, 0 problems) and the contrast script on the list, page 3, the main page and the admin gallery in both themes (all ok). I looked at the pager screenshots at 1280 px (dark and light) and on a phone.
 
 **Not checked:** the pager with a keyboard and a screen reader, a real phone, the admin gallery with real (non-demo) data and more than 20 cocktails, Solvro's `perPage=20` against its documented maximum (it worked: 20 results came back).
+
+## 53. Main page UX, step 5 done, and the final status (31 October 2026)
+
+**Measuring pass.** The measuring script (touch targets of at least 44 px on phones, sideways scroll, text under 12 px, space taken by the bars) ran at 360, 390, 430, 768 and 1024 px, in the dark and the light theme, for both sources (Solvro and the local own backend), on the list (`/`, `/?view=all`, page 2), a cocktail page, the account, the admin gallery and the recipe editor. It found **one real problem**: `/admin/cocktails` scrolled sideways by 2 px at 360 px (the mobile row list was a grid with an automatic column, so one row's minimum width widened all of them; the move to 20 rows per page brought a row that triggered it). Fixed with `grid-cols-[minmax(0,1fr)]` on that list; after a rebuild the page is clean at all five widths in both themes, and the step 4 browser script (17 checks) passes again. The contrast script on the list, page 3, the main page and the admin gallery was clean in both themes (run before the fix; the fix changes no colours).
+
+**Docs updated.** Root `README.md` (table row and the "Pomysł" paragraph: it still said that login and forms did not exist; there was no UI/UX task text left to remove, that was done in section 34), `frontend/README.md` (new section "Strona główna: Odkrywaj i Wszystkie" with the themes described honestly as name families, the demo pill, the 138 Vitest tests, the structure list, limits), `CLAUDE.md` (scope lines: the frontend is built, the UI/UX bullet became one line in "Not doing"), and this file (sections 1, 7 and 10 now say that UI/UX was skipped and point here). `backend/README.md` needed no change (no backend code changed in this round).
+
+**Local data.** `seed_demo --remove --yes` removed 90 demo views (no demo accounts or reviews were left). Not touched: four test accounts and two test drinks from the earlier phases (`phase0_tester`, `phase1_bob`, `phase3_admin`, `phase3_staff`, "Phase1 Test Drink", "P2-... Drink v2", two reviews, four views), because they are not `seed_demo` data; remove them in the Django admin if the local database should be clean.
+
+**Final status of the work.** Backend (Django, 4 roles, CMS, reviews, popularity labels, Swagger, 200+ tests) and frontend (Solvro and own source, login with httpOnly cookies, account, recipe editor, admin panel, demo mode, phone layout, Odkrywaj and Wszystkie with themed rails, numbered pager) are built and deployed; the UI/UX task was skipped. **Known limits** (also in the READMEs): not tested on a real phone, with a screen reader or in a browser with reduced motion; rails with one or two trending cocktails; "Zero procent" includes hot chocolates; "Odkrywaj" has no filter bar by design; themes are name families, not taste data; the admin gallery was checked with demo data only; nothing has been pushed from this session's commits.

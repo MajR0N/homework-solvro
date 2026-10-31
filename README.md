@@ -9,12 +9,12 @@ Zadanie (<https://github.com/Solvro/rekrutacja>) ma motyw koktajli: miejsce do p
 
 | Folder | Co to jest | Stan |
 |---|---|---|
-| `frontend/` | Strona do przeglądania koktajli: lista, wyszukiwanie, filtry, ulubione, szczegóły. Next.js, TypeScript, Tailwind CSS, TanStack Query. | Działa i jest wdrożona na Vercelu. Domyślnie czyta publiczne API Solvro, a przełącznik „Źródło danych” pozwala wybrać mój własny backend. |
+| `frontend/` | Strona do przeglądania koktajli: widoki „Odkrywaj” (rzędy tematyczne) i „Wszystkie” (siatka, numerowana paginacja), wyszukiwanie, filtry, ulubione, szczegóły, a po zalogowaniu konto, edytor przepisów i panel administratora. Osobny układ na telefon. Next.js, TypeScript, Tailwind CSS, TanStack Query. | Działa i jest wdrożona na Vercelu. Domyślnie czyta publiczne API Solvro, a przełącznik „Źródło danych” pozwala wybrać mój własny backend. Opis: [`frontend/README.md`](frontend/README.md). |
 | `backend/` | Własne REST API koktajli i składników. Django, Django REST Framework, PostgreSQL. Konta i role, opinie, CMS, etykiety popularności, Swagger, testy. | Gotowe, przetestowane i **wdrożone** na Vercelu (baza Neon). Opis w [`backend/README.md`](backend/README.md). |
 
 ## Pomysł
 
-Frontend korzysta z dwóch źródeł danych: gotowego API Solvro albo mojego własnego API w Django, z przełącznikiem w interfejsie, żeby obie części zadania działały razem jako jeden projekt. Przełącznik jest widoczny także na wersji online (adres backendu ustawia zmienna środowiskowa, patrz [`frontend/README.md`](frontend/README.md)); domyślnym źródłem zostaje API Solvro. Logowania i formularzy w interfejsie jeszcze nie ma: backend je obsługuje, ale frontend tylko czyta.
+Frontend korzysta z dwóch źródeł danych: gotowego API Solvro albo mojego własnego API w Django, z przełącznikiem w interfejsie, żeby obie części zadania działały razem jako jeden projekt. Przełącznik jest widoczny także na wersji online (adres backendu ustawia zmienna środowiskowa, patrz [`frontend/README.md`](frontend/README.md)); domyślnym źródłem zostaje API Solvro. Z własnym backendem frontend ma logowanie (tokeny w ciasteczkach `httpOnly` przez serwer Next.js), stronę konta, edytor przepisów i panel administratora; tryb demo pozwala to wszystko obejrzeć bez backendu i bez konta. Tematy w „Odkrywaj” to zapisane zapytania (rodziny nazw, np. „sour”), a nie dane o smaku. Nie ma formularza dodawania opinii (backend to umie).
 
 ## Jak korzystałem z AI
 
