@@ -12,7 +12,7 @@ export default function FavoritesPage() {
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="text-2xl font-bold tracking-tight">Ulubione</h2>
         {ids.length > 12 && (
-          <Link href="/?fav=1" className="text-sm underline underline-offset-4 hover:text-primary">
+          <Link href="/?fav=1" className="inline-flex text-sm underline underline-offset-4 hover:text-primary max-md:min-h-11 max-md:items-center">
             Pokaż wszystkie ({ids.length}) na liście
           </Link>
         )}
@@ -26,12 +26,12 @@ export default function FavoritesPage() {
       ) : error ? (
         <div role="alert" className="rounded-xl border border-red-500/40 p-6 text-center">
           Nie udało się pobrać ulubionych.{" "}
-          <button type="button" onClick={() => refetch()} className="underline underline-offset-4">
+          <button type="button" onClick={() => refetch()} className="underline underline-offset-4 max-md:inline-flex max-md:min-h-11 max-md:items-center">
             Spróbuj ponownie
           </button>
         </div>
       ) : !data ? (
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4" aria-busy="true" aria-label="Ładowanie">
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 xl:grid-cols-4" aria-busy="true" aria-label="Ładowanie">
           {Array.from({ length: Math.min(ids.length, 8) }, (_, i) => (
             <li key={i}>
               <Skeleton className="aspect-4/5" />
@@ -39,7 +39,7 @@ export default function FavoritesPage() {
           ))}
         </ul>
       ) : (
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 xl:grid-cols-4">
           {data.data.map((c) => (
             <li key={c.id}>
               <CocktailCard cocktail={c} />

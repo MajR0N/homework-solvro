@@ -32,7 +32,7 @@ export default function MyReviewsPage() {
       {reviews.error ? (
         <div role="alert" className="rounded-xl border border-red-500/40 p-6 text-center">
           Nie udało się pobrać opinii.{" "}
-          <button type="button" onClick={() => reviews.refetch()} className="underline underline-offset-4">
+          <button type="button" onClick={() => reviews.refetch()} className="underline underline-offset-4 max-md:inline-flex max-md:min-h-11 max-md:items-center">
             Spróbuj ponownie
           </button>
         </div>
@@ -50,7 +50,7 @@ export default function MyReviewsPage() {
             <li key={r.id} className="grid grid-cols-[auto_1fr_auto] items-start gap-3 rounded-xl border border-foreground/20 p-4">
               <Thumb src={r.cocktail.imageUrl} className="size-12" />
               <div className="min-w-0">
-                <Link href={`/cocktails/${r.cocktail.id}`} className="font-semibold hover:underline">
+                <Link href={`/cocktails/${r.cocktail.id}`} className="font-semibold hover:underline max-md:inline-flex max-md:min-h-11 max-md:items-center">
                   {r.cocktail.name}
                 </Link>
                 <p className="flex flex-wrap items-center gap-x-3 text-sm text-foreground/70">

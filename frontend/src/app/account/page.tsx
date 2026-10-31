@@ -8,12 +8,12 @@ import { useFavoriteCocktails, useMyActivity, useMyRecipes, useMyReviews, useMyS
 import { decimal, fmt, shortDate } from "@/lib/format";
 
 // Półka: nagłówek z linkiem i poziomy rząd kart (propozycja C). Kolumny o stałej szerokości, przewijane w poziomie.
-function Shelf({ title, href, link, children }: { title: string; href: string; link: string; children: React.ReactNode }) {
+function Shelf({ title, href, link, children, hideOnPhone }: { title: string; href: string; link: string; children: React.ReactNode; hideOnPhone?: boolean }) {
   return (
-    <section className="min-w-0">
-      <header className="mb-2 flex items-baseline justify-between gap-4">
+    <section className={`min-w-0 ${hideOnPhone ? "max-md:hidden" : ""}`}>
+      <header className="mb-2 flex items-baseline justify-between gap-4 max-md:items-center">
         <h2 className="text-xl font-semibold">{title}</h2>
-        <Link href={href} className="text-sm underline underline-offset-4 hover:text-primary">
+        <Link href={href} className="inline-flex text-sm underline underline-offset-4 hover:text-primary max-md:min-h-11 max-md:items-center">
           {link}
         </Link>
       </header>
@@ -34,14 +34,14 @@ export default function AccountOverview() {
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 max-md:hidden">
         <h2 className="text-2xl font-bold tracking-tight">Przegląd</h2>
         <Link href="/recipes/new" className={primaryButton}>
           Dodaj przepis
         </Link>
       </div>
 
-      <dl className={`${panel} grid grid-cols-2 gap-4 sm:grid-cols-4`}>
+      <dl className={`${panel} grid grid-cols-2 gap-4 sm:grid-cols-4 max-md:hidden`}>
         {[
           [stats.data?.recipes, "przepisy"],
           [stats.data && fmt(stats.data.views30d), "wyświetlenia (30 dni)"],
@@ -65,7 +65,8 @@ export default function AccountOverview() {
         {recipes.isPending ? <Skeleton className="aspect-4/5" /> : recipes.data?.map((c) => <CocktailCard key={c.id} cocktail={c} />)}
       </Shelf>
 
-      <Shelf title="Ulubione" href="/account/favorites" link={`Zobacz wszystkie (${favorites.ids.length})`}>
+      {/* telefon: ulubione i oceny są na liście sekcji wyżej, tu zostają przepisy i aktywność (M9) */}
+      <Shelf hideOnPhone title="Ulubione" href="/account/favorites" link={`Zobacz wszystkie (${favorites.ids.length})`}>
         {favorites.ids.length === 0 ? (
           <p className="self-center text-foreground/70">Kliknij serce na karcie koktajlu, żeby go tu zapisać.</p>
         ) : favorites.isPending ? (
@@ -75,7 +76,7 @@ export default function AccountOverview() {
         )}
       </Shelf>
 
-      <Shelf title="Ostatnie oceny" href="/account/reviews" link={`Zobacz wszystkie (${reviews.data?.length ?? 0})`}>
+      <Shelf hideOnPhone title="Ostatnie oceny" href="/account/reviews" link={`Zobacz wszystkie (${reviews.data?.length ?? 0})`}>
         {reviews.isPending ? (
           <Skeleton className="aspect-4/5" />
         ) : rated.length === 0 ? (
@@ -103,22 +104,25 @@ export default function AccountOverview() {
           <ul className="divide-y divide-foreground/15">
             {activity.data.map((e) => (
               <li key={`${e.kind}-${e.id}`} className="flex items-center gap-3 py-3">
-                <Thumb src={e.cocktail.imageUrl} className="size-11" />
-                <p className="min-w-0 flex-1">
-                  {e.kind === "given" ? (
-                    <>
-                      Twoja opinia o <Link href={`/cocktails/${e.cocktail.id}`} className="font-semibold hover:underline">{e.cocktail.name}</Link>
-                    </>
-                  ) : (
-                    <>
-                      <Link href={`/cocktails/${e.cocktail.id}`} className="font-semibold hover:underline">{e.cocktail.name}</Link> dostał opinię {e.rating} z 5
-                    </>
-                  )}
-                  <span className="block text-sm text-foreground/70">
-                    {e.kind === "received" && e.author ? `od ${e.author}, ` : ""}
-                    {shortDate(e.createdAt)}
-                  </span>
-                </p>
+                {/* cały wiersz to jeden link do koktajlu (duży cel dotyku), a nie link w środku zdania */}
+                <Link href={`/cocktails/${e.cocktail.id}`} className="flex min-h-11 min-w-0 flex-1 items-center gap-3 hover:underline">
+                  <Thumb src={e.cocktail.imageUrl} className="size-11" />
+                  <p className="min-w-0 flex-1">
+                    {e.kind === "given" ? (
+                      <>
+                        Twoja opinia o <b>{e.cocktail.name}</b>
+                      </>
+                    ) : (
+                      <>
+                        <b>{e.cocktail.name}</b> dostał opinię {e.rating} z 5
+                      </>
+                    )}
+                    <span className="block text-sm text-foreground/70">
+                      {e.kind === "received" && e.author ? `od ${e.author}, ` : ""}
+                      {shortDate(e.createdAt)}
+                    </span>
+                  </p>
+                </Link>
                 <Stars rating={e.rating} />
               </li>
             ))}

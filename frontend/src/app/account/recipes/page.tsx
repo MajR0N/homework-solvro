@@ -20,7 +20,7 @@ export default function MyRecipesPage() {
   const mark = (r: MyRecipe) => (r.verified ? "Zweryfikowany" : "Bez znaczka");
   const del = (r: MyRecipe) => (
     <span className="inline-flex gap-2">
-      <Link href={`/recipes/${r.id}/edit`} aria-label={`Edytuj ${r.name}`} className="rounded-full border border-foreground/30 px-4 py-1.5 text-sm hover:bg-foreground/10">
+      <Link href={`/recipes/${r.id}/edit`} aria-label={`Edytuj ${r.name}`} className="rounded-full border border-foreground/30 px-4 py-1.5 text-sm hover:bg-foreground/10 max-md:inline-flex max-md:min-h-11 max-md:items-center">
         Edytuj
       </Link>
       <button type="button" onClick={() => setToDelete(r)} aria-label={`Usuń ${r.name}`} className={dangerButton}>
@@ -47,7 +47,7 @@ export default function MyRecipesPage() {
       {recipes.error ? (
         <div role="alert" className="rounded-xl border border-red-500/40 p-6 text-center">
           Nie udało się pobrać przepisów.{" "}
-          <button type="button" onClick={() => recipes.refetch()} className="underline underline-offset-4">
+          <button type="button" onClick={() => recipes.refetch()} className="underline underline-offset-4 max-md:inline-flex max-md:min-h-11 max-md:items-center">
             Spróbuj ponownie
           </button>
         </div>
@@ -114,8 +114,8 @@ export default function MyRecipesPage() {
 
           <ul className="grid gap-2 md:hidden">
             {recipes.data.map((r) => (
-              <li key={r.id} className="flex items-center gap-3 rounded-xl border border-foreground/20 bg-foreground/5 p-2">
-                <Link href={`/cocktails/${r.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+              <li key={r.id} className="grid gap-2 rounded-xl border border-foreground/20 bg-foreground/5 p-2">
+                <Link href={`/cocktails/${r.id}`} className="flex min-w-0 items-center gap-3">
                   <Thumb src={r.imageUrl} className="size-13" />
                   <span className="min-w-0">
                     <span className="block truncate font-semibold">{r.name}</span>
@@ -124,7 +124,7 @@ export default function MyRecipesPage() {
                     </span>
                   </span>
                 </Link>
-                {del(r)}
+                <div className="flex justify-end">{del(r)}</div>
               </li>
             ))}
           </ul>

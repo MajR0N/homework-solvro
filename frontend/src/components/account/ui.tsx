@@ -6,9 +6,11 @@ import type { MyStats } from "@/lib/data/types";
 
 // Małe, wspólne kawałki stron konta. Kolory i kształty z tokenów aplikacji (globals.css).
 export const panel = "rounded-xl border border-foreground/20 bg-foreground/5 p-5";
-export const button = "rounded-full border border-foreground/30 px-5 py-2 hover:bg-foreground/10 disabled:opacity-40";
-export const primaryButton = "rounded-full bg-primary px-5 py-2 font-semibold text-on-primary hover:opacity-90 disabled:opacity-50";
-export const dangerButton = "rounded-full border border-red-500/60 px-4 py-1.5 text-sm text-red-700 hover:bg-red-500/10 dark:text-red-300";
+// Na telefonie (poniżej 768 px) przyciski mają co najmniej 44 px wysokości (zasada M15); inline-flex, bo min-height nie działa na zwykłym <a>.
+const phoneTap = "max-md:inline-flex max-md:min-h-11 max-md:items-center max-md:justify-center";
+export const button = `${phoneTap} rounded-full border border-foreground/30 px-5 py-2 hover:bg-foreground/10 disabled:opacity-40`;
+export const primaryButton = `${phoneTap} rounded-full bg-primary px-5 py-2 font-semibold text-on-primary hover:opacity-90 disabled:opacity-50`;
+export const dangerButton = `${phoneTap} rounded-full border border-red-500/60 px-4 py-1.5 text-sm text-red-700 hover:bg-red-500/10 dark:text-red-300`;
 
 export function Thumb({ src, className = "size-12" }: { src: string | null; className?: string }) {
   return (
