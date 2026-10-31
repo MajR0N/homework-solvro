@@ -194,7 +194,7 @@ function DesktopBar({ search }: { search: Search }) {
 export default function TopBar() {
   const search = useSearch();
   return (
-    <header className="bar-sticky top-3 z-30 mx-auto mt-3 w-full max-w-7xl px-4">
+    <header className="bar-sticky top-3 z-30 mx-auto mt-3 w-full max-w-400 px-4">
       <PhoneBar search={search} />
       <DesktopBar search={search} />
     </header>

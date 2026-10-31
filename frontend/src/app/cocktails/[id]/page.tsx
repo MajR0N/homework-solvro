@@ -81,7 +81,7 @@ export default function CocktailPage() {
   ];
 
   return (
-    <main id="content" className="mx-auto w-full max-w-7xl p-4">
+    <main id="content" className="mx-auto w-full max-w-400 p-4">
       <Back />
 
       {/* Baner: rozmyte zdjęcie w tle pod ciemną nakładką (dlatego tekst jest zawsze biały, w obu motywach), ostre zdjęcie obok.

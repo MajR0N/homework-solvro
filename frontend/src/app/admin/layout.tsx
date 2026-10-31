@@ -35,7 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (access.loading)
     return (
-      <main id="content" className="mx-auto w-full max-w-7xl p-4" aria-busy="true" aria-label="Ładowanie">
+      <main id="content" className="mx-auto w-full max-w-400 p-4" aria-busy="true" aria-label="Ładowanie">
         <Skeleton className="mt-4 h-14" />
       </main>
     );
@@ -63,7 +63,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const queue = (stats.data?.reportedReviews ?? 0) + (stats.data?.pendingRecipes ?? 0);
   return (
-    <main id="content" className="mx-auto w-full max-w-7xl p-4">
+    <main id="content" className="mx-auto w-full max-w-400 p-4">
       {/* telefon: napis panelu jest na górnym pasku, a ekrany w dolnej nawigacji (BottomDock), więc ta pigułka jest tylko od 768 px */}
       <h1 className="sr-only md:hidden">Panel administratora</h1>
       <header className="glass mt-2 hidden flex-wrap items-center gap-x-4 gap-y-2 rounded-3xl px-4 py-2 md:flex md:rounded-full md:pr-3">

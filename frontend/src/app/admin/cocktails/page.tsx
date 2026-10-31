@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { ConfirmDialog, EmptyState, Skeleton, Thumb, button, dangerButton, panel, primaryButton } from "@/components/account/ui";
 import { VerifiedIcon } from "@/components/Badges";
+import Pager from "@/components/Pager";
 import { useAdminAccess, useAdminCocktails, useDeleteCocktail, useVerify } from "@/lib/admin/hooks";
 import type { AdminCocktailQuery } from "@/lib/admin/types";
 import type { Cocktail } from "@/lib/api";
@@ -380,17 +381,7 @@ function Cocktails() {
       )}
 
       {data && data.meta.lastPage > 1 && (
-        <nav className="flex items-center justify-center gap-4" aria-label="Paginacja">
-          <button type="button" onClick={() => update({ page: String(q.page - 1) })} disabled={q.page <= 1} className={button}>
-            Poprzednia
-          </button>
-          <span>
-            Strona {q.page} z {data.meta.lastPage}
-          </span>
-          <button type="button" onClick={() => update({ page: String(q.page + 1) })} disabled={q.page >= data.meta.lastPage || isPlaceholderData} className={button}>
-            Następna
-          </button>
-        </nav>
+        <Pager page={q.page} last={data.meta.lastPage} onPage={(n) => update({ page: String(n) })} busy={isPlaceholderData} />
       )}
 
       {picked.size > 0 && (

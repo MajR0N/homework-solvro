@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { HttpError, listAdminCocktails } from "../api";
+import { HttpError, listAdminCocktails, PER_PAGE } from "../api";
 import { useSession } from "../auth";
 import { proxyJson } from "../data/proxy";
 import { DEMO_USER } from "../demo/fixtures";
@@ -51,7 +51,7 @@ export function useAdminCocktails(q: AdminCocktailQuery) {
     queryFn: () => {
       if (!k.demo) return listAdminCocktails(q);
       const { demo, adm } = demoWorld();
-      return Promise.resolve(cocktailsPage(catalogOf(demo, adm), q, 12));
+      return Promise.resolve(cocktailsPage(catalogOf(demo, adm), q, PER_PAGE));
     },
   });
 }

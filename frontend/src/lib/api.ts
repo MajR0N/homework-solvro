@@ -3,7 +3,7 @@ import { isDemoId } from "./demo/fixtures";
 import { OWN_BASE, type Source } from "./source";
 
 const SOLVRO = "https://cocktails.solvro.pl/api/v1";
-const PER_PAGE = 12;
+export const PER_PAGE = 20; // tyle samo co domyślny page_size własnego backendu; dzieli się przez 2, 4, 5 kolumn siatki
 
 // Typy poniżej to kształt, którego używa interfejs (taki jak w API Solvro). Odpowiedzi własnego backendu
 // są do niego tłumaczone w tym pliku (adapter), więc strony i komponenty nie wiedzą, skąd są dane.

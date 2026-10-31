@@ -6,7 +6,7 @@ const q = (f: Partial<Filters>) => Object.fromEntries(ownListParams({ ...base, .
 
 describe("ownListParams (zapytanie do własnego backendu)", () => {
   it("bez filtrów: tylko strona, rozmiar i sortowanie bez plusa", () => {
-    expect(q({})).toEqual({ page: "1", page_size: "12", ordering: "name" });
+    expect(q({})).toEqual({ page: "1", page_size: "20", ordering: "name" });
     expect(q({ sort: "-popular", page: 3 })).toMatchObject({ page: "3", ordering: "-popular" });
   });
   it("przekłada nazwy parametrów Solvro na własne", () => {

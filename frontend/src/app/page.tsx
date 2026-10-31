@@ -6,7 +6,8 @@ import CocktailCard from "@/components/CocktailCard";
 import Discover from "@/components/Discover";
 import FilterBar, { type By } from "@/components/Filters";
 import type { Draft } from "@/components/PhoneFilters";
-import { getCategories, getGlasses, listCocktails, type Filters } from "@/lib/api";
+import Pager from "@/components/Pager";
+import { getCategories, getGlasses, listCocktails, PER_PAGE, type Filters } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { STATUS_PL } from "@/lib/pl";
 import { useFavorites } from "@/lib/favorites";
@@ -102,7 +103,7 @@ function Cocktails() {
   const glasses = useQuery({ queryKey: ["glasses"], queryFn: getGlasses, staleTime: Infinity, enabled: source === "own" });
 
   return (
-    <main id="content" className="mx-auto w-full max-w-7xl p-4">
+    <main id="content" className="mx-auto w-full max-w-400 p-4">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 md:mb-6">
         <div>
           <h1 className="text-2xl font-bold md:text-3xl">Koktajle</h1>
@@ -150,8 +151,8 @@ function Cocktails() {
           </button>
         </div>
       ) : isPending ? (
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5" aria-busy="true" aria-label="Ładowanie">
-          {Array.from({ length: 12 }, (_, i) => (
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6" aria-busy="true" aria-label="Ładowanie">
+          {Array.from({ length: PER_PAGE }, (_, i) => (
             <li key={i} className="aspect-4/5 animate-pulse rounded-xl bg-foreground/10" />
           ))}
         </ul>
@@ -160,7 +161,7 @@ function Cocktails() {
       ) : (
         <>
           <ul
-            className={`grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5 ${isPlaceholderData ? "opacity-60" : ""}`}
+            className={`grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 ${isPlaceholderData ? "opacity-60" : ""}`}
           >
             {data.data.map((c) => (
               <li key={c.id}>
@@ -169,21 +170,9 @@ function Cocktails() {
             ))}
           </ul>
 
-          <nav className="mt-8 flex items-center justify-center gap-3 md:gap-4" aria-label="Paginacja">
-            <button onClick={() => update({ page: String(page - 1) })} disabled={page <= 1} className={button}>
-              Poprzednia
-            </button>
-            <span>
-              Strona {page} z {data.meta.lastPage}
-            </span>
-            <button
-              onClick={() => update({ page: String(page + 1) })}
-              disabled={page >= data.meta.lastPage || isPlaceholderData}
-              className={button}
-            >
-              Następna
-            </button>
-          </nav>
+          <div className="mt-8">
+            <Pager page={page} last={data.meta.lastPage} onPage={(n) => update({ page: String(n) })} busy={isPlaceholderData} />
+          </div>
         </>
       )}
     </main>

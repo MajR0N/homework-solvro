@@ -33,7 +33,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
 
   if (loading) {
     return (
-      <main id="content" className="mx-auto w-full max-w-7xl p-4" aria-busy="true" aria-label="Ładowanie">
+      <main id="content" className="mx-auto w-full max-w-400 p-4" aria-busy="true" aria-label="Ładowanie">
         <Skeleton className="mt-4 h-44" />
       </main>
     );
@@ -70,7 +70,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   ] as const;
 
   return (
-    <main id="content" className="mx-auto w-full max-w-7xl p-4">
+    <main id="content" className="mx-auto w-full max-w-400 p-4">
       {!hub && (
         <Link href="/account" className="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-full pl-1 pr-3 font-semibold hover:bg-foreground/10 md:hidden">
           <CaretLeftIcon size={22} aria-hidden="true" />
