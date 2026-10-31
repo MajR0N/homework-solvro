@@ -3,7 +3,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import CocktailCard from "@/components/CocktailCard";
-import Featured from "@/components/Featured";
+import Discover from "@/components/Discover";
 import FilterBar, { type By } from "@/components/Filters";
 import type { Draft } from "@/components/PhoneFilters";
 import { getCategories, getGlasses, listCocktails, type Filters } from "@/lib/api";
@@ -27,6 +27,8 @@ const OWN_SORTS = [
   { value: "-top_rated", label: "Najlepiej oceniane" },
 ];
 
+// Przełącznik trybu (decyzja U3): "Odkrywaj" = rzędy, "Wszystkie" = płaska siatka z paginacją.
+const modeBtn = "rounded-full px-3.5 py-1 text-sm max-md:min-h-11 max-md:text-base";
 const button = "min-h-11 rounded-full border border-foreground/30 px-5 py-2 hover:bg-foreground/10 disabled:opacity-40";
 
 // Filtry żyją w URL-u (?q=...&category=...), więc odświeżenie, link i "wstecz" je zachowują.
@@ -60,6 +62,13 @@ function Cocktails() {
   // Zmienia parametry URL-a (patrz lib/params.ts); wyszukiwarka i przycisk ulubionych są w pasku u góry (TopBar).
   const update = (patch: Record<string, string>) => router.replace(patchParams(patch), { scroll: false });
 
+  // Odkrywaj tylko na czystej liście: szukanie, filtr, sortowanie, ulubione, strona 2+ albo ?view=all to siatka (decyzja U3).
+  // Zmiana filtra z trybu Odkrywaj sama przełącza na siatkę, bo lista przestaje być "czysta".
+  const clean = !name && !category && !alcoholic && !verified && !ingredient && !by && !glass && !status && !onlyFav && page === 1 && sort === "+name";
+  const discover = clean && sp.get("view") !== "all";
+  // Szukanie jest w pasku u góry i zawsze pokazuje siatkę, więc dopóki fraza jest wpisana, "Odkrywaj" jest wyłączony
+  const clearAll = { view: "", category: "", alcohol: "", verified: "", ing: "", by: "", glass: "", status: "", fav: "", sort: "", page: "" };
+
   // Bez id[] API zwraca WSZYSTKIE koktajle, więc przy pustej liście nie wolno pytać.
   const noFavs = onlyFav && favs.length === 0;
 
@@ -86,7 +95,7 @@ function Cocktails() {
   const { data, isPending, isError, isPlaceholderData, refetch } = useQuery({
     queryKey: ["cocktails", source, filters], // zmiana filtrów albo źródła = nowy klucz = nowe zapytanie
     queryFn: () => listCocktails(filters, source),
-    enabled: !noFavs,
+    enabled: !noFavs && !discover,
     placeholderData: keepPreviousData, // poprzednie wyniki widoczne, gdy ładują się nowe
   });
   const categories = useQuery({ queryKey: ["categories", source], queryFn: () => getCategories(source), staleTime: Infinity });
@@ -94,12 +103,25 @@ function Cocktails() {
 
   return (
     <main id="content" className="mx-auto w-full max-w-7xl p-4">
-      <h1 className="mb-3 text-2xl font-bold md:mb-6 md:text-3xl">Koktajle</h1>
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 md:mb-6">
+        <div>
+          <h1 className="text-2xl font-bold md:text-3xl">Koktajle</h1>
+          <p className="mt-1 text-foreground/75 max-md:hidden">Przepisy na każdą okazję: od klasyków po drinki bez alkoholu.</p>
+        </div>
+        <div role="group" aria-label="Widok listy" className="inline-flex rounded-full border border-foreground/30 p-0.5">
+          <button type="button" aria-pressed={discover} disabled={!!name} onClick={() => update(clearAll)} className={`${modeBtn} ${discover ? "bg-primary font-semibold text-on-primary" : "hover:bg-foreground/10"} disabled:opacity-40`}>
+            Odkrywaj
+          </button>
+          <button type="button" aria-pressed={!discover} onClick={() => update({ view: "all" })} className={`${modeBtn} ${!discover ? "bg-primary font-semibold text-on-primary" : "hover:bg-foreground/10"}`}>
+            Wszystkie
+          </button>
+        </div>
+      </div>
+      {name && <p className="-mt-1 mb-3 text-sm text-foreground/75">Szukanie pokazuje wyniki w siatce. Wyczyść wyszukiwanie u góry, żeby wrócić do Odkrywaj.</p>}
 
-      {/* kafelki "Na topie" tylko przy własnym backendzie i tylko na czystej liście (bez filtrów, szukania i ulubionych) */}
-      {source === "own" && page === 1 && !name && !category && !alcoholic && !verified && !ingredient && !by && !glass && !status && !onlyFav && <Featured />}
+      {discover && <Discover categories={categories.data ?? []} source={source} update={update} />}
 
-      <FilterBar
+      {!discover && <FilterBar
         category={category}
         categories={categories.data ?? []}
         alcoholic={alcoholic}
@@ -116,9 +138,9 @@ function Cocktails() {
         own={source === "own"}
         update={update}
         countFor={countFor}
-      />
+      />}
 
-      {noFavs ? (
+      {discover ? null : noFavs ? (
         <p className="py-12 text-center text-foreground/70">Nie masz jeszcze ulubionych koktajli. Kliknij serce na karcie.</p>
       ) : isError ? (
         <div role="alert" className="rounded-xl border border-red-500/40 p-6 text-center">

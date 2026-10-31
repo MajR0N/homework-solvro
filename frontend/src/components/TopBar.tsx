@@ -21,7 +21,11 @@ function useSearch() {
   const pathname = usePathname();
   const sp = useSearchParams();
   const onList = pathname === "/";
-  const [text, setText] = useState(sp.get("q") ?? "");
+  // Pole pokazuje frazę z adresu. Szkic (draft) istnieje tylko podczas pisania: dzięki temu link z ?q=... (np. "Zobacz wszystkie"
+  // w rzędzie tematycznym) albo logo pokazuje i czyści frazę, a pisanie nie jest nadpisywane przez wolniejszy adres.
+  const urlQ = sp.get("q") ?? "";
+  const [draft, setDraft] = useState<string | null>(null);
+  const text = draft ?? urlQ;
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -32,11 +36,17 @@ function useSearch() {
     else router.push(url);
   };
   const change = (value: string) => {
-    setText(value);
+    setDraft(value);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => go({ q: value.trim() }), 300);
   };
-  return { text, change, go, onlyFav: onList && sp.get("fav") === "1" };
+  // wyjście z pola (albo zwinięcie go): zatwierdź to, co wpisano, i wróć do pokazywania adresu
+  const settle = () => {
+    clearTimeout(timer.current);
+    if (draft !== null && draft.trim() !== urlQ) go({ q: draft.trim() });
+    setDraft(null);
+  };
+  return { text, change, settle, go, onlyFav: onList && sp.get("fav") === "1" };
 }
 type Search = ReturnType<typeof useSearch>;
 
@@ -85,12 +95,23 @@ function PhoneBar({ search }: { search: Search }) {
               type="search"
               value={search.text}
               onChange={(e) => search.change(e.target.value)}
-              onKeyDown={(e) => e.key === "Escape" && setExpanded(false)}
+              onBlur={search.settle}
+              onKeyDown={(e) => {
+                if (e.key !== "Escape") return;
+                search.settle();
+                setExpanded(false);
+              }}
               placeholder="Szukaj koktajlu"
               className="h-11 w-full rounded-full border border-current/35 bg-current/10 px-4 text-base placeholder:text-current/75"
             />
           </form>
-          <button type="button" onClick={() => setExpanded(false)} aria-label="Zamknij wyszukiwanie" className={`${icon} hover:bg-white/15`}>
+          <button
+            type="button"
+            onClick={() => {
+              search.settle();
+              setExpanded(false);
+            }}
+            aria-label="Zamknij wyszukiwanie" className={`${icon} hover:bg-white/15`}>
             <XIcon size={22} aria-hidden="true" />
           </button>
         </>
@@ -137,6 +158,7 @@ function DesktopBar({ search }: { search: Search }) {
           type="search"
           value={search.text}
           onChange={(e) => search.change(e.target.value)}
+          onBlur={search.settle}
           placeholder="Szukaj koktajlu"
           className="w-full rounded-full border border-current/35 bg-current/10 px-4 py-2 text-sm placeholder:text-current/75"
         />

@@ -1,11 +1,12 @@
 "use client";
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import Link from "next/link";
 import { Children, useEffect, useId, useRef, useState } from "react";
 
 // Poziomy rząd kart ("rail", decyzja U1): przewija się palcem (telefon) albo strzałkami (od 768 px), a karty przyciągają się
 // do krawędzi (scroll-snap). Strzałka znika, gdy nie ma dokąd przewijać, więc przy kilku kartach nie ma pustych przycisków.
 // Wspólny dla "Na topie" i (w kolejnych krokach) rzędów tematycznych. Wjazd z lekkim zanikaniem wyłącza reguła ograniczonych animacji.
-export default function Rail({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
+export default function Rail({ title, note, href, linkLabel, children }: { title: string; note?: string; href?: string; linkLabel?: string; children: React.ReactNode }) {
   const headingId = useId();
   const list = useRef<HTMLUListElement>(null);
   const [edge, setEdge] = useState({ start: true, end: true });
@@ -44,6 +45,11 @@ export default function Rail({ title, note, children }: { title: string; note?: 
           {title}
         </h2>
         {note && <p className="text-foreground/75">{note}</p>}
+        {href && (
+          <Link href={href} className="ml-auto inline-flex text-sm underline underline-offset-4 hover:text-primary max-md:min-h-11 max-md:items-center">
+            {linkLabel ?? "Zobacz wszystkie"}
+          </Link>
+        )}
       </div>
       <div className="relative">
         <ul
